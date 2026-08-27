@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>PC-88 게임 분석을 위한 기초 강좌 — PC-8801은 어떤 컴퓨터인가</title>
+<style>
+:root{
+  --bg:#f5f7fb;--paper:#fff;--ink:#172033;--muted:#5b6578;--line:#d8deea;
+  --accent:#3157d5;--accent2:#2342a3;--soft:#eef3ff;--ok:#13795b;--warn:#9a6700;
+  --code:#111827;--codeink:#e5e7eb;--shadow:0 12px 30px rgba(23,32,51,.08)
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans KR","Malgun Gothic",sans-serif;line-height:1.75}
+a{color:var(--accent2)}
+header{background:linear-gradient(135deg,#172554,#2746b8);color:#fff;padding:54px 20px 46px}
+.header-inner{max-width:1080px;margin:auto}.eyebrow{font-size:.9rem;letter-spacing:.08em;font-weight:800;opacity:.82}
+h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.13;margin:.35rem 0 .8rem}.lead{max-width:920px;font-size:1.08rem;color:#e3e9ff;margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
+nav.toc{background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:18px;padding:20px 22px;margin-top:-24px;position:relative}
+nav.toc strong{display:block;margin-bottom:8px;font-size:1.15rem}nav.toc ol{margin:0;padding-left:1.4rem;columns:2;column-gap:2rem}nav.toc li{break-inside:avoid;margin:.25rem 0}
+section{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:32px;margin-top:24px;box-shadow:0 6px 18px rgba(23,32,51,.04)}
+h2{font-size:1.75rem;margin:0 0 8px;line-height:1.3}h3{font-size:1.22rem;margin:1.9rem 0 .65rem}h4{font-size:1.05rem;margin:1.3rem 0 .4rem}p{margin:.55rem 0 1rem}
+.kicker{font-weight:800;color:var(--accent);font-size:.92rem}.term{font-weight:800;color:#183c98}.muted{color:var(--muted)}
+.note,.warning,.pc88-note{padding:14px 16px;border-radius:12px;margin:16px 0}.note{background:#f4f7fb;border:1px solid #dce4ef}.warning{background:#fff8e6;border:1px solid #f4d78c}.pc88-note{background:#ecfdf5;border:1px solid #a7f3d0}
+code,kbd{font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}.inline-code{background:#eef1f6;border:1px solid #d9dfe9;border-radius:5px;padding:.06rem .32rem;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+pre{background:var(--code);color:var(--codeink);padding:16px;border-radius:13px;overflow:auto;line-height:1.55}
+table{width:100%;border-collapse:collapse;margin:14px 0 20px;font-size:.96rem}th,td{border:1px solid var(--line);padding:9px 10px;text-align:center}th{background:#f3f6fb}td.left,th.left{text-align:left}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.card{border:1px solid var(--line);border-radius:14px;padding:16px;background:#fbfcfe}.card h4{margin-top:0}
+.flow{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:18px 0}.flow .box{border:2px solid #9fb0e9;background:#f5f7ff;border-radius:12px;padding:13px 18px;text-align:center;min-width:125px;font-weight:800}.arrow{font-size:1.6rem;color:#6b7ab6;font-weight:900}
+.readout{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:#f2f5fa;border-radius:10px;padding:11px 13px;margin-top:10px}.controls{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.btn{border:1px solid #a8b3c6;background:#fff;color:var(--ink);padding:8px 12px;border-radius:9px;font-weight:700;cursor:pointer}.btn.primary{background:#3157d5;color:#fff;border-color:#3157d5}.btn.active{background:#3157d5;color:#fff;border-color:#3157d5}
+.timeline{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}.time-card{border:1px solid var(--line);border-radius:13px;padding:14px;background:#fbfcfe}.time-card b{display:block;color:#2444a8;font-size:1.05rem}.time-card small{display:block;color:var(--muted);margin-top:3px}
+.spec-strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:14px 0}.spec{border:1px solid #c5cee2;border-radius:11px;padding:11px 8px;text-align:center;background:#f8faff}.spec b{display:block;color:#2444a8}.spec small{display:block;color:var(--muted);line-height:1.35}
+.memory-stack{max-width:650px;margin:16px auto}.mem-row{display:grid;grid-template-columns:140px 1fr;border:1px solid var(--line);border-bottom:0}.mem-row:first-child{border-radius:12px 12px 0 0;overflow:hidden}.mem-row:last-child{border-bottom:1px solid var(--line);border-radius:0 0 12px 12px;overflow:hidden}.mem-row .label{background:#f3f6fb;padding:10px;font-weight:800}.mem-row .desc{padding:10px;background:#fff}.mem-row.hot .label,.mem-row.hot .desc{background:#eef3ff}
+.bank-demo{display:grid;grid-template-columns:1fr 70px 1fr;gap:12px;align-items:center;margin:16px 0}.bank-box{border:2px solid #a9b7df;border-radius:13px;padding:15px;background:#f7f9ff;text-align:center}.bank-list{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px}.bank-chip{border:1px solid #b8c4df;border-radius:8px;padding:8px;background:#fff;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.bank-chip.selected{background:#eaf0ff;border-color:#3157d5;color:#2444a8;font-weight:900}
+.plane-demo{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}.plane{border:2px solid #c5cee2;border-radius:12px;padding:14px;text-align:center;background:#f8faff}.plane.active{border-color:#3157d5;background:#eaf0ff}.plane b{display:block}
+.arch{display:grid;grid-template-columns:1fr 90px 1fr;gap:12px;align-items:center;margin:18px 0}.arch-box{border:2px solid #a9b7df;background:#f7f9ff;border-radius:14px;padding:18px;text-align:center}.arch-mid{display:grid;gap:7px}.arch-mid span{border-radius:999px;padding:6px;text-align:center;font-size:.82rem;font-weight:800;background:#eef1f6;border:1px solid #ccd4e3}
+.quiz details{border:1px solid var(--line);border-radius:10px;padding:10px 13px;margin:9px 0;background:#fbfcfe}.quiz summary{cursor:pointer;font-weight:800}.answer{margin-top:8px;color:#334155}
+.refs li{margin:.5rem 0}.refs small{color:var(--muted)}
+footer{max-width:1080px;margin:0 auto 60px;padding:0 20px;color:var(--muted);font-size:.9rem}
+@media(max-width:900px){.timeline{grid-template-columns:repeat(2,1fr)}.spec-strip{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){nav.toc ol{columns:1}.grid2,.grid3,.bank-demo,.arch{grid-template-columns:1fr}.plane-demo{grid-template-columns:repeat(2,1fr)}.timeline{grid-template-columns:1fr}.spec-strip{grid-template-columns:repeat(2,1fr)}section{padding:23px 18px}.bank-demo>.arrow{transform:rotate(90deg)}.mem-row{grid-template-columns:105px 1fr}}
+@media print{body{background:#fff}header{background:#fff;color:#000;padding:20px 0}.lead{color:#333}.wrap{padding:0}.toc,section{box-shadow:none;break-inside:avoid}button{display:none}.no-print{display:none}}
+
+.beginner{background:#f8fbff;border:1px solid #c9d8ff;border-left:5px solid #3157d5;border-radius:12px;padding:15px 17px;margin:16px 0}
+.beginner b:first-child{color:#183c98}
+.why{background:#fffdf3;border:1px solid #eadb9a;border-left:5px solid #c58a00;border-radius:12px;padding:15px 17px;margin:16px 0}
+.misconception{background:#fff5f5;border:1px solid #f0c7c7;border-left:5px solid #c73b3b;border-radius:12px;padding:15px 17px;margin:16px 0}
+.step-list{counter-reset:steps;display:grid;gap:10px;margin:16px 0}.step{counter-increment:steps;border:1px solid var(--line);background:#fbfcfe;border-radius:12px;padding:13px 15px 13px 52px;position:relative}.step:before{content:counter(steps);position:absolute;left:14px;top:13px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#3157d5;color:#fff;font-weight:900;font-size:.85rem}.step b{color:#243d91}
+.addr-map{max-width:760px;margin:16px auto;border:1px solid var(--line);border-radius:14px;overflow:hidden}.addr-line{display:grid;grid-template-columns:105px 1fr 105px;align-items:stretch;border-bottom:1px solid var(--line)}.addr-line:last-child{border-bottom:0}.addr-line>div{padding:11px 13px}.addr-line .range{background:#f3f6fb;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:900}.addr-line .meaning{background:#fff}.addr-line .size{background:#f8faff;text-align:center;color:var(--muted);font-weight:800}.addr-line.hot .meaning{background:#eef3ff}.addr-line.bank .meaning{background:#ecfdf5}
+.compare-arrow{text-align:center;font-size:1.7rem;color:#6b7ab6;font-weight:900;margin:.25rem 0}
+.mini-title{font-weight:900;color:#263a78;margin:1.2rem 0 .45rem}.formula{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:900;background:#eef3ff;border:1px solid #cad6f8;border-radius:10px;padding:12px 14px;text-align:center;margin:12px 0}.caption{font-size:.9rem;color:var(--muted);margin-top:-8px}.keypoint{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}.keypoint>div{border:1px solid var(--line);border-radius:12px;padding:13px;background:#fff}.keypoint b{display:block;color:#2444a8;margin-bottom:3px}.checklist{margin:12px 0 18px;padding:0;list-style:none}.checklist li{position:relative;padding-left:27px;margin:7px 0}.checklist li:before{content:'✓';position:absolute;left:0;top:0;color:#13795b;font-weight:900}.glossary{display:grid;grid-template-columns:150px 1fr;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:14px 0}.glossary>div{padding:10px 12px;border-bottom:1px solid var(--line)}.glossary>div:nth-last-child(-n+2){border-bottom:0}.glossary .gterm{font-weight:900;background:#f3f6fb;color:#2444a8}.glossary .gdesc{background:#fff}
+@media(max-width:760px){.keypoint{grid-template-columns:1fr}.addr-line{grid-template-columns:82px 1fr}.addr-line .size{display:none}.glossary{grid-template-columns:110px 1fr}}
+</style>
+</head>
+<body>
+<header>
+<div class="header-inner">
+<div class="eyebrow">PC-88 GAME ANALYSIS · FOUNDATION 01</div>
+<h1>PC-88 게임 분석을 위한 기초 강좌 1부</h1>
+<p class="lead">PC-8801이 어떤 컴퓨터였는지부터 시작해 세대별 변화가 왜 생겼는지, 64KiB 주소 공간에서 192KB RAM을 왜 32KB bank로 나누어 쓰는지, ROM·RAM mapping과 GVRAM·KANJI ROM·사운드·FDD SUB 시스템이 실제 게임에서 어떻게 연결되는지를 초보자도 따라갈 수 있도록 단계별로 설명합니다.</p>
+</div>
+</header>
+<main class="wrap">
+<nav aria-label="목차" class="toc">
+<strong>목차</strong>
+<ol>
+<li><a href="#map">먼저 전체 구조 보기</a></li>
+<li><a href="#what">1. PC-88은 어떤 컴퓨터인가</a></li>
+<li><a href="#early">2. PC-8801과 mkII</a></li>
+<li><a href="#sr">3. mkIISR — 중요한 전환점</a></li>
+<li><a href="#models">4. 후기 모델은 무엇이 달라졌나</a></li>
+<li><a href="#memory-types">5. PC-88의 메모리 종류</a></li>
+<li><a href="#expanded">6. 확장 RAM과 192KB의 의미</a></li>
+<li><a href="#mapping">7. 64KiB 주소 공간과 memory mapping</a></li>
+<li><a href="#video">8. GVRAM·Text 화면·CRTC</a></li>
+<li><a href="#kanji">9. KANJI ROM과 문자 출력</a></li>
+<li><a href="#sound">10. 사운드의 발전</a></li>
+<li><a href="#disk">11. FDD SUB 시스템</a></li>
+<li><a href="#connect">12. 실제 한글화 흐름으로 연결하기</a></li>
+<li><a href="#quiz">확인 문제</a></li>
+
+</ol>
+</nav>
+<section id="map">
+<div class="kicker">전체 구조</div>
+<h2>PC-88 게임을 분석하기 전에 먼저 ‘기계 전체’를 본다</h2>
+<p>0부에서는 CPU, RAM, address, I/O 같은 일반적인 컴퓨터 개념을 배웠습니다. 1부에서는 그 개념을 실제 <b>PC-8801</b>에 하나씩 대응시킵니다. 여기서 가장 먼저 버려야 할 생각은 “게임은 CPU가 디스크에서 바로 읽어서 화면에 보여 준다”는 단순한 그림입니다. 실제 PC-88 안에는 여러 종류의 메모리와 화면 장치, 별도의 디스크 서브시스템이 있고, 게임 데이터는 그 사이를 단계적으로 이동합니다.</p>
+<div aria-label="PC-88 게임 데이터 흐름" class="flow">
+<div class="box">Floppy Disk</div><div class="arrow">→</div>
+<div class="box">FDD SUB</div><div class="arrow">→</div>
+<div class="box">Main RAM</div><div class="arrow">→</div>
+<div class="box">MAIN CPU</div><div class="arrow">→</div>
+<div class="box">문자·그래픽 처리</div><div class="arrow">→</div>
+<div class="box">Text / GVRAM</div>
+</div>
+<div class="beginner"><b>초보자가 먼저 기억할 한 문장:</b> PC-88 게임 분석은 “어떤 byte가 어디에 있는가”만 찾는 작업이 아니라, <b>그 byte가 디스크에서 어디로 읽혀 왔고, 현재 어떤 메모리 bank가 보이며, 어떤 코드가 그것을 해석하고, 어떤 화면 메모리에 결과를 쓰는가</b>를 연결하는 작업입니다.</div>
+<h3>이 강좌에서 앞으로 계속 구분할 세 가지 ‘좌표’</h3>
+<div class="grid3">
+<div class="card"><h4>디스크의 위치</h4><p>D88 파일 offset이나 track/sector처럼 <b>플로피 안에서의 위치</b>입니다.</p></div>
+<div class="card"><h4>CPU의 주소</h4><p><span class="inline-code">0000h~FFFFh</span>처럼 Z80이 현재 접근하는 <b>논리 주소</b>입니다.</p></div>
+<div class="card"><h4>실제 하드웨어</h4><p>그 주소 뒤에 현재 연결된 것이 Main RAM인지 ROM인지 GVRAM인지 Expanded RAM인지가 따로 존재합니다.</p></div>
+</div>
+<div class="pc88-note"><b>이 강좌의 기준:</b> 특별한 언급이 없다면 이후 설명은 게임 분석에서 가장 자주 기준점으로 삼는 <b>PC-8801mkIISR 이후 V2 계열</b>을 중심으로 합니다. 단, 모델별 차이가 분석에 영향을 주는 경우에는 어느 세대에서 달라지는지 함께 표시합니다.</div>
+</section>
+<section id="what">
+<div class="kicker">PC-8801 계열</div>
+<h2>1. PC-88은 어떤 컴퓨터인가</h2>
+<h3>1-1. ‘PC-88’은 한 대의 컴퓨터 이름이 아니다</h3>
+<p><span class="term">PC-88</span>이라는 말은 보통 NEC의 <b>PC-8801 계열</b>을 통칭합니다. 초대 PC-8801은 1981년 12월 출하되었고, 이후 1980년대 말까지 여러 후속 모델이 나왔습니다. 따라서 “PC-88 사양은 이것이다”라고 한 줄로 말하기 어렵습니다. 기본 구조는 이어지지만 CPU 속도, RAM, FDD, 사운드, 한자 ROM, 확장 슬롯, 화면 기능 등이 세대마다 달라졌기 때문입니다.</p>
+<div class="spec-strip">
+<div class="spec"><b>1981</b><small>초대 PC-8801</small></div>
+<div class="spec"><b>4MHz</b><small>μPD780C-1</small></div>
+<div class="spec"><b>64KB</b><small>표준 RAM</small></div>
+<div class="spec"><b>48KB</b><small>GVRAM</small></div>
+<div class="spec"><b>4 slots</b><small>초기 기종의 확장 슬롯</small></div>
+<div class="spec"><b>Sound</b><small>초기 기종은 옵션</small></div>
+</div>
+<h3>1-2. 8비트 컴퓨터라는 말은 무엇을 뜻하나</h3>
+<p>PC-8801의 메인 CPU는 Z80 계열입니다. 여기서 “8비트 컴퓨터”라는 표현은 단순히 RAM이 8비트라는 뜻이 아닙니다. Z80은 기본적인 데이터 처리 단위가 8bit이고 A, B, C 같은 주요 범용 register도 8bit입니다. 반면 주소를 다룰 때는 HL, DE, BC, PC, SP 같은 16bit 값을 사용하므로 <span class="inline-code">0000h~FFFFh</span>의 64KiB 논리 주소 공간을 표현할 수 있습니다.</p>
+<div class="beginner"><b>0부와 연결:</b> 0부에서 “8bit 값”과 “16bit address”를 따로 배운 이유가 여기서 드러납니다. PC-88의 Z80은 8bit 데이터를 주로 처리하지만, 메모리 위치를 가리킬 때는 16bit 주소를 사용합니다.</div>
+<h3>1-3. 당시 일본 PC는 서로 호환되는 하나의 표준이 아니었다</h3>
+<p>오늘날의 PC처럼 “어느 회사 컴퓨터를 사도 같은 Windows 프로그램을 실행한다”는 식으로 생각하면 안 됩니다. 1980년대 일본의 개인용 컴퓨터 시장에는 NEC PC-88, Sharp X1, Fujitsu FM 계열 등 서로 다른 하드웨어가 공존했습니다. 같은 게임도 각 기종에 맞춰 별도 이식판이 나오는 경우가 많았고, 화면 방식과 음원, 디스크 형식, CPU까지 달랐습니다.</p>
+<div class="why"><b>왜 한글화에서 중요한가?</b> “같은 게임의 다른 기종판에 대사가 있으니 PC-88판도 같은 위치겠지”라고 생각하면 안 됩니다. 게임의 내용은 같아도 <b>데이터 배치와 출력 엔진은 기종별 하드웨어에 맞게 완전히 다를 수 있습니다.</b></div>
+<h3>1-4. 이름이 비슷한 PC-8001, PC-9801, PC-88VA</h3>
+<table>
+<thead><tr><th>이름</th><th class="left">관계</th><th class="left">강좌에서의 취급</th></tr></thead>
+<tbody>
+<tr><td>PC-8001</td><td class="left">PC-8801보다 앞선 NEC 8비트 계열. PC-88 초기 모델에는 호환을 고려한 N mode가 존재합니다.</td><td class="left">호환 모드를 설명할 때만 등장</td></tr>
+<tr><td><b>PC-8801</b></td><td class="left">이 강좌의 주 대상인 8비트 계열</td><td class="left"><b>주 대상</b></td></tr>
+<tr><td>PC-9801</td><td class="left">NEC의 별도 16비트 계열. 이름은 비슷하지만 PC-88과 같은 기계가 아닙니다.</td><td class="left">별도 플랫폼</td></tr>
+<tr><td>PC-88VA</td><td class="left">V50 계열 16비트 CPU와 V3 mode를 가진 상위 계열. 기존 PC-8801 호환 기능도 있지만 단순한 “다음 PC-8801”로 보면 안 됩니다.</td><td class="left">별도 계열로 구분</td></tr>
+</tbody>
+</table>
+<div class="misconception"><b>오해 방지:</b> 이 강좌에서 “PC-88”이라고 할 때는 원칙적으로 <b>PC-8801 계열</b>을 뜻합니다. PC-88VA는 필요할 때 따로 구분해서 설명합니다.</div>
+</section>
+<section id="early">
+<div class="kicker">초기 세대</div>
+<h2>2. PC-8801과 mkII — 기본 구조와 디스크의 정착</h2>
+<h3>2-1. 초대 PC-8801에서 이미 64KB RAM과 48KB GVRAM을 갖고 있었다</h3>
+<p>초대 PC-8801의 표준 Main RAM은 64KB, 그래픽용 GVRAM은 48KB였습니다. 이 두 숫자를 합쳐 “112KB RAM”이라고 이해하면 안 됩니다. Main RAM은 CPU가 프로그램과 일반 데이터를 처리하는 작업 공간이고, GVRAM은 화면 그래픽을 저장하기 위한 별도 메모리입니다. 역할과 접근 방법이 다릅니다.</p>
+<div class="grid2">
+<div class="card"><h4>Main RAM 64KB</h4><p>게임의 코드, 변수, 디스크에서 읽어 온 데이터, 임시 작업 영역 등 일반 프로그램이 사용하는 RAM입니다.</p></div>
+<div class="card"><h4>GVRAM 48KB</h4><p>화면에 표시할 그래픽 정보를 보관하는 별도 메모리입니다. 나중에 Blue/Red/Green plane으로 나누어 설명합니다.</p></div>
+</div>
+<h3>2-2. 그런데 공식 사양에는 최대 576KB라고 적혀 있다</h3>
+<p>여기서 초보자가 바로 혼란을 느낄 수 있습니다. “표준 RAM은 64KB인데 최대 사용자 메모리가 576KB라면 Z80은 576KB 주소를 어떻게 쓰는가?”라는 의문입니다. 답은 <b>bank switching</b>입니다. 추가 메모리를 장착할 수는 있지만, Z80의 16bit 주소 자체가 19bit나 20bit로 늘어나는 것은 아닙니다. 필요한 추가 RAM의 일부를 현재 64KiB 주소 공간 안에 <b>창(window)</b>처럼 연결해서 사용합니다.</p>
+<div class="beginner"><b>아직 여기서는 구조만 기억:</b> “메모리를 더 꽂는다”와 “CPU 주소 범위가 늘어난다”는 서로 다른 이야기입니다. 이 차이를 6장과 7장에서 그림으로 자세히 풉니다.</div>
+<h3>2-3. 초기 기종에는 한자와 사운드도 지금 생각하는 ‘기본 기능’이 아니었다</h3>
+<p>초대 PC-8801의 NEC 공식 사양에서 한자 기능과 사운드는 옵션으로 기록되어 있습니다. 즉 후대 PC-88 게임에서 자연스럽게 보는 FM 음악과 한자 출력 환경을 초기 기종까지 그대로 거슬러 올라가 적용하면 안 됩니다. PC-88 계열은 시간이 지나며 “게임에 필요한 기능”이 점차 기본 사양으로 들어온 플랫폼입니다.</p>
+<h3>2-4. PC-8801mkII에서 FDD가 본체 안으로 들어온다</h3>
+<p>1983년의 PC-8801mkII는 CPU 4MHz, Main RAM 64KB, GVRAM 48KB라는 기본 틀을 유지하면서 5인치 2D FDD를 본체에 넣은 모델을 제공했습니다. 여기서 중요한 것은 “플로피라는 저장장치가 새로 발명됐다”가 아니라, <b>디스크 기반 소프트웨어를 쓰기 편한 본체 구성이 정착하기 시작했다</b>는 점입니다.</p>
+<div class="flow">
+<div class="box">초대 PC-8801<br/><small>기본 구조 확립</small></div><div class="arrow">→</div>
+<div class="box">PC-8801mkII<br/><small>내장 FDD 모델</small></div><div class="arrow">→</div>
+<div class="box">PC-8801mkIISR<br/><small>그래픽·사운드 대폭 강화</small></div>
+</div>
+<h3>2-5. Model 10 / 20 / 30은 무엇인가</h3>
+<p>같은 기종인데도 자료에서 <span class="inline-code">model10</span>, <span class="inline-code">model20</span>, <span class="inline-code">model30</span>처럼 여러 이름을 볼 수 있습니다. 이 시기의 여러 PC-88 모델에서는 주로 <b>내장 FDD 수</b>가 구성을 가르는 기준이었습니다. SR의 NEC 사양을 예로 들면 model10은 내장 FDD가 없고, model20은 1대, model30은 2대입니다.</p>
+<table><thead><tr><th>예</th><th>내장 FDD</th><th class="left">초보자가 기억할 점</th></tr></thead><tbody>
+<tr><td>model10</td><td>없음</td><td class="left">본체의 핵심 CPU/RAM 세대가 다른 것이 아니라 장착 구성이 다를 수 있음</td></tr>
+<tr><td>model20</td><td>1대</td><td class="left">드라이브 1개로 구성</td></tr>
+<tr><td>model30</td><td>2대</td><td class="left">드라이브 2개로 구성</td></tr>
+</tbody></table>
+<div class="why"><b>자료를 읽을 때:</b> 어느 사이트에서 “PC-8801mkIISR은 FDD 2대”라고 하고 다른 곳에서는 “FDD 없음”이라고 해도 둘 중 하나가 반드시 틀린 것이 아닙니다. <b>같은 SR이라도 model10/20/30이 다르기 때문</b>입니다.</div>
+</section>
+<section id="sr">
+<div class="kicker">1985 · 전환점</div>
+<h2>3. PC-8801mkIISR — 왜 PC-88 게임의 기준점이 되는가</h2>
+<p>1985년 1월의 <span class="term">PC-8801mkIISR</span>은 PC-88 게임사를 이해할 때 매우 중요한 전환점입니다. NEC 공식 사양상 메인 CPU는 여전히 4MHz이고 Main RAM도 64KB, GVRAM도 48KB입니다. 숫자만 보면 초대 PC-8801과 비슷해 보입니다. 그러나 실제로는 <b>화면 모드, 팔레트, GVRAM 접근, 텍스트 처리, FM 음원</b>이 크게 강화됐습니다.</p>
+<h3>3-1. “사양표의 MHz만 보면 안 된다”는 첫 사례</h3>
+<p>초대 PC-8801과 SR의 CPU clock이 모두 4MHz라고 해서 두 기종의 실제 동작 환경이 같다는 뜻은 아닙니다. CPU가 같은 속도로 명령을 실행하더라도, 화면 메모리에 접근하는 방식이나 전용 하드웨어가 달라지면 프로그램이 해야 하는 일이 줄어들거나 특정 작업을 더 효율적으로 처리할 수 있습니다.</p>
+<div class="grid2">
+<div class="card"><h4>초기 PC-8801</h4><p>4MHz CPU. 초기 화면·메모리 구조를 사용합니다.</p></div>
+<div class="card"><h4>mkIISR</h4><p>CPU는 4MHz지만 High-speed TVRAM, 확장된 GVRAM 접근, Graphics ALU, V2 palette, FM 음원 등이 추가됩니다.</p></div>
+</div>
+<div class="why"><b>핵심:</b> “CPU clock = 컴퓨터 전체 성능”이 아닙니다. 같은 4MHz라도 CPU 주변의 메모리와 화면 하드웨어가 바뀌면 게임이 체감하는 환경이 달라질 수 있습니다.</div>
+<h3>3-2. N, V1, V2는 왜 있는가</h3>
+<p>컴퓨터가 발전하면 새 기능을 쓰고 싶지만, 기존 소프트웨어도 계속 실행되어야 합니다. 그래서 PC-88 계열에는 세대 호환을 위한 여러 mode가 존재합니다. 입문 단계에서는 다음처럼 이해하면 충분합니다.</p>
+<table><thead><tr><th>Mode</th><th class="left">무엇을 위한 것인가</th><th class="left">게임 분석에서의 의미</th></tr></thead><tbody>
+<tr><td>N</td><td class="left">PC-8001 계열과의 하위 호환을 고려한 mode. SR까지 존재하고 FR/MR부터는 빠집니다.</td><td class="left">아주 오래된 소프트를 다룰 때만 주로 신경 씀</td></tr>
+<tr><td>V1</td><td class="left">기존 PC-8801 계열 호환을 중심으로 한 mode</td><td class="left">V1S/V1H 같은 속도 조건도 자료에서 볼 수 있음</td></tr>
+<tr><td><b>V2</b></td><td class="left">SR에서 도입된 확장 그래픽 환경. 아날로그 RGB 팔레트와 SR 이후 기능을 사용</td><td class="left"><b>후기 PC-88 게임 분석의 대표 기준</b></td></tr>
+</tbody></table>
+<h3>3-3. V1S와 V1H는 또 무엇인가</h3>
+<p>SR 이후 자료나 에뮬레이터 설정에서 <span class="inline-code">V1S</span>, <span class="inline-code">V1H</span>를 보게 됩니다. 같은 V1이라도 standard/high-speed 조건이 구분됩니다. I/O 자료의 mode sense에는 V1/V2와 high-speed 상태가 따로 존재하고, High-speed TVRAM은 V1H/V2에서 사용할 수 있습니다.</p>
+<div class="glossary">
+<div class="gterm">V1S</div><div class="gdesc">V1의 standard-speed 쪽 환경으로 이해하면 됩니다.</div>
+<div class="gterm">V1H</div><div class="gdesc">V1 호환성을 유지하면서 high-speed 쪽 메모리 동작을 사용하는 환경입니다.</div>
+<div class="gterm">V2</div><div class="gdesc">SR 이후 확장 그래픽·팔레트와 high-speed 환경을 사용하는 대표 mode입니다.</div>
+</div>
+<div class="misconception"><b>주의:</b> 여기서 “high-speed”를 곧바로 “CPU가 8MHz”라고 해석하면 안 됩니다. SR의 CPU는 4MHz입니다. FH/MH에서 등장하는 8MHz CPU mode와는 다른 층의 이야기입니다.</div>
+<h3>3-4. 512색이라는 말은 512색을 동시에 보여 준다는 뜻이 아니다</h3>
+<p>V2의 대표적인 특징 중 하나가 아날로그 RGB palette입니다. 흔히 “512색”이라고 쓰지만, 대표적인 V2 컬러 화면은 <b>512가지 후보색 중 palette에 선택한 8색을 사용</b>하는 방식입니다. “512색 중 8색”과 “512색 동시 표시”는 전혀 다른 의미입니다.</p>
+<div class="beginner"><b>비유:</b> 큰 색연필 상자에 512가지 색이 있지만, 지금 책상 위에 올려놓고 동시에 쓰는 펜은 8개라고 생각하면 됩니다. palette를 바꾸면 그 8개의 선택을 다른 색으로 바꿀 수 있습니다.</div>
+<h3>3-5. SR에서 사운드가 게임 플랫폼의 중요한 기본 기능이 된다</h3>
+<p>SR의 NEC 공식 사양에는 <b>FM 3음 + SSG 3음</b>이 기본 기능으로 들어갑니다. 초기 기종처럼 사운드를 옵션으로만 생각하는 시대와 달리, 게임 제작자가 FM 음원을 전제로 음악을 구성할 수 있는 기반이 마련된 것입니다. 이후 Sound Board II 계열에서 다시 한 번 크게 확장됩니다.</p>
+<div class="pc88-note"><b>왜 이 강좌가 SR 이후를 기준으로 하나?</b> 후기 PC-88 게임에서 자주 만나는 V2 화면, FM 음원, 고속 텍스트 RAM, 확장된 GVRAM 접근 같은 요소가 SR을 기준으로 본격화되기 때문입니다.</div>
+</section>
+<section id="models">
+<div class="kicker">세대별 변화</div>
+<h2>4. 후기 모델은 무엇이 달라졌나 — 모델명을 외우지 말고 ‘변화의 축’을 본다</h2>
+<p>후기 PC-88을 이해할 때 가장 나쁜 학습법은 모델명을 연도순으로 외우기만 하는 것입니다. 한글화와 역분석에서 필요한 것은 <b>어느 세대부터 CPU, RAM, FDD, 사운드, 한자 ROM, 확장 슬롯이 달라지는지</b>입니다. 같은 게임이라도 이 차이에 따라 실행 조건이나 사용할 수 있는 하드웨어가 달라질 수 있습니다.</p>
+<div class="timeline">
+<div class="time-card"><b>1985 · FR / MR</b><small>SR 계승. MR은 192KB RAM과 2D/2HD FDD.</small></div>
+<div class="time-card"><b>1986 · FH / MH</b><small>8MHz/4MHz 전환 CPU. MH는 192KB·2HD.</small></div>
+<div class="time-card"><b>1987 · FA / MA</b><small>강화 음원. MA는 192KB·2HD.</small></div>
+<div class="time-card"><b>1988~89</b><small>FE·MA2·FE2·MC. 보급형/상위형 분화와 최종 세대.</small></div>
+</div>
+<h3>4-1. F 계열과 M 계열을 비교하면 후기 구조가 보인다</h3>
+<p>FR/MR, FH/MH, FA/MA처럼 비슷한 시기에 <b>F와 M</b>이 짝으로 등장하는 경우가 있습니다. 모든 세부를 모델명의 한 글자로 단정할 수는 없지만, 실제 사양을 보면 M 계열이 대체로 더 많은 RAM과 2HD FDD를 갖는 상위 구성입니다.</p>
+<table>
+<thead><tr><th>세대</th><th>F 계열</th><th>M 계열</th><th class="left">중요한 차이</th></tr></thead>
+<tbody>
+<tr><td>1985</td><td>FR · 64KB</td><td><b>MR · 192KB</b></td><td class="left">MR은 128KB Expanded RAM 내장, 2D/2HD FDD</td></tr>
+<tr><td>1986</td><td>FH · 64KB</td><td><b>MH · 192KB</b></td><td class="left">둘 다 8/4MHz, MH는 128KB Expanded RAM과 2HD</td></tr>
+<tr><td>1987</td><td>FA · 64KB</td><td><b>MA · 192KB</b></td><td class="left">강화 음원은 공통, MA는 Expanded RAM과 2HD</td></tr>
+</tbody>
+</table>
+<h3>4-2. MR — “표준 RAM 192KB”가 등장한다</h3>
+<p>PC-8801mkIIMR의 NEC 공식 사양은 표준 RAM을 192KB로 기록합니다. 이것은 192KB가 Z80 주소 공간에 한 줄로 펼쳐졌다는 뜻이 아닙니다. <b>Main RAM 64KB + Expanded RAM 128KB</b>로 이해해야 합니다. 이 128KB는 32KB짜리 bank 네 개로 나누어 선택해서 접근합니다. 6장에서 이 구조를 천천히 설명합니다.</p>
+<h3>4-3. FH / MH — CPU가 실제로 8MHz와 4MHz를 전환한다</h3>
+<p>FH와 MH에서는 CPU가 <b>8MHz/4MHz 전환</b>을 지원합니다. 여기서 처음으로 앞에서 말한 SR의 “high-speed memory 환경”과 <b>CPU clock 자체의 8MHz화</b>를 구분해야 합니다. 오래된 소프트웨어의 timing을 맞추기 위해 4MHz mode도 유지됩니다.</p>
+<div class="why"><b>역분석에서 왜 중요한가?</b> 어떤 게임이 단순 loop 횟수로 시간을 맞추거나 특정 기종 timing을 가정하면 4MHz/8MHz 설정에 따라 속도가 달라질 수 있습니다. 에뮬레이터에서 CPU clock 설정을 무심코 바꾸면 게임 동작 자체가 달라지는 이유입니다.</div>
+<h3>4-4. FA / MA — 사운드가 다시 크게 확장된다</h3>
+<p>FA/MA 세대의 공식 사양에는 FM 6음, Rhythm 6음, SSG 3음, ADPCM이 기록되어 있고, Sound RAM 256KB도 존재합니다. 여기서 <b>Sound RAM 256KB는 Main RAM과 같은 일반 작업 RAM이 아닙니다.</b> ADPCM 등 사운드 기능을 위한 별도 메모리입니다.</p>
+<div class="formula">MA의 예: Main RAM 64KB + Expanded RAM 128KB + GVRAM 48KB + Sound RAM 256KB …</div>
+<p class="caption">이 숫자를 전부 더해서 “Z80이 직접 한꺼번에 쓸 수 있는 RAM”이라고 계산하면 안 됩니다. 메모리마다 역할과 접근 경로가 다릅니다.</p>
+<h3>4-5. FE / FE2가 64KB라고 해서 시대를 거꾸로 간 것은 아니다</h3>
+<p>후기에는 보급형과 상위형이 나뉩니다. FE/FE2는 표준 RAM 64KB의 보급형 성격이고, MA2/MC 같은 상위형은 192KB RAM과 더 많은 기능을 유지합니다. 따라서 “연도가 늦을수록 RAM 숫자가 무조건 커진다”라는 단순한 발전표로 보면 안 됩니다.</p>
+<p>그리고 FE와 FE2는 RAM 용량은 둘 다 64KB이지만 CPU가 Main RAM을 읽고 쓰는 조건까지 완전히 같은 것은 아닙니다. NEC의 FE2 사양에는 CPU 항목에 <b>Main Memory Access No-Wait</b>가 따로 명시되어 있습니다. 이 표현을 이해하려면 먼저 <b>wait state</b>가 무엇인지 알아야 합니다.</p>
+
+<h3>4-6. Main Memory Access No-Wait — CPU가 RAM을 기다리지 않는다는 뜻</h3>
+<p>CPU와 RAM은 항상 똑같은 속도로 움직이는 것이 아닙니다. CPU가 메모리 주소를 내보내고 “이 주소의 값을 읽겠다”라고 요청하면 RAM은 그 주소의 데이터를 준비해서 CPU에 돌려줘야 합니다. 그런데 CPU가 다음 동작으로 넘어가야 하는 순간까지 RAM이 값을 준비하지 못했다면 어떻게 해야 할까요? CPU가 그대로 진행하면 아직 준비되지 않은 잘못된 값을 읽을 수 있습니다.</p>
+<div class="flow">
+<div class="box">CPU<br><small>메모리 읽기 요청</small></div><div class="arrow">→</div>
+<div class="box">Main RAM<br><small>데이터 준비</small></div><div class="arrow">→</div>
+<div class="box">CPU<br><small>값을 받아 다음 명령 계속</small></div>
+</div>
+<p>이때 하드웨어는 CPU에게 잠깐 기다리라는 신호를 줄 수 있습니다. Z80에서는 이것이 <b>WAIT</b> 신호이고, CPU가 추가로 기다리는 한 단계를 <b>wait state</b>라고 부릅니다. Z80 자체도 메모리 read/write cycle 중 WAIT 신호를 받아 필요한 만큼 동작을 늘릴 수 있도록 설계되어 있습니다.</p>
+
+<div class="grid2">
+<div class="card"><h4>WAIT가 필요한 경우</h4><p>CPU가 메모리에 접근했지만 메모리나 주변 회로가 아직 준비되지 않았습니다.</p><div class="formula">CPU 동작 → WAIT → 데이터 준비 → 계속</div><p>즉 CPU clock은 8MHz여도 메모리 접근 때 중간에 기다리는 시간이 들어갈 수 있습니다.</p></div>
+<div class="card"><h4>No-Wait인 경우</h4><p>Main RAM이 CPU가 요구하는 timing 안에 데이터를 준비할 수 있어 추가 wait state를 넣지 않습니다.</p><div class="formula">CPU 동작 → 데이터 준비 → 바로 계속</div><p>같은 8MHz CPU라도 Main RAM 접근에서 기다림이 없다면 실제 프로그램 실행이 더 효율적일 수 있습니다.</p></div>
+</div>
+
+<h4>CPU가 8MHz라는 말과 No-Wait는 같은 뜻이 아니다</h4>
+<p><b>8MHz</b>는 CPU의 기본 clock 속도를 말합니다. 반면 <b>No-Wait</b>는 CPU가 Main RAM에 접근할 때 추가 대기 시간을 넣지 않는다는 뜻입니다. 따라서 두 기종이 모두 8MHz라고 적혀 있어도 메모리 접근 조건이 다르면 실제 실행 timing은 완전히 같다고 단정할 수 없습니다.</p>
+<table>
+<thead><tr><th>표현</th><th class="left">뜻</th></tr></thead>
+<tbody>
+<tr><td>CPU 8MHz</td><td class="left">CPU가 동작하는 기본 clock 주파수</td></tr>
+<tr><td>1 WAIT</td><td class="left">메모리 접근 cycle 중 CPU가 추가로 한 번 기다리는 상태가 들어감</td></tr>
+<tr><td>Main Memory Access No-Wait</td><td class="left">Main RAM 접근에서는 추가 wait state 없이 CPU가 정해진 memory cycle을 계속 진행함</td></tr>
+</tbody>
+</table>
+
+<h4>아주 단순한 예로 비교해 보자</h4>
+<p>아래 숫자는 실제 PC-88의 모든 명령 timing을 재현한 계산이 아니라, <b>wait state가 무엇인지 이해하기 위한 개념 예</b>입니다.</p>
+<pre>어떤 메모리 읽기에 기본적으로 3개의 시간 단위가 필요하다고 가정
+
+No-Wait
+T1 → T2 → T3 → 다음 동작
+
+1 WAIT
+T1 → T2 → TW(기다림) → T3 → 다음 동작
+
+CPU clock 자체는 같아도
+메모리를 자주 읽고 쓰는 프로그램에서는 WAIT가 반복해서 누적될 수 있다.</pre>
+<div class="warning"><b>주의:</b> “No-Wait = PC-88의 모든 장치가 기다림 없이 동작한다”는 뜻이 아닙니다. NEC가 FE2와 MC에서 명시한 표현은 <b>Main Memory Access</b> No-Wait입니다. GVRAM, I/O port, FDD, sound hardware처럼 다른 장치의 접근 timing까지 모두 같은 조건이라는 뜻으로 확대해서 이해하면 안 됩니다.</div>
+<div class="beginner"><b>초보자가 기억할 한 문장:</b> <b>8MHz는 CPU가 얼마나 빠른가를 말하고, Main Memory Access No-Wait는 그 CPU가 Main RAM을 사용할 때 중간에 추가로 기다리지 않아도 된다는 뜻입니다.</b></div>
+<div class="why"><b>역분석에서 왜 중요한가?</b> 게임의 delay loop, 화면 갱신, 복사 routine처럼 실행 시간에 민감한 코드를 볼 때는 CPU clock만 보고 속도를 판단하면 부족할 수 있습니다. 같은 8MHz 계열이라도 memory wait 조건이 다르면 실제 명령 실행에 걸리는 시간이 달라질 수 있기 때문입니다. 특히 emulator에서 기종을 바꾸거나 timing 문제를 확인할 때 이런 차이를 알고 있어야 합니다.</div>
+
+<h3>4-7. MC — PC-8801 계열의 말기</h3>
+<p>1989년의 PC-8801MC는 표준 RAM 192KB, GVRAM 48KB, Sound RAM 256KB, 2D/2HD FDD를 갖고 있으며 model2에는 CD-ROM drive가 들어갑니다. CPU는 8MHz/4MHz이고 공식 사양에는 FE2와 마찬가지로 <b>Main Memory Access No-Wait</b>가 명시됩니다. 따라서 MC의 8MHz를 앞선 8MHz 모델과 단순히 숫자만 같은 것으로 보면 안 되고, Main RAM 접근 조건까지 함께 봐야 합니다.</p>
+<h3>4-8. 모델 변화는 여섯 축으로 기억한다</h3>
+<div class="keypoint">
+<div><b>CPU</b>4MHz → 8/4MHz → 후기 no-wait 개선</div>
+<div><b>RAM</b>64KB → M 계열 192KB(64+128)</div>
+<div><b>Disk</b>2D → M 계열 2D/2HD → MC의 CD-ROM</div>
+<div><b>Graphics</b>SR에서 V2·palette·GVRAM 접근 강화</div>
+<div><b>Sound</b>옵션 → OPN급 기본 → Sound Board II/OPNA급 강화</div>
+<div><b>Kanji</b>옵션 → 제1수준 기본 → 상위/후기 제2수준까지 기본</div>
+</div>
+<div class="beginner"><b>모델명을 외우는 방법:</b> FR/MR, FH/MH, FA/MA 이름을 외우기보다 “F는 64KB 쪽, M은 192KB·2HD 쪽”, “H 세대에서 8MHz”, “A 세대에서 강화 음원”처럼 <b>변화의 이유</b>를 함께 기억하면 훨씬 오래 남습니다.</div>
+</section>
+<section id="memory-types">
+<div class="kicker">메모리의 종류</div>
+<h2>5. PC-88 안에는 왜 이렇게 많은 RAM과 ROM이 있는가</h2>
+<p>PC-88 자료를 처음 보면 Main RAM, Expanded RAM, Text VRAM, GVRAM, Sound RAM, BASIC ROM, KANJI ROM 같은 이름이 한꺼번에 나옵니다. 모두 “byte를 저장한다”는 공통점은 있지만 <b>무엇을 저장하고, 누가 읽고 쓰며, 어떻게 접근하는지</b>가 다릅니다. 한글화에서 이 구분을 못 하면 주소를 찾고도 엉뚱한 메모리를 고치게 됩니다.</p>
+<div class="glossary">
+<div class="gterm">Main RAM</div><div class="gdesc">CPU의 일반 작업 공간. 게임 코드, 변수, 디스크에서 읽어온 data, 임시 buffer 등이 놓일 수 있습니다.</div>
+<div class="gterm">Expanded RAM</div><div class="gdesc">Main RAM 외에 추가된 작업 RAM. 32KB bank를 0000h~7FFFh에 연결해 선택 접근합니다.</div>
+<div class="gterm">System ROM</div><div class="gdesc">N88-BASIC/N-BASIC 등 시스템 프로그램이 들어 있는 ROM. 설정에 따라 0000h~7FFFh 쪽에 보일 수 있습니다.</div>
+<div class="gterm">GVRAM</div><div class="gdesc">그래픽 화면의 pixel 정보를 보관합니다. 대표적인 컬러 화면에서는 B/R/G 3 plane으로 구성됩니다.</div>
+<div class="gterm">Text VRAM</div><div class="gdesc">텍스트 화면 표시를 위한 메모리 계통. 세대에 따라 High-speed TVRAM 같은 구조도 추가됩니다.</div>
+<div class="gterm">KANJI ROM</div><div class="gdesc">문자 코드가 아니라 <b>글자의 점 모양(bitmap glyph)</b>을 저장한 ROM입니다.</div>
+<div class="gterm">Sound RAM</div><div class="gdesc">FA/MA 등 강화 음원 세대의 ADPCM 처리 등에 쓰이는 별도 메모리입니다. Main RAM이 아닙니다.</div>
+</div>
+<h3>5-1. 왜 메모리를 하나로 합치지 않았나</h3>
+<p>오늘날의 컴퓨터도 RAM, VRAM, firmware ROM, GPU memory 등이 역할에 따라 나뉩니다. 당시 8비트 PC에서는 CPU 주소가 16bit로 제한되어 있었고 화면·음원 같은 장치의 요구도 달랐기 때문에, 각 기능에 맞는 메모리를 별도로 두고 <b>I/O port와 bank switching으로 필요한 순간에 연결</b>하는 구조가 흔했습니다.</p>
+<div class="misconception"><b>“RAM 용량 합계” 오해:</b> Main RAM 64KB + Expanded RAM 128KB + GVRAM 48KB + Sound RAM 256KB라고 해서 CPU가 <span class="inline-code">00000h~7BFFFh</span> 같은 하나의 연속 주소로 이들을 보는 것이 아닙니다.</div>
+<h3>5-2. 한글화에서는 ‘원문 data’와 ‘글자 모양’을 분리해서 생각한다</h3>
+<div class="flow">
+<div class="box">문자 data<br/><small>코드/토큰/문자열</small></div><div class="arrow">≠</div>
+<div class="box">Font glyph<br/><small>KANJI ROM/자체 font</small></div><div class="arrow">≠</div>
+<div class="box">화면 memory<br/><small>Text/GVRAM</small></div>
+</div>
+<p>예를 들어 게임 대사가 RAM에 일본어 코드로 들어 있고, 출력 루틴이 KANJI ROM에서 16×16 glyph를 읽어 GVRAM에 그릴 수 있습니다. 이 경우 RAM에서 찾은 문자 byte를 고치는 것, KANJI ROM의 glyph를 바꾸는 것, GVRAM을 보는 것은 모두 다른 작업입니다.</p>
+</section>
+<section id="expanded">
+<div class="kicker">Expanded RAM</div>
+<h2>6. 192KB RAM은 어떻게 쓰는가 — 왜 32KB씩 bank를 바꾸는가</h2>
+<p>이 장은 후기 PC-88을 이해하는 핵심입니다. MR, MH, MA, MA2, MC 같은 M 계열의 “표준 RAM 192KB”를 단순히 큰 서랍 하나로 생각하면 뒤의 디버깅이 전부 헷갈립니다. 먼저 숫자를 분해해 봅니다.</p>
+<div class="formula">Main RAM 64KB + Expanded RAM 128KB = 표준 RAM 192KB</div>
+<h3>6-1. Z80은 주소를 16bit만 가지고 있다</h3>
+<p>Z80의 주소는 16bit이므로 <span class="inline-code">0000h</span>부터 <span class="inline-code">FFFFh</span>까지 총 65,536개의 byte 위치, 즉 64KiB만 한 번에 표현할 수 있습니다. 물리적으로 RAM을 더 장착해도 CPU의 address register가 갑자기 17bit나 18bit로 늘어나지는 않습니다.</p>
+<div class="addr-map">
+<div class="addr-line"><div class="range">0000h</div><div class="meaning">Z80이 현재 볼 수 있는 64KiB 논리 주소 공간</div><div class="size">시작</div></div>
+<div class="addr-line"><div class="range">...</div><div class="meaning">총 65,536 byte</div><div class="size">64KiB</div></div>
+<div class="addr-line"><div class="range">FFFFh</div><div class="meaning">16bit address의 끝</div><div class="size">끝</div></div>
+</div>
+<h3>6-2. 그래서 Expanded RAM의 일부를 64KiB 안에 ‘창’처럼 끼워 넣는다</h3>
+<p>PC-88의 Expanded RAM 하드웨어는 선택된 확장 RAM을 CPU 주소 <span class="inline-code">0000h~7FFFh</span>에 연결할 수 있습니다. 이 범위의 크기를 계산해 보면:</p>
+<div class="formula">7FFFh - 0000h + 1 = 8000h bytes = 32KiB</div>
+<p>즉 “32KB씩 읽는다”는 말은 임의의 숫자를 정한 것이 아니라, <b>PC-88의 확장 RAM이 CPU 주소 공간의 하위 절반인 0000h~7FFFh를 하나의 bank window로 사용하도록 설계되어 있기 때문</b>입니다.</p>
+<div class="beginner"><b>비유:</b> Z80 앞에 64칸짜리 책장이 하나 있다고 생각합시다. 창고에는 책이 더 많지만 책장을 늘릴 수는 없습니다. 대신 책장의 아래 32칸을 통째로 비우고 “창고의 묶음 A”, “묶음 B”를 번갈아 꽂아 넣습니다. CPU는 항상 같은 0~31번 칸을 보지만, 스위치를 바꾸면 그 뒤에 있는 실제 책 묶음이 달라집니다.</div>
+<h3>6-3. 왜 128KB가 32KB × 4 bank인가</h3>
+<p>M 계열에 내장된 Expanded RAM은 128KB입니다. PC-88 확장 RAM window 하나가 32KB이므로 128KB를 네 묶음으로 나누면 정확히 들어맞습니다.</p>
+<div class="formula">128KiB ÷ 32KiB = 4 banks</div>
+<div class="bank-demo">
+<div class="bank-box"><b>Expanded RAM · Card 0</b><div class="bank-list">
+<div class="bank-chip selected" data-bankchip="0">Bank 0 · 32KB</div>
+<div class="bank-chip" data-bankchip="1">Bank 1 · 32KB</div>
+<div class="bank-chip" data-bankchip="2">Bank 2 · 32KB</div>
+<div class="bank-chip" data-bankchip="3">Bank 3 · 32KB</div>
+</div></div>
+<div class="arrow">→</div>
+<div class="bank-box"><b>CPU가 보는 window</b><br/><span class="inline-code">0000h ~ 7FFFh</span><br/><small>현재 선택된 32KB bank 하나</small></div>
+</div>
+<div class="controls no-print">
+<button class="btn active" data-bank="0">Bank 0</button><button class="btn" data-bank="1">Bank 1</button><button class="btn" data-bank="2">Bank 2</button><button class="btn" data-bank="3">Bank 3</button>
+</div>
+<div class="readout" id="bankReadout">Bank 0을 선택하면 Expanded RAM의 첫 32KB가 CPU 주소 0000h~7FFFh에 연결됩니다.</div>
+<h3>6-4. bank를 바꾸면 같은 주소의 내용이 달라진다</h3>
+<p>예를 들어 각 bank의 맨 앞 byte가 서로 다른 값을 가지고 있다고 가정해 봅시다.</p>
+<table><thead><tr><th>선택 bank</th><th>실제 Expanded RAM 위치</th><th>CPU가 읽는 주소</th><th>가상의 값</th></tr></thead><tbody>
+<tr><td>Bank 0</td><td>0~32KB 영역</td><td rowspan="4"><b>0000h</b></td><td>11h</td></tr>
+<tr><td>Bank 1</td><td>32~64KB 영역</td><td>22h</td></tr>
+<tr><td>Bank 2</td><td>64~96KB 영역</td><td>33h</td></tr>
+<tr><td>Bank 3</td><td>96~128KB 영역</td><td>44h</td></tr>
+</tbody></table>
+<p>CPU 명령이 항상 <span class="inline-code">LD A,(0000h)</span>처럼 같은 주소를 읽어도, <b>현재 bank가 무엇인지에 따라 A에 들어오는 값이 달라질 수 있습니다.</b></p>
+<div class="misconception"><b>중요:</b> 디버거에서 “주소 2000h의 data가 아까와 달라졌다”고 해서 memory가 망가진 것이 아닐 수 있습니다. Expanded RAM bank가 바뀌었거나 ROM/RAM mapping 상태가 달라졌을 가능성을 먼저 생각해야 합니다.</div>
+<h3>6-5. E2h와 E3h는 각각 무엇을 하는가</h3>
+<p>Expanded RAM은 I/O port <span class="inline-code">E2h</span>와 <span class="inline-code">E3h</span>로 제어합니다. 여기서는 Z80 명령 자체를 외울 필요는 없고 역할만 구분합니다.</p>
+<table><thead><tr><th>Port</th><th class="left">역할</th><th class="left">쉽게 말하면</th></tr></thead><tbody>
+<tr><td><b>E2h</b></td><td class="left">0000h~7FFFh의 read/write를 Expanded RAM으로 보낼지 제어</td><td class="left">“확장 RAM 창을 실제로 사용할 것인가?”</td></tr>
+<tr><td><b>E3h</b></td><td class="left">어느 expansion card의 어느 32KB bank를 선택할지 지정</td><td class="left">“창 뒤에 어느 서랍을 연결할 것인가?”</td></tr>
+</tbody></table>
+<div class="step-list">
+<div class="step"><b>E3h로 bank를 고른다.</b> 예: Card 0의 Bank 2.</div>
+<div class="step"><b>E2h로 read/write를 허용한다.</b> 그러면 CPU의 0000h~7FFFh 접근이 선택한 Expanded RAM으로 향합니다.</div>
+<div class="step"><b>CPU는 평소처럼 0000h~7FFFh를 읽고 쓴다.</b> CPU 입장에서는 별도의 18bit 주소를 만드는 것이 아닙니다.</div>
+<div class="step"><b>다른 data가 필요하면 bank를 다시 바꾼다.</b> 주소는 같지만 연결되는 물리 RAM이 달라집니다.</div>
+</div>
+<h3>6-6. E3h에 card 번호까지 있는 이유</h3>
+<p>E3h는 bank 번호뿐 아니라 <b>card 번호</b>도 선택할 수 있습니다. 하드웨어 제어 자체는 여러 128KB 확장 카드가 존재하는 경우까지 고려합니다. 한 card 안에 32KB bank가 네 개 있으므로:</p>
+<div class="formula">1 card = 4 banks × 32KiB = 128KiB</div>
+<p>Card 0~3까지 선택할 수 있는 구조라면 제어 방식 자체는 최대 4 × 128KB = 512KB의 Expanded RAM을 구분할 수 있습니다. 다만 <b>실제로 장착 가능한 양은 모델의 확장 슬롯 수와 내장 RAM 구성에 따라 달라집니다.</b></p>
+<div class="grid2">
+<div class="card"><h4>초대 PC-8801</h4><p>확장 슬롯 4개, 공식 최대 사용자 메모리 576KB. 64KB Main RAM에 최대 512KB 추가라는 계산과 맞아떨어집니다.</p></div>
+<div class="card"><h4>M 계열</h4><p>내장 Expanded RAM 128KB가 Card 0 역할을 하고, 모델의 슬롯 구성에 따라 추가 확장이 제한됩니다. 예를 들어 MR/MH/MA의 공식 최대 사용자 메모리는 448KB입니다.</p></div>
+</div>
+<h3>6-7. 왜 64KB 전체를 bank로 바꾸지 않고 32KB만 바꾸는가</h3>
+<p>확인 가능한 사실은 PC-88 Expanded RAM 회로가 <span class="inline-code">0000h~7FFFh</span>의 하위 32KB를 bank window로 사용한다는 것입니다. “NEC가 반드시 이런 철학 때문에 32KB를 골랐다”는 설계 의도까지 단정해서는 안 됩니다. 다만 <b>동작상 결과</b>는 이해할 수 있습니다.</p>
+<ul class="checklist">
+<li>하위 32KB만 Expanded RAM으로 바꾸고, 상위 주소 영역은 다른 작업에 계속 사용할 수 있습니다.</li>
+<li>프로그램은 32KB 단위로 data를 교체하면서도 나머지 주소 공간을 유지할 수 있습니다.</li>
+<li>64KB 전체를 매번 통째로 갈아치우는 것보다 현재 실행 code·stack·buffer를 남겨 둔 채 추가 data bank에 접근하기 쉬운 구조가 됩니다.</li>
+</ul>
+<div class="why"><b>한글화 연결:</b> 번역문이나 font data가 Expanded RAM에 적재되는 게임을 분석할 때는 “주소”만 기록해서는 부족합니다. <b>그 순간의 E2h/E3h 상태, 즉 어느 card/bank가 선택됐는지도 함께 기록</b>해야 같은 data를 다시 찾을 수 있습니다.</div>
+</section>
+<section id="mapping">
+<div class="kicker">Memory Mapping</div>
+<h2>7. 같은 주소인데 다른 메모리가 보인다 — PC-88의 bank/mapping을 이해한다</h2>
+<p>6장에서는 Expanded RAM 하나만 놓고 bank를 설명했습니다. 하지만 PC-88에서 주소 공간을 바꿔 끼우는 대상은 Expanded RAM만이 아닙니다. System ROM, Main RAM, expansion ROM, GVRAM, High-speed TVRAM도 설정에 따라 CPU 주소 공간에 나타납니다.</p>
+<h3>7-1. CPU address는 ‘물리 부품의 고정 번호’가 아니다</h3>
+<p>초보자는 <span class="inline-code">2000h</span>라고 하면 “컴퓨터 안 어딘가에 2000h라는 RAM 칸이 딱 하나 있다”고 생각하기 쉽습니다. PC-88에서는 그렇지 않습니다. CPU가 보는 <span class="inline-code">2000h</span>라는 논리 주소 뒤에 <b>현재 ROM이 연결돼 있는지, Main RAM이 연결돼 있는지, Expanded RAM이 연결돼 있는지</b>를 하드웨어 상태와 함께 봐야 합니다.</p>
+<div class="flow">
+<div class="box">CPU 주소<br/><b>2000h</b></div><div class="arrow">→</div>
+<div class="box">현재 mapping 상태</div><div class="arrow">→</div>
+<div class="box">ROM? Main RAM?<br/>Expanded RAM?</div>
+</div>
+<h3>7-2. ROM을 읽으면서 그 뒤의 Main RAM에 쓸 수도 있다</h3>
+<p>PC-8801 memory map 자료에는 ROM이 <span class="inline-code">0000h~7FFFh</span>에 선택된 상태에서 이 범위에 <b>write하면 Main RAM으로 기록</b>된다고 정리되어 있습니다. 즉 read와 write의 대상이 서로 다를 수도 있습니다.</p>
+<div class="grid2">
+<div class="card"><h4>READ 2000h</h4><p>현재 N88-BASIC ROM이 선택되어 있다면 ROM의 2000h를 읽을 수 있습니다.</p></div>
+<div class="card"><h4>WRITE 2000h</h4><p>같은 mapping 상태에서도 write는 뒤쪽 Main RAM의 2000h로 들어갈 수 있습니다.</p></div>
+</div>
+<div class="beginner"><b>비유:</b> 투명한 유리판 앞에 “ROM 그림”이 붙어 있어 읽을 때는 그 그림을 보지만, 펜으로 쓰면 뒤쪽의 종이(Main RAM)에 흔적이 남는 것과 비슷합니다. 나중에 ROM을 치우면 방금 쓴 RAM 내용이 나타날 수 있습니다.</div>
+<h3>7-3. Text Window — ROM 뒤에 가려진 Main RAM 일부를 보는 작은 창</h3>
+<p>N88-BASIC ROM이 보이는 동안 하위 Main RAM 일부는 CPU의 일반 read에서 가려질 수 있습니다. 그래서 PC-88에는 <b>Text Window</b>라는 1KB 창이 있습니다. Port <span class="inline-code">70h</span>에 선택할 Main RAM의 상위 주소를 지정하면, 그 1KB가 CPU 주소 <span class="inline-code">8000h~83FFh</span>에 나타납니다.</p>
+<div class="addr-map">
+<div class="addr-line hot"><div class="range">8000h</div><div class="meaning"><b>Text Window 시작</b> — 선택한 Main RAM 1KB를 여기서 접근</div><div class="size">1KB</div></div>
+<div class="addr-line hot"><div class="range">83FFh</div><div class="meaning"><b>Text Window 끝</b></div><div class="size">1024B</div></div>
+</div>
+<h4>예: port 70h에 10h를 선택했다고 생각해 보자</h4>
+<div class="flow">
+<div class="box">Main RAM<br/><b>1000h~13FFh</b></div><div class="arrow">→</div>
+<div class="box">Text Window</div><div class="arrow">→</div>
+<div class="box">CPU 주소<br/><b>8000h~83FFh</b></div>
+</div>
+<p>이 상태에서 CPU가 8000h를 읽거나 쓰면 실제로는 선택된 Main RAM의 1000h 쪽에 접근하는 식으로 이해할 수 있습니다.</p>
+<div class="misconception"><b>이름 주의:</b> “Text Window”라고 해서 화면의 Text VRAM 자체와 같은 메모리라고 생각하면 안 됩니다. 이것은 <b>Main RAM의 일부를 다른 CPU 주소에서 볼 수 있게 하는 memory window</b>입니다.</div>
+<h3>7-4. High-speed TVRAM — F000h~FFFFh의 빠른 텍스트용 RAM</h3>
+<p>SR 이후 V1H/V2 환경에는 High-speed TVRAM이 존재합니다. Port 32h의 TMODE 설정에 따라 <span class="inline-code">F000h~FFFFh</span>에 High-speed RAM 또는 Main RAM을 보이게 할 수 있습니다. 4KB 크기의 이 영역은 SR 세대의 화면 처리 개선을 이해할 때 중요한 요소입니다.</p>
+<div class="addr-map">
+<div class="addr-line"><div class="range">F000h</div><div class="meaning">TMODE에 따라 High-speed TVRAM 또는 Main RAM</div><div class="size">4KB</div></div>
+<div class="addr-line"><div class="range">FFFFh</div><div class="meaning">64KiB 주소 공간의 끝</div><div class="size">끝</div></div>
+</div>
+<h3>7-5. GVRAM도 CPU 주소 공간에 선택해서 접근한다</h3>
+<p>독립 접근 mode에서는 <span class="inline-code">5Ch</span>, <span class="inline-code">5Dh</span>, <span class="inline-code">5Eh</span>로 Blue/Red/Green GVRAM plane을 선택하고 <span class="inline-code">5Fh</span>로 Main RAM 접근으로 돌아옵니다. 즉 GVRAM도 “별도 주소선이 무한히 붙어 있는 메모리”가 아니라, CPU가 특정 mode와 bank를 선택한 뒤 접근하는 구조입니다.</p>
+<h3>7-6. 그래서 디버거에서 주소만 기록하면 부족하다</h3>
+<table><thead><tr><th>기록</th><th class="left">왜 필요한가</th></tr></thead><tbody>
+<tr><td>PC / 실행 위치</td><td class="left">어느 code가 mapping을 바꾸고 있는지</td></tr>
+<tr><td>CPU address</td><td class="left">현재 접근하는 논리 주소</td></tr>
+<tr><td>ROM/Main RAM 상태</td><td class="left">0000h~7FFFh 등에 실제 무엇이 연결됐는지</td></tr>
+<tr><td>E2h/E3h</td><td class="left">Expanded RAM read/write와 card/bank</td></tr>
+<tr><td>5Ch~5Fh / 35h</td><td class="left">Main RAM인지 어떤 GVRAM 접근 mode인지</td></tr>
+<tr><td>TMODE / Text Window</td><td class="left">F000h~FFFFh, 8000h~83FFh가 무엇을 가리키는지</td></tr>
+</tbody></table>
+<div class="pc88-note"><b>핵심 정리:</b> PC-88에서 address는 단독 좌표가 아닙니다. <b>address + 현재 mapping state</b>가 함께 있어야 실제 memory 위치를 제대로 이해할 수 있습니다.</div>
+</section>
+<section id="video">
+<div class="kicker">화면 구조</div>
+<h2>8. 화면에 보이는 글자와 그림은 어디에 저장되는가</h2>
+<p>PC-88 한글화에서 화면은 특히 중요합니다. “화면에 글자가 보인다 → Text VRAM에 글자가 있다”라고 단정하면 안 됩니다. PC-88에는 텍스트 화면과 그래픽 화면이 있고, 게임은 글자를 <b>그래픽으로 직접 그려</b> GVRAM에 표시할 수도 있습니다.</p>
+<h3>8-1. 먼저 ‘문자 data’, ‘glyph’, ‘화면’을 분리한다</h3>
+<div class="flow">
+<div class="box">문자열 data<br/><small>예: 코드/토큰</small></div><div class="arrow">→</div>
+<div class="box">Font glyph<br/><small>글자의 점 모양</small></div><div class="arrow">→</div>
+<div class="box">Text / GVRAM<br/><small>최종 화면 memory</small></div>
+</div>
+<p>이 세 단계가 모두 한 장소에 있는 것이 아닙니다. 게임 대사는 Main RAM에 있고, glyph는 KANJI ROM이나 게임 자체 font에 있고, 최종 그림은 GVRAM에 있을 수 있습니다.</p>
+<h3>8-2. GVRAM 48KB는 왜 48KB인가</h3>
+<p>대표적인 PC-88 컬러 그래픽 화면에서는 색 정보를 Blue, Red, Green의 세 plane으로 나눕니다. 각 plane이 약 16KB이므로 합계가 48KB입니다.</p>
+<div class="formula">Blue 16KB + Red 16KB + Green 16KB = GVRAM 48KB</div>
+<div class="plane-demo">
+<div class="plane active" data-plane="blue"><b>Blue</b>16KB<br/><small>5Ch</small></div>
+<div class="plane" data-plane="red"><b>Red</b>16KB<br/><small>5Dh</small></div>
+<div class="plane" data-plane="green"><b>Green</b>16KB<br/><small>5Eh</small></div>
+<div class="plane" data-plane="main"><b>Main RAM</b><small>5Fh</small></div>
+</div>
+<div class="controls no-print">
+<button class="btn active" data-plane-btn="blue">Blue</button><button class="btn" data-plane-btn="red">Red</button><button class="btn" data-plane-btn="green">Green</button><button class="btn" data-plane-btn="main">Main RAM</button>
+</div>
+<div class="readout" id="planeReadout">독립 접근 mode에서 5Ch를 선택하면 Blue GVRAM plane에 접근합니다.</div>
+<h3>8-3. 세 plane이 합쳐져 한 pixel의 색이 된다</h3>
+<p>한 위치에서 Blue, Red, Green bit가 각각 켜졌는지에 따라 기본 8색 조합을 만들 수 있습니다. 예를 들어 R=1, G=0, B=0이면 빨강, R=1, G=1, B=0이면 노랑처럼 생각할 수 있습니다. V2의 analog palette에서는 이 8개의 palette entry가 512색 후보 중 어떤 실제 RGB 값을 가리킬지 다시 정할 수 있습니다.</p>
+<table><thead><tr><th>R</th><th>G</th><th>B</th><th>기본적인 조합 예</th></tr></thead><tbody>
+<tr><td>0</td><td>0</td><td>0</td><td>검정</td></tr><tr><td>1</td><td>0</td><td>0</td><td>빨강</td></tr><tr><td>0</td><td>1</td><td>0</td><td>초록</td></tr><tr><td>0</td><td>0</td><td>1</td><td>파랑</td></tr><tr><td>1</td><td>1</td><td>1</td><td>흰색</td></tr>
+</tbody></table>
+<h3>8-4. Independent access와 Extended access</h3>
+<p>가장 이해하기 쉬운 방식은 5Ch~5Eh로 plane 하나를 선택하는 <b>independent access</b>입니다. SR 이후에는 port 35h와 Graphics ALU를 사용하는 <b>extended access</b>도 있어서 세 plane을 동시에 다루거나 논리 연산을 이용할 수 있습니다.</p>
+<div class="beginner"><b>1부에서 여기까지만:</b> extended access의 bitfield와 ALU 명령까지 외울 필요는 없습니다. “게임이 화면을 그릴 때 항상 Blue → Red → Green을 하나씩 직접 쓰는 것만은 아니며, SR 이후에는 그래픽 전용 하드웨어를 이용할 수 있다” 정도만 이해하면 됩니다.</div>
+<h3>8-5. CRTC는 무엇을 하는가</h3>
+<p><span class="term">CRTC</span>(CRT Controller)는 화면의 텍스트 표시 타이밍과 형식 등을 제어하는 장치입니다. PC-88 I/O map에서 50h/51h가 CRTC 제어에 사용됩니다. 쉽게 말하면 “화면에 어떤 memory를 어떤 timing과 행/열 구조로 보여 줄 것인가”를 관리하는 쪽의 하드웨어입니다.</p>
+<h3>8-6. ‘CPU가 쓰는 VRAM’과 ‘모니터에 표시되는 화면’도 같은 말이 아니다</h3>
+<p>Port 53h에서는 Text screen과 GVRAM plane의 표시 여부를 제어할 수 있습니다. 따라서 CPU가 어느 VRAM에 data를 쓰고 있다는 사실과, 그 plane이 지금 화면에 실제 표시되고 있다는 사실은 구분해야 합니다.</p>
+<div class="misconception"><b>예:</b> GVRAM에 byte를 정상적으로 썼는데 화면에서 변화가 안 보인다면, write가 실패한 것뿐 아니라 <b>현재 display enable 상태나 mode가 다른 것</b>도 원인일 수 있습니다.</div>
+<h3>8-7. 게임의 글자는 Text 화면이 아니라 GVRAM에 그려질 수 있다</h3>
+<p>특히 게임의 대화창이나 큰 일본어 글꼴, 장식된 문자는 Text VRAM의 문자 셀을 사용하는 대신 font bitmap을 가져와 GVRAM에 직접 그리는 경우가 있습니다. 이때 화면에서 “あ”를 봤다고 해서 VRAM에 ASCII/JIS 코드 “あ”가 그대로 들어 있는 것이 아닙니다. GVRAM에는 이미 <b>점 그림</b>이 들어 있습니다.</p>
+<div class="why"><b>한글화 연결:</b> 문자열 검색이 성공했는데 화면 출력은 깨지거나 한글이 안 나온다면, 문제는 문자열 data가 아니라 <b>glyph를 가져오는 과정, 폭 계산, GVRAM 출력 routine</b>에 있을 수 있습니다.</div>
+</section>
+<section id="kanji">
+<div class="kicker">문자와 글리프</div>
+<h2>9. KANJI ROM — “문자 코드”와 “글자 모양”을 분리해서 이해한다</h2>
+<h3>9-1. KANJI ROM에는 문장 자체가 들어 있는 것이 아니다</h3>
+<p>KANJI ROM을 처음 들으면 “게임의 일본어 대사가 들어 있는 ROM”처럼 오해하기 쉽습니다. 보통 KANJI ROM의 역할은 <b>문자의 시각적인 모양, 즉 bitmap glyph</b>을 제공하는 것입니다. 실제 문장이나 대사 data는 디스크나 RAM의 별도 문자열 영역에 있을 수 있습니다.</p>
+<div class="flow">
+<div class="box">문자 code<br/><small>어떤 글자인가</small></div><div class="arrow">→</div>
+<div class="box">KANJI ROM address 계산</div><div class="arrow">→</div>
+<div class="box">glyph bitmap<br/><small>점의 배열</small></div><div class="arrow">→</div>
+<div class="box">GVRAM 등에 출력</div>
+</div>
+<h3>9-2. glyph가 무엇인지 작은 예로 생각해 보자</h3>
+<p>가상의 8×8 글자라면 ROM에는 다음처럼 각 줄의 dot를 나타내는 bit들이 저장될 수 있습니다.</p>
+<pre>00111100
+01000010
+01000010
+01111110
+01000010
+01000010
+01000010
+00000000</pre>
+<p>이 byte들은 “A라는 문자 코드” 자체가 아니라, 화면에 A처럼 보이게 만들 <b>점 그림</b>입니다. 실제 PC-88 한자 glyph는 더 큰 크기와 해당 ROM의 정해진 형식을 사용합니다.</p>
+<h3>9-3. KANJI ROM은 세대가 지나며 기본 탑재 범위가 넓어진다</h3>
+<table><thead><tr><th>세대</th><th>한자 기능</th><th class="left">의미</th></tr></thead><tbody>
+<tr><td>초대 PC-8801</td><td>제1·제2수준 옵션</td><td class="left">한자 기능이 모든 본체의 당연한 기본 전제는 아님</td></tr>
+<tr><td>mkII / SR</td><td>제1수준 기본, 제2수준 옵션</td><td class="left">일반적인 일본어 표시 기반이 강화됨</td></tr>
+<tr><td>MR 및 FH/MH 이후</td><td>제1·제2수준 기본인 모델군</td><td class="left">후기 게임에서 사용할 수 있는 한자 환경이 넓어짐</td></tr>
+</tbody></table>
+<h3>9-4. CPU는 KANJI ROM을 어떻게 읽나</h3>
+<p>PC-88 I/O map에는 KANJI ROM address를 설정하고 glyph byte를 읽기 위한 전용 port들이 존재합니다. 제1수준 KANJI ROM은 E8h/E9h와 EA/EBh 계통, 제2수준은 ECh/EDh 등이 관련됩니다. 1부에서는 port의 역할만 알고, 실제 코드에서 <span class="inline-code">OUT</span>/<span class="inline-code">IN</span>을 추적하는 방법은 Z80·디버거 편에서 다룹니다.</p>
+<h3>9-5. 게임은 반드시 시스템 KANJI ROM만 쓰는가</h3>
+<p>아닙니다. 게임이 자체 font data를 디스크에 포함하고 RAM으로 읽어 와 사용할 수도 있습니다. 특별한 크기의 글꼴, 장식 글자, 가나/영문 전용 bitmap을 자체적으로 가지고 있을 수도 있습니다.</p>
+<div class="grid2">
+<div class="card"><h4>System KANJI ROM 사용</h4><p>문자 code를 KANJI ROM glyph로 변환해 그립니다. 시스템 ROM 구조가 중요합니다.</p></div>
+<div class="card"><h4>게임 자체 font 사용</h4><p>disk/RAM에 font bitmap이 따로 있습니다. 그 위치와 loader, 출력 routine을 찾아야 합니다.</p></div>
+</div>
+<div class="why"><b>한글화 연결:</b> 한글화를 할 때 “일본어 문자열을 한글 code로 바꾸기”만으로 끝나지 않는 이유입니다. <b>그 한글 code를 어떤 glyph로 바꾸고, glyph를 어디에서 읽고, 몇 pixel 폭으로 어느 VRAM에 그릴지</b>까지 필요할 수 있습니다.</div>
+</section>
+<section id="sound">
+<div class="kicker">Sound</div>
+<h2>10. 사운드는 왜 모델별로 따로 알아야 하는가</h2>
+<p>문자 한글화가 목적이라도 사운드 구조를 완전히 빼면 안 됩니다. 후기 PC-88 게임은 음악뿐 아니라 ADPCM 음성, 효과음, sound interrupt를 사용하고, 게임 code가 sound hardware를 제어합니다. 특히 음성이 나오는 이벤트 장면을 분석할 때는 대사 출력과 sound timing이 서로 얽힐 수 있습니다.</p>
+<h3>10-1. 초기 기종 — 사운드는 기본 전제가 아니었다</h3>
+<p>초대 PC-8801과 mkII 시기의 공식 사양에서는 사운드가 옵션 중심입니다. 따라서 이 시기 소프트웨어를 볼 때 후기의 FM chip이 항상 존재한다고 가정하면 안 됩니다.</p>
+<h3>10-2. SR — FM 3음 + SSG 3음이 기본이 된다</h3>
+<p>SR에서 FM 3음 + SSG 3음이 기본 기능으로 들어오면서 PC-88 게임 음악의 대표적인 음색이 만들어집니다. 이후 FR/MR 계열도 이 기본 구성을 이어갑니다.</p>
+<h3>10-3. FH/MH — 기본 구성과 Sound Board II 확장을 구분한다</h3>
+<p>FH/MH의 NEC 기본 사양은 FM3 + SSG3입니다. 그러나 이 세대는 Sound Board II 계열 확장을 사용할 수 있는 구조가 마련되어 있습니다. 따라서 “FH/MH = 처음부터 모든 OPNA 기능이 기본 내장”이라고 단순화하면 부정확합니다.</p>
+<h3>10-4. FA/MA — 강화 음원이 기본 사양으로 들어온다</h3>
+<p>FA/MA의 공식 사양에는 <b>FM 6음 + Rhythm 6음 + SSG 3음 + ADPCM</b>이 기록되어 있습니다. 또한 Sound RAM 256KB가 있습니다. 이 메모리는 ADPCM data 등 사운드 기능을 위한 것으로 Main RAM과 구분해야 합니다.</p>
+<table><thead><tr><th>세대</th><th>대표 사운드</th><th class="left">초보자가 기억할 것</th></tr></thead><tbody>
+<tr><td>초대 / mkII</td><td>옵션 중심</td><td class="left">후기 FM 환경을 전제로 보면 안 됨</td></tr>
+<tr><td>SR / FR / MR</td><td>FM3 + SSG3</td><td class="left">PC-88 게임 FM 음원의 대표 기본 구성</td></tr>
+<tr><td>FH / MH</td><td>기본 FM3 + SSG3</td><td class="left">Sound Board II 확장 가능</td></tr>
+<tr><td>FA / MA / MA2 / MC 계열</td><td>FM6 + Rhythm6 + SSG3 + ADPCM</td><td class="left">강화 음원과 256KB Sound RAM</td></tr>
+</tbody></table>
+<h3>10-5. 왜 ‘Sound RAM 256KB’를 Main RAM에 더하면 안 되나</h3>
+<p>Sound RAM은 Z80이 일반 변수처럼 아무 주소에서나 쓰는 Main RAM의 연장이 아닙니다. sound chip의 ADPCM 기능을 통해 접근하는 별도 memory입니다. 따라서 MA에 “192KB + 256KB = 448KB Main RAM”이 있다고 말하면 틀립니다.</p>
+<div class="beginner"><b>비유:</b> Main RAM이 CPU 작업 책상이라면 Sound RAM은 녹음기에 들어 있는 전용 테이프 보관함에 가깝습니다. 둘 다 data를 저장하지만 사용하는 장치와 접근 방법이 다릅니다.</div>
+<h3>10-6. 한글화에서 사운드가 문제되는 실제 상황</h3>
+<ul class="checklist">
+<li>음성과 자막 timing을 맞춰야 하는 이벤트</li>
+<li>sound interrupt가 text 출력 routine과 실행 시간을 나눠 쓰는 경우</li>
+<li>ADPCM data와 문자열 data가 같은 disk block/loader 경로 주변에 있는 경우</li>
+<li>Sound Board II 존재 여부에 따라 code path가 갈라지는 경우</li>
+</ul>
+<div class="pc88-note"><b>1부의 범위:</b> 여기서는 세대별 음원 차이만 이해합니다. YM2203/YM2608 register와 port programming은 필요한 실제 분석 편에서 다룹니다.</div>
+</section>
+<section id="disk">
+<div class="kicker">Disk Subsystem</div>
+<h2>11. 플로피는 Main CPU가 직접 sector를 읽는 단순 장치가 아니다</h2>
+<h3>11-1. PC-88의 FDD 쪽에는 별도의 subsystem이 있다</h3>
+<p>PC-88의 5인치 FDD 계통은 Main CPU와 별도로 동작하는 <b>disk subsystem</b>을 갖습니다. Main CPU가 플로피의 자기 표면에 직접 명령을 내려 sector byte를 하나씩 가져오는 구조로 생각하면 안 됩니다. SUB 쪽에는 별도의 CPU, ROM/RAM, FDC가 있고 Main 쪽과 인터페이스를 통해 데이터를 주고받습니다.</p>
+<div class="arch">
+<div class="arch-box"><b>MAIN SYSTEM</b><br/>Main Z80<br/>Main RAM<br/>게임 code</div>
+<div class="arch-mid"><span>8255 I/F</span><span>명령</span><span>상태</span><span>data</span></div>
+<div class="arch-box"><b>FDD SUB SYSTEM</b><br/>SUB CPU<br/>SUB ROM/RAM<br/>FDC<br/>Floppy Drive</div>
+</div>
+<h3>11-2. Main과 SUB는 무엇을 주고받나</h3>
+<p>I/O map에서 FCh~FFh는 disk subsystem interface의 8255 계통 port로 정리되어 있습니다. Main 쪽과 SUB 쪽 사이에는 data와 handshake signal이 오갑니다. 쉽게 말하면 “명령을 보냈는가?”, “data를 받을 준비가 되었는가?”, “이 data가 유효한가?”, “받았는가?”를 서로 확인하면서 전송합니다.</p>
+<div class="step-list">
+<div class="step"><b>Main이 SUB에 작업을 요청한다.</b> 어떤 disk operation이 필요한지 command를 전달합니다.</div>
+<div class="step"><b>SUB가 FDC와 drive를 제어한다.</b> 실제 floppy sector를 읽는 물리적인 처리는 SUB 쪽에서 담당합니다.</div>
+<div class="step"><b>SUB가 읽은 data를 Main 쪽으로 넘긴다.</b> 8255 interface와 handshake를 통해 전달합니다.</div>
+<div class="step"><b>Main code가 그 data를 원하는 RAM buffer로 옮긴다.</b> 그 뒤 게임의 parser나 decompressor, text routine 등이 사용합니다.</div>
+</div>
+<h3>11-3. 그래서 D88 offset과 RAM address가 직접 같은 숫자가 아니다</h3>
+<p>D88 파일에서 어느 byte가 파일 offset <span class="inline-code">0x12345</span>에 있다고 해서 게임 실행 중 RAM <span class="inline-code">2345h</span>에 있다는 식의 직접 관계는 없습니다. 중간에 D88의 track/sector 구조, FDD read, SUB↔MAIN 전송, loader가 사용하는 destination address가 있기 때문입니다.</p>
+<div class="flow">
+<div class="box">D88 file offset</div><div class="arrow">→</div>
+<div class="box">Track / Sector</div><div class="arrow">→</div>
+<div class="box">FDD SUB</div><div class="arrow">→</div>
+<div class="box">Loader</div><div class="arrow">→</div>
+<div class="box">RAM address</div>
+</div>
+<h3>11-4. 2D와 2HD는 왜 모델 설명에 계속 등장하나</h3>
+<p>플로피의 기록 밀도와 용량이 다른 disk 규격이기 때문입니다. 초기/보급형은 2D 중심이고 MR/MH/MA 같은 M 계열에서는 2D/2HD drive를 기본으로 갖는 경우가 많습니다. NEC 공식 사양에서도 MR/MH/MA는 5인치 2D/2HD ×2로 기록됩니다.</p>
+<div class="why"><b>분석에서 중요:</b> 어떤 disk image를 어느 machine mode에서 부팅하는지, emulator가 2D/2HD를 어떻게 처리하는지는 loader 추적 전에 확인해야 합니다. 디스크 형식 자체는 3부 D88 편에서 자세히 배웁니다.</div>
+<h3>11-5. 게임 분석에서 SUB CPU breakpoint가 필요한 이유</h3>
+<p>나중에 debugger를 사용하다 보면 Main CPU의 loader code만으로 data 이동의 모든 원인을 설명하기 어려울 수 있습니다. 실제 disk read가 SUB CPU 쪽에서 진행되고 Main↔SUB handshake가 있기 때문입니다. 따라서 “디스크에서 이 data가 언제 읽혔는가”를 끝까지 추적하려면 SUB CPU 실행 위치와 interface 상태가 단서가 될 수 있습니다.</p>
+<div class="pc88-note"><b>1부의 목표:</b> SUB CPU의 명령어를 지금 외우는 것이 아닙니다. <b>“disk read 경로에는 Main CPU 밖의 별도 subsystem이 끼어 있다”</b>는 구조를 먼저 머릿속에 넣는 것이 목적입니다.</div>
+</section>
+<section id="connect">
+<div class="kicker">통합</div>
+<h2>12. 지금까지 배운 하드웨어가 실제 한글화에서 어떻게 연결되는가</h2>
+<p>1부에서 모델의 역사와 RAM, bank, GVRAM, KANJI ROM, sound, FDD SUB까지 다룬 이유는 각각의 사양을 외우기 위해서가 아닙니다. 실제 PC-88 게임에서 일본어 한 줄이 화면에 나오기까지 이 하드웨어들이 연결되기 때문입니다.</p>
+<h3>12-1. 가장 단순한 문자 출력 흐름을 가정해 보자</h3>
+<div class="step-list">
+<div class="step"><b>게임의 일본어 data가 floppy에 저장되어 있다.</b> D88로 보관할 때는 track/sector와 file offset이라는 disk 좌표를 갖습니다.</div>
+<div class="step"><b>FDD SUB가 sector를 읽는다.</b> Main CPU가 자기 표면을 직접 읽는 것이 아니라 subsystem을 거칩니다.</div>
+<div class="step"><b>loader가 data를 Main RAM 또는 Expanded RAM buffer에 적재한다.</b> Expanded RAM이라면 어느 bank인지도 중요합니다.</div>
+<div class="step"><b>Z80 code가 문자열을 한 byte 또는 token 단위로 읽는다.</b> 여기서 HL 같은 pointer가 자주 등장합니다.</div>
+<div class="step"><b>문자 code를 glyph로 바꾼다.</b> KANJI ROM을 읽거나 게임 자체 font table을 사용할 수 있습니다.</div>
+<div class="step"><b>glyph를 Text 화면 또는 GVRAM에 출력한다.</b> GVRAM이면 B/R/G plane과 현재 display/mapping 상태가 관련될 수 있습니다.</div>
+</div>
+<pre>Floppy / D88
+     │
+     ▼
+FDD SUB SYSTEM
+     │
+     ▼
+Main RAM / Expanded RAM
+     │        └─ 어느 bank인가?
+     ▼
+Z80 문자열 parser / 출력 routine
+     │
+     ├─ KANJI ROM
+     └─ 게임 자체 FONT
+     │
+     ▼
+Text screen / GVRAM
+     │
+     ▼
+화면에 일본어 표시</pre>
+<h3>12-2. 한글 패치는 이 흐름의 어느 부분을 바꾸는가</h3>
+<p>게임마다 다릅니다. 아주 운이 좋으면 문자열 byte만 바꿔도 됩니다. 그러나 기존 문자 code 공간이 부족하거나 한글 glyph가 없고 출력 폭이 다르면 여러 단계가 함께 바뀔 수 있습니다.</p>
+<table><thead><tr><th>문제</th><th class="left">수정할 가능성이 있는 부분</th></tr></thead><tbody>
+<tr><td>번역문 자체</td><td class="left">Disk/RAM의 문자열 data, pointer, 길이, terminator</td></tr>
+<tr><td>한글 glyph 없음</td><td class="left">KANJI ROM 대체/개조 또는 게임 자체 font 영역</td></tr>
+<tr><td>문자 폭이 안 맞음</td><td class="left">출력 routine, 좌표 증가량, 줄바꿈 계산</td></tr>
+<tr><td>문자열이 bank RAM에 있음</td><td class="left">bank select와 loader 흐름</td></tr>
+<tr><td>화면에 직접 그림</td><td class="left">GVRAM writer, plane/ALU 접근</td></tr>
+<tr><td>음성과 자막 동기화</td><td class="left">sound/ADPCM timing과 이벤트 control</td></tr>
+</tbody></table>
+<div class="pc88-note"><b>1부의 최종 문장:</b> PC-88 한글화는 단순히 일본어 byte를 한글 byte로 바꾸는 작업이 아니라, <b>disk에서 읽힌 data가 어느 memory와 bank에 놓이고, 어떤 Z80 code가 그것을 해석하며, 어떤 font를 사용해 어느 화면 memory에 그리는지를 찾아내는 작업</b>입니다.</div>
+</section>
+<section class="quiz" id="quiz">
+<div class="kicker">확인</div>
+<h2>확인 문제</h2>
+<div class="quiz">
+<details><summary>Q1. PC-8801의 표준 RAM 64KB와 Z80 주소 공간 64KiB는 같은 의미인가?</summary><div class="answer">아닙니다. 표준 RAM 64KB는 실제 장착된 Main RAM의 용량이고, Z80의 64KiB 주소 공간은 CPU가 16bit address로 한 번에 표현하는 논리 주소 범위입니다. 후기에는 물리 RAM이 더 많아져도 Z80 주소 범위 자체는 그대로입니다.</div></details>
+<details><summary>Q2. M 계열의 192KB RAM은 Z80에서 00000h~2FFFFh처럼 연속으로 보이는가?</summary><div class="answer">아닙니다. 64KB Main RAM + 128KB Expanded RAM으로 이해해야 합니다. Expanded RAM은 32KB bank 단위로 선택해 CPU 주소 0000h~7FFFh에 연결합니다.</div></details>
+<details><summary>Q3. Expanded RAM이 왜 32KB 단위인가?</summary><div class="answer">PC-88 Expanded RAM 하드웨어가 CPU 주소 0000h~7FFFh를 bank window로 사용하기 때문입니다. 이 범위는 0x8000 byte, 즉 32KiB입니다. 128KB Expanded RAM은 그래서 32KB × 4 bank가 됩니다.</div></details>
+<details><summary>Q4. 같은 CPU 주소 2000h를 읽었는데 data가 달라질 수 있는 이유는?</summary><div class="answer">현재 mapping이나 Expanded RAM bank가 달라졌을 수 있습니다. 2000h라는 논리 주소 뒤에 ROM, Main RAM, Expanded RAM 중 무엇이 연결됐는지를 함께 봐야 합니다.</div></details>
+<details><summary>Q5. Text Window와 Text VRAM은 같은 것인가?</summary><div class="answer">아닙니다. Text Window는 Main RAM의 선택된 1KB를 8000h~83FFh에서 접근하기 위한 memory window입니다. Text VRAM/High-speed TVRAM은 화면 텍스트 처리 쪽의 메모리입니다.</div></details>
+<details><summary>Q6. GVRAM 48KB는 왜 48KB인가?</summary><div class="answer">대표적인 컬러 그래픽 구조에서 Blue, Red, Green plane이 각각 약 16KB이고, 세 plane을 합치면 48KB이기 때문입니다.</div></details>
+<details><summary>Q7. 화면에 일본어 글자가 보이면 그 문자 code가 GVRAM에 그대로 들어 있는가?</summary><div class="answer">반드시 그렇지 않습니다. 게임이 문자 code를 KANJI ROM이나 자체 font의 glyph bitmap으로 바꾼 뒤 GVRAM에 점 그림으로 그렸을 수 있습니다.</div></details>
+<details><summary>Q8. MA의 Sound RAM 256KB는 Main RAM에 포함되는가?</summary><div class="answer">아닙니다. ADPCM 등 sound 기능을 위한 별도 메모리입니다. Main/Expanded RAM과 용도와 접근 방식이 다릅니다.</div></details>
+<details><summary>Q9. Main CPU가 D88의 sector data를 직접 읽는가?</summary><div class="answer">그렇게 단순화하면 안 됩니다. PC-88의 5인치 FDD 계통에는 별도의 disk subsystem이 있고, SUB CPU/FDC가 실제 disk 작업을 처리한 뒤 Main 시스템과 interface를 통해 data를 주고받습니다.</div></details>
+<details><summary>Q10. PC-88 한글화에서 주소 하나만 기록하면 충분한가?</summary><div class="answer">아닙니다. 특히 bank/mapping이 관련되면 CPU address뿐 아니라 당시 ROM/Main RAM 상태, Expanded RAM card/bank, GVRAM 접근 mode 등을 함께 기록해야 같은 data를 정확히 다시 찾을 수 있습니다.</div></details>
+</div>
+</section>
+
+</main>
+<footer>PC-88 게임 분석 기초 · 1부</footer>
+<script>
+(function(){
+  const bankButtons=[...document.querySelectorAll('[data-bank]')];
+  const bankChips=[...document.querySelectorAll('[data-bankchip]')];
+  const bankReadout=document.getElementById('bankReadout');
+  bankButtons.forEach(btn=>btn.addEventListener('click',()=>{
+    const n=btn.dataset.bank;
+    bankButtons.forEach(b=>b.classList.toggle('active',b===btn));
+    bankChips.forEach(c=>c.classList.toggle('selected',c.dataset.bankchip===n));
+    bankReadout.textContent=`Bank ${n}을 선택하면 그 32KB bank가 CPU 주소 0000h~7FFFh의 Expanded RAM window에 연결됩니다. CPU 주소는 그대로지만 실제로 읽고 쓰는 물리 RAM 묶음이 바뀝니다.`;
+  }));
+
+  const planeText={
+    blue:'독립 접근 모드에서 5Ch를 선택하면 Blue GVRAM plane에 접근합니다.',
+    red:'독립 접근 모드에서 5Dh를 선택하면 Red GVRAM plane에 접근합니다.',
+    green:'독립 접근 모드에서 5Eh를 선택하면 Green GVRAM plane에 접근합니다.',
+    main:'5Fh를 선택하면 GVRAM bank 선택에서 Main RAM 접근으로 돌아옵니다.'
+  };
+  const pButtons=[...document.querySelectorAll('[data-plane-btn]')];
+  const planes=[...document.querySelectorAll('[data-plane]')];
+  const pRead=document.getElementById('planeReadout');
+  pButtons.forEach(btn=>btn.addEventListener('click',()=>{
+    const p=btn.dataset.planeBtn;
+    pButtons.forEach(b=>b.classList.toggle('active',b===btn));
+    planes.forEach(x=>x.classList.toggle('active',x.dataset.plane===p));
+    pRead.textContent=planeText[p];
+  }));
+})();
+</script>
+</body>
+</html>
