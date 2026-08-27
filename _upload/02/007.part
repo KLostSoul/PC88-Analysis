@@ -1,0 +1,77 @@
+uttons=['incHL','incMem','incWrap'];
+  function markAction(ids,active){ids.forEach(id=>{const b=document.getElementById(id);if(b)b.classList.toggle('active',id===active)})}
+  function renderInc(){incReadout.textContent=`HL=${h4(incState.hl)}\nRAM[9000h]=${hex2(incState.mem)}\n${incState.msg}`}
+  document.getElementById('incReset').addEventListener('click',()=>{incState={hl:0x9000,mem:0x05,msg:'초기 상태로 돌아왔습니다.'};markAction(incButtons,'');renderInc()});
+  document.getElementById('incHL').addEventListener('click',()=>{incState={hl:0x9001,mem:0x05,msg:'INC HL: HL register만 1 증가했습니다. RAM[9000h]는 그대로입니다.'};markAction(incButtons,'incHL');renderInc()});
+  document.getElementById('incMem').addEventListener('click',()=>{incState={hl:0x9000,mem:0x06,msg:'INC (HL): HL은 그대로이고 RAM[9000h]의 byte만 1 증가했습니다.'};markAction(incButtons,'incMem');renderInc()});
+  document.getElementById('incWrap').addEventListener('click',()=>{incState={hl:0x0000,mem:0x05,msg:'FFFFh에서 INC HL 실행: 16bit 범위를 넘어 HL=0000h로 wrap-around했습니다.'};markAction(incButtons,'incWrap');renderInc()});renderInc();
+
+  const bitA=document.getElementById('bitA'),bitOperand=document.getElementById('bitOperand'),bitIndex=document.getElementById('bitIndex'),bitReadout=document.getElementById('bitReadout');
+  function bin8(v){return (v&255).toString(2).padStart(8,'0').replace(/(.{4})/,'$1 ')}
+  const bitBtns=[...document.querySelectorAll('.bitop')];bitBtns.forEach(btn=>btn.addEventListener('click',()=>{bitBtns.forEach(x=>x.classList.toggle('active',x===btn));
+    const a=Number(bitA.value)&255, n=Number(bitOperand.value)&255, b=Number(bitIndex.value)&7, op=btn.dataset.op; let r=a,msg='';
+    if(op==='and'){r=a&n;msg=`${hex2(a)} AND ${hex2(n)} = ${hex2(r)}`}
+    if(op==='or'){r=a|n;msg=`${hex2(a)} OR ${hex2(n)} = ${hex2(r)}`}
+    if(op==='xor'){r=a^n;msg=`${hex2(a)} XOR ${hex2(n)} = ${hex2(r)}`}
+    if(op==='set'){r=a|(1<<b);msg=`SET ${b},A → bit ${b}를 1로 만들어 A=${hex2(r)}`}
+    if(op==='res'){r=a&~(1<<b);msg=`RES ${b},A → bit ${b}를 0으로 만들어 A=${hex2(r)}`}
+    if(op==='bit'){const z=((a>>b)&1)===0?1:0;msg=`BIT ${b},A → bit ${b}=${(a>>b)&1}, Z=${z}. A는 ${hex2(a)} 그대로입니다.`}
+    bitReadout.textContent=`A      ${hex2(a)} = ${bin8(a)}\noperand ${hex2(n)} = ${bin8(n)}\n${msg}${op==='bit'?'':`\n결과   ${hex2(r)} = ${bin8(r)}`}`;
+  }));
+
+  const brA=document.getElementById('brA'),brN=document.getElementById('brN'),brCond=document.getElementById('brCond'),branchReadout=document.getElementById('branchReadout');
+  const branchRunBtn=document.getElementById('branchRun');[brA,brN,brCond].forEach(el=>el.addEventListener('change',()=>{branchRunBtn.classList.remove('active');branchReadout.classList.remove('path-taken','path-skip');branchReadout.textContent='입력값이 바뀌었습니다. CP → JR 실행을 다시 누르세요.'}));
+  branchRunBtn.addEventListener('click',()=>{branchRunBtn.classList.add('active');
+    const a=Number(brA.value)&255,n=Number(brN.value)&255,r=(a-n)&255,z=r===0,c=a<n,cond=brCond.value;
+    const take=cond==='Z'?z:cond==='NZ'?!z:cond==='C'?c:!c;
+    branchReadout.textContent=`A=${hex2(a)}, CP ${hex2(n)} → 결과 ${hex2(r)}, Z=${z?1:0}, C=${c?1:0}\nJR ${cond},TARGET → ${take?'조건 성립: TARGET으로 branch':'조건 불성립: 다음 instruction으로 fall-through'}`;
+    branchReadout.classList.toggle('path-taken',take);branchReadout.classList.toggle('path-skip',!take);
+  });
+
+  const djnzStart=document.getElementById('djnzStart'),djnzReadout=document.getElementById('djnzReadout'),djnzStepBtn=document.getElementById('djnzStep');let djnzB=3,djnzCount=0;
+  function updateDJButton(){const done=djnzB===0&&djnzCount>0;djnzStepBtn.disabled=done;djnzStepBtn.classList.toggle('active',djnzCount>0&&!done);djnzStepBtn.classList.toggle('done',done)}
+  function resetDJ(){djnzB=Number(djnzStart.value)&255;djnzCount=0;djnzReadout.textContent=`B=${hex2(djnzB)}\n아직 DJNZ를 실행하지 않았습니다.`;updateDJButton()}
+  document.getElementById('djnzReset').addEventListener('click',resetDJ);djnzStart.addEventListener('change',resetDJ);
+  djnzStepBtn.addEventListener('click',()=>{djnzB=(djnzB-1)&255;djnzCount++;djnzReadout.textContent=`${djnzCount}회 실행 후 B=${hex2(djnzB)}\n${djnzB!==0?'B≠0 → LOOP로 상대 분기':'B=0 → 분기하지 않고 다음 instruction으로 진행'}`;updateDJButton()});resetDJ();
+
+  let callState={pc:0x8000,sp:0xF000,lo:null,hi:null,phase:0};const callReadout=document.getElementById('callReadout');
+  function renderCall(msg=''){let stack='stack은 비어 있습니다.';if(callState.lo!==null)stack=callState.phase===2?`RAM[EFFEh]=${hex2(callState.lo)}, RAM[EFFFh]=${hex2(callState.hi)}  (byte는 남아 있지만 현재 SP는 F000h)`:`RAM[EFFEh]=${hex2(callState.lo)}, RAM[EFFFh]=${hex2(callState.hi)}  (현재 stack의 복귀 주소 8003h)`;callReadout.textContent=`PC=${h4(callState.pc)}  SP=${h4(callState.sp)}\n${stack}${msg?'\n'+msg:''}`}
+  const callDo=document.getElementById('callDo'),retDo=document.getElementById('retDo');
+  function updateCallButtons(last=''){callDo.disabled=callState.phase!==0;retDo.disabled=callState.phase!==1;['callDo','retDo'].forEach(id=>document.getElementById(id).classList.toggle('active',id===last));if(callState.phase===2)retDo.classList.add('done');else retDo.classList.remove('done')}
+  document.getElementById('callReset').addEventListener('click',()=>{callState={pc:0x8000,sp:0xF000,lo:null,hi:null,phase:0};updateCallButtons('');renderCall('초기 상태입니다.')});
+  callDo.addEventListener('click',()=>{callState.sp=0xEFFE;callState.lo=0x03;callState.hi=0x80;callState.pc=0x9000;callState.phase=1;updateCallButtons('callDo');renderCall('CALL: 복귀 주소 8003h를 stack에 저장하고 PC=9000h로 이동했습니다.')});
+  retDo.addEventListener('click',()=>{callState.pc=0x8003;callState.sp=0xF000;callState.phase=2;updateCallButtons('retDo');renderCall('RET: stack의 8003h를 PC로 읽고 SP가 F000h로 올라갔습니다. EFFEh/EFFFh의 RAM byte는 RET가 자동으로 지우지 않습니다.')});updateCallButtons('');renderCall();
+
+
+
+  let pushState={hl:0x1234,de:0x0000,sp:0xF000,lo:null,hi:null,phase:0};
+  const pushPopReadout=document.getElementById('pushPopReadout');
+  function renderPush(msg=''){const lo=pushState.lo===null?'--':hex2(pushState.lo),hi=pushState.hi===null?'--':hex2(pushState.hi);pushPopReadout.textContent=`HL=${h4(pushState.hl)}  DE=${h4(pushState.de)}  SP=${h4(pushState.sp)}\nRAM[EFFEh]=${lo}  RAM[EFFFh]=${hi}${msg?'\n'+msg:''}`}
+  const pushHL=document.getElementById('pushHL'),popDE=document.getElementById('popDE');
+  function updatePushButtons(last=''){pushHL.disabled=pushState.phase!==0;popDE.disabled=pushState.phase!==1;['pushHL','popDE'].forEach(id=>document.getElementById(id).classList.toggle('active',id===last));if(pushState.phase===2)popDE.classList.add('done');else popDE.classList.remove('done')}
+  document.getElementById('pushPopReset').addEventListener('click',()=>{pushState={hl:0x1234,de:0x0000,sp:0xF000,lo:null,hi:null,phase:0};updatePushButtons('');renderPush('초기 상태입니다.')});
+  pushHL.addEventListener('click',()=>{pushState.sp=0xEFFE;pushState.lo=pushState.hl&0xFF;pushState.hi=(pushState.hl>>8)&0xFF;pushState.phase=1;updatePushButtons('pushHL');renderPush('PUSH HL: SP가 EFFEh로 내려가고 low byte 34h, high byte 12h가 stack RAM에 저장되었습니다.')});
+  popDE.addEventListener('click',()=>{pushState.de=(pushState.hi<<8)|pushState.lo;pushState.sp=0xF000;pushState.phase=2;updatePushButtons('popDE');renderPush('POP DE: stack의 1234h를 DE로 읽고 SP가 F000h로 올라갔습니다. RAM의 byte는 자동으로 지워지지 않습니다.')});updatePushButtons('');renderPush();
+
+  const ixBase=document.getElementById('ixBase'),ixDisp=document.getElementById('ixDisp'),ixReadout=document.getElementById('ixReadout');
+  const ixCalcBtn=document.getElementById('ixCalc');[ixBase,ixDisp].forEach(el=>el.addEventListener('input',()=>{ixCalcBtn.classList.remove('active');ixReadout.textContent='입력값이 바뀌었습니다. 주소 계산 버튼을 다시 누르세요.'}));
+  ixCalcBtn.addEventListener('click',()=>{ixCalcBtn.classList.add('active');const base=parseHex4(ixBase.value);let d=Math.max(-128,Math.min(127,Number(ixDisp.value)||0));ixDisp.value=d;const ea=(base+d)&0xFFFF;ixReadout.textContent=`IX=${h4(base)}, d=${d>=0?'+':''}${d}\n${h4(base)} ${d>=0?'+':'-'} ${Math.abs(d)} = ${h4(ea)}\nLD A,(IX${d>=0?'+':''}${d})라면 RAM[${h4(ea)}]를 읽습니다.`});
+
+  let ioMem=0x11,ioPort=0x22,ioA=0xAA;const ioMemVal=document.getElementById('ioMemVal'),ioPortVal=document.getElementById('ioPortVal'),ioReadout=document.getElementById('ioReadout');
+  function renderIO(msg='Memory와 I/O는 서로 독립된 공간입니다.'){ioMemVal.textContent=`[005Ch] = ${hex2(ioMem)}`;ioPortVal.textContent=`port 5Ch = ${hex2(ioPort)}`;ioReadout.textContent=`A=${hex2(ioA)}\n${msg}`}
+  const ioActions=['memWrite','portWrite','memRead','portRead'];function resetIOState(){ioMem=0x11;ioPort=0x22;ioA=0xAA}function markIO(id){ioActions.forEach(x=>document.getElementById(x).classList.toggle('active',x===id))}
+  document.getElementById('ioReset').addEventListener('click',()=>{resetIOState();markIO('');renderIO('초기 상태입니다.')});
+  document.getElementById('memWrite').addEventListener('click',()=>{resetIOState();ioMem=ioA;markIO('memWrite');renderIO('LD (005Ch),A: Memory[005Ch]만 A 값으로 바뀌었습니다. I/O port는 그대로입니다.')});
+  document.getElementById('portWrite').addEventListener('click',()=>{resetIOState();ioPort=ioA;markIO('portWrite');renderIO('OUT (5Ch),A: I/O port 5Ch 쪽만 바뀌었습니다. Memory[005Ch]는 그대로입니다.')});
+  document.getElementById('memRead').addEventListener('click',()=>{resetIOState();ioA=ioMem;markIO('memRead');renderIO('LD A,(005Ch): Memory[005Ch]의 값을 A로 읽었습니다.')});
+  document.getElementById('portRead').addEventListener('click',()=>{resetIOState();ioA=ioPort;markIO('portRead');renderIO('IN A,(5Ch): I/O port 5Ch의 값을 A로 읽었습니다.')});resetIOState();markIO('');renderIO();
+
+  const finalByte=document.getElementById('finalByte');let ft={step:0,pc:0x02ED,hl:0x9000,e:0,a:0,m:0,z:0};
+  const ftPC=document.getElementById('ftPC'),ftHL=document.getElementById('ftHL'),ftE=document.getElementById('ftE'),ftA=document.getElementById('ftA'),ftMem=document.getElementById('ftMem'),ftZ=document.getElementById('ftZ'),finalTraceReadout=document.getElementById('finalTraceReadout');
+  function renderFT(msg=''){ftPC.textContent=h4(ft.pc);ftHL.textContent=h4(ft.hl);ftE.textContent=hex2(ft.e);ftA.textContent=hex2(ft.a);ftMem.textContent=hex2(ft.m);ftZ.textContent=String(ft.z);document.querySelectorAll('[data-ft]').forEach(el=>{const n=Number(el.dataset.ft);el.classList.toggle('done',n<ft.step);el.classList.toggle('pending',n>ft.step)});const next=ft.step<7?document.querySelector(`[data-ft="${ft.step}"]`).textContent.trim():'모든 instruction 실행 완료';finalTraceReadout.textContent=`${msg}${msg?'\n':''}다음 실행: ${next}\nstream byte=${hex2(Number(finalByte.value))}`}
+  const finalStepBtn=document.getElementById('finalStep');function updateFTButton(){const done=ft.step>=7;finalStepBtn.disabled=done;finalStepBtn.classList.toggle('active',ft.step>0&&!done);finalStepBtn.classList.toggle('done',done)}
+  function resetFT(){ft={step:0,pc:0x02ED,hl:0x9000,e:0,a:0,m:0,z:0};updateFTButton();renderFT('초기 상태입니다.')}
+  document.getElementById('finalReset').addEventListener('click',resetFT);finalByte.addEventListener('change',resetFT);
+  finalStepBtn.addEventListener('click',()=>{const b=Number(finalByte.value)&255;let msg='';switch(ft.step){case 0:ft.e=b;ft.pc=0x02EE;msg=`LD E,(HL): E=${hex2(b)}`;break;case 1:ft.hl=(ft.hl+1)&0xFFFF;ft.pc=0x02EF;msg=`INC HL: HL=${h4(ft.hl)}`;break;case 2:ft.a=ft.e;ft.pc=0x02F0;msg=`LD A,E: A=${hex2(ft.a)}`;break;case 3:ft.m=ft.a;ft.pc=0x02F3;msg=`LD (0C84h),A: RAM[0C84h]=${hex2(ft.m)}`;break;case 4:ft.a=ft.a&0x0F;ft.z=ft.a===0?1:0;ft.pc=0x02F5;msg=`AND 0Fh: A=${hex2(ft.a)}, Z=${ft.z}`;break;case 5:ft.z=ft.a===1?1:0;ft.pc=0x02F7;msg=`CP 01h: A는 ${hex2(ft.a)} 그대로, Z=${ft.z}`;break;case 6:if(ft.z){ft.pc=0x0452;msg='JP Z,0452h: Z=1이므로 0452h로 분기'}else{ft.pc=0x02FA;msg='JP Z,0452h: Z=0이므로 분기하지 않고 02FAh로 fall-through'}break}ft.step++;updateFTButton();renderFT(msg)});resetFT();
+
+  ['bitA','bitOperand','bitIndex'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('change',()=>{bitBtns.forEach(b=>b.classList.remove('active'));const r=document.getElementById('bitReadout');if(r)r.textContent='입력값이 바뀌었습니다. 실행할 bit 연산 버튼을 다시 누
