@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PC-88 게임 분석을 위한 컴퓨터 기초 0부 — bit에서 stack까지</title>
+<style>
+:root{
+  --bg:#f5f7fb;--paper:#fff;--ink:#172033;--muted:#5b6578;--line:#d8deea;
+  --accent:#3157d5;--accent2:#2342a3;--soft:#eef3ff;--ok:#13795b;--warn:#9a6700;
+  --code:#111827;--codeink:#e5e7eb;--shadow:0 12px 30px rgba(23,32,51,.08)
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans KR","Malgun Gothic",sans-serif;line-height:1.75}
+a{color:var(--accent2)}
+header{background:linear-gradient(135deg,#172554,#2746b8);color:#fff;padding:54px 20px 46px}
+.header-inner{max-width:1080px;margin:auto}.eyebrow{font-size:.9rem;letter-spacing:.08em;font-weight:800;opacity:.82}
+h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.13;margin:.35rem 0 .8rem}.lead{max-width:920px;font-size:1.08rem;color:#e3e9ff;margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
+nav.toc{background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:18px;padding:20px 22px;margin-top:-24px;position:relative}
+nav.toc strong{display:block;margin-bottom:8px}nav.toc ol{margin:0;padding-left:1.4rem;columns:2;column-gap:2rem}nav.toc li{break-inside:avoid;margin:.25rem 0}
+section{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:32px;margin-top:24px;box-shadow:0 6px 18px rgba(23,32,51,.04)}
+h2{font-size:1.75rem;margin:0 0 8px;line-height:1.3}h3{font-size:1.22rem;margin:1.9rem 0 .65rem}h4{font-size:1.05rem;margin:1.3rem 0 .4rem}p{margin:.55rem 0 1rem}
+.kicker{font-weight:800;color:var(--accent);font-size:.92rem}.term{font-weight:800;color:#183c98}.muted{color:var(--muted)}
+.note,.warning,.pc88-note{padding:14px 16px;border-radius:12px;margin:16px 0}.note{background:#f4f7fb;border:1px solid #dce4ef}.warning{background:#fff8e6;border:1px solid #f4d78c}.pc88-note{background:#ecfdf5;border:1px solid #a7f3d0}
+code,kbd{font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}.inline-code{background:#eef1f6;border:1px solid #d9dfe9;border-radius:5px;padding:.06rem .32rem;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+pre{background:var(--code);color:var(--codeink);padding:16px;border-radius:13px;overflow:auto;line-height:1.55}
+table{width:100%;border-collapse:collapse;margin:14px 0 20px;font-size:.96rem}th,td{border:1px solid var(--line);padding:9px 10px;text-align:center}th{background:#f3f6fb}td.left,th.left{text-align:left}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.card{border:1px solid var(--line);border-radius:14px;padding:16px;background:#fbfcfe}.card h4{margin-top:0}
+.flow{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:18px 0}.flow .box{border:2px solid #9fb0e9;background:#f5f7ff;border-radius:12px;padding:13px 18px;text-align:center;min-width:125px;font-weight:800}.arrow{font-size:1.6rem;color:#6b7ab6;font-weight:900}
+.bits{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}.bitbtn{width:48px;height:48px;border:1px solid #9eabc3;border-radius:9px;background:#fff;font-weight:900;font-size:1rem;cursor:pointer}.bitbtn.on{background:#294bc5;color:#fff;border-color:#294bc5}.bitlabels{display:flex;gap:6px;flex-wrap:wrap;margin-top:-7px}.bitlabels span{width:48px;text-align:center;font-size:.78rem;color:var(--muted)}
+.readout{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:#f2f5fa;border-radius:10px;padding:11px 13px;margin-top:10px}.controls{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.btn{border:1px solid #a8b3c6;background:#fff;color:var(--ink);padding:8px 12px;border-radius:9px;font-weight:700;cursor:pointer}.btn.primary{background:#3157d5;color:#fff;border-color:#3157d5}.btn:disabled{opacity:.5;cursor:not-allowed}
+.logic-result{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:12px}.logic-result div{background:#f4f6fa;border:1px solid var(--line);border-radius:10px;text-align:center;padding:9px}.logic-result strong{display:block;font-size:1.15rem}
+.regbank{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}.reg{border:2px solid #b5c0da;border-radius:10px;padding:10px;text-align:center;background:#f8faff}.reg b{display:block;color:#2444a8;font-size:1.1rem}.reg.pair{grid-column:span 2;background:#eef3ff}.reg.special{background:#f5f3ff;border-color:#c4b5fd}
+.reg-group{border:1px solid var(--line);border-radius:16px;padding:16px;background:#fbfcfe;margin:14px 0}.reg-group-title{font-weight:900;margin-bottom:8px;color:#263a78}.reg-map{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:14px 0}.reg-map-col{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}.reg-map-col h4{margin:0 0 10px}.reg-mini-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.reg-chip{border:2px solid #b8c4df;border-radius:9px;padding:8px;text-align:center;background:#f8faff;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.reg-chip b{display:block;color:#2444a8;font-size:1.08rem}.reg-chip.alt{background:#fff8e6;border-color:#efd285}.reg-chip.spec{background:#f5f3ff;border-color:#c4b5fd}.pair-diagram{display:flex;align-items:stretch;justify-content:center;gap:0;margin:12px 0;flex-wrap:wrap}.pair-half{min-width:115px;padding:14px;text-align:center;border:2px solid #92a5dd;background:#f1f5ff}.pair-half:first-child{border-radius:12px 0 0 12px}.pair-half:last-of-type{border-radius:0 12px 12px 0;border-left:0}.pair-eq{align-self:center;padding:0 12px;font-weight:900;font-size:1.2rem}.flag-row{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin:12px 0}.flag-bit{border:1px solid #aebbd8;border-radius:9px;padding:8px 4px;text-align:center;background:#f8faff;min-height:78px}.flag-bit b{display:block;color:#2444a8;font-size:1.05rem}.flag-bit small{display:block;color:var(--muted);line-height:1.25}.flag-bit.undoc{background:#f4f4f5;color:#6b7280}.pointer-demo{display:grid;grid-template-columns:1fr 70px 1fr;gap:10px;align-items:center;margin:14px 0}.pointer-demo .pbox{border:2px solid #a9b7df;border-radius:12px;padding:14px;text-align:center;background:#f7f9ff}.index-demo{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:8px;align-items:center;margin:14px 0}.index-demo .ibox{border:1px solid #b8c4df;border-radius:10px;padding:12px;text-align:center;background:#f8faff}.role-table td:nth-child(1){font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:900;color:#2444a8}.role-table td{vertical-align:top}.role-table td.left{line-height:1.6}.reg-caution{border-left:5px solid #3157d5;padding:12px 15px;background:#eef3ff;border-radius:10px;margin:14px 0}
+.memory{display:grid;grid-template-columns:100px 1fr;max-width:560px;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:14px 0}.memory div{padding:8px 11px;border-bottom:1px solid var(--line)}.memory div:nth-last-child(-n+2){border-bottom:0}.addr{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:#f3f6fb;font-weight:800}.val{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.sel{background:#fff3bf!important;outline:2px solid #e6b800;outline-offset:-2px}
+.bus{display:grid;grid-template-columns:1fr 110px 1fr;gap:12px;align-items:center;margin:18px 0}.bus .unit{border:2px solid #a9b7df;background:#f7f9ff;border-radius:14px;padding:18px;text-align:center}.bus .unit.cpu{border-color:#6079d8;background:#eef2ff}.bus-lines{display:grid;gap:8px}.bus-line{border-radius:999px;padding:7px 6px;text-align:center;font-size:.82rem;font-weight:800;background:#eef1f6;border:1px solid #ccd4e3}
+.cpu-inside{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}.cpu-part{border:2px solid #c5cee2;border-radius:12px;padding:14px;text-align:center;background:#f8faff}.cpu-cycle{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}.stage{border:2px solid #c5cee2;border-radius:12px;padding:14px;text-align:center;background:#f8faff}.stage.active{border-color:#3157d5;background:#eaf0ff}.stage.done{border-color:#34a37c;background:#ecfdf5}
+.byte-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0}.byte{background:#111827;color:#fff;border-radius:8px;padding:10px 13px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:800}.byte.op{background:#2342a3}.byte.operand{background:#6b7280}
+.translate{display:grid;grid-template-columns:1fr 70px 1fr 70px 1fr;gap:8px;align-items:center;margin:18px 0}.translate .box{border:2px solid #a9b7df;background:#f7f9ff;border-radius:12px;padding:14px;text-align:center;font-weight:800}.translate .tool{background:#eef3ff;border-color:#8197de}
+.stack-wrap{display:grid;grid-template-columns:minmax(260px,.8fr) minmax(280px,1.2fr);gap:18px;align-items:start}.stack{display:flex;flex-direction:column-reverse;gap:5px;min-height:260px;border:2px solid #aeb9d0;border-top:0;padding:8px 12px 12px;background:#f8faff;border-radius:0 0 12px 12px}.stack-item{padding:9px;border:1px solid #8aa0de;background:#eaf0ff;border-radius:8px;text-align:center;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:800}.sp-label{text-align:center;font-weight:800;margin:.2rem 0 .5rem}
+.stack-memory{max-width:620px;margin:16px auto;border:1px solid var(--line);border-radius:12px;overflow:hidden}.stack-row{display:grid;grid-template-columns:110px 1fr 150px}.stack-row>div{padding:9px 12px;border-bottom:1px solid var(--line)}.stack-row:last-child>div{border-bottom:0}.stack-row .a{background:#f3f6fb;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:800}.stack-row .v{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.stack-row.hot{background:#fff8e6}
+.quiz details{border:1px solid var(--line);border-radius:10px;padding:10px 13px;margin:9px 0;background:#fbfcfe}.quiz summary{cursor:pointer;font-weight:800}.answer{margin-top:8px;color:#334155}
+footer{max-width:1080px;margin:0 auto 60px;padding:0 20px;color:var(--muted);font-size:.9rem}
+@media(max-width:760px){nav.toc ol{columns:1}.grid2,.grid3,.bus,.stack-wrap,.translate,.reg-map,.pointer-demo,.index-demo{grid-template-columns:1fr}.logic-result{grid-template-columns:repeat(2,1fr)}.regbank{grid-template-columns:repeat(2,1fr)}.flag-row{grid-template-columns:repeat(4,1fr)}.index-demo .arrow,.pointer-demo .arrow{transform:rotate(90deg)}.reg.pair{grid-column:span 2}.cpu-cycle,.cpu-inside{grid-template-columns:1fr}.translate .arrow{transform:rotate(90deg)}section{padding:23px 18px}.memory{grid-template-columns:90px 1fr}.stack-row{grid-template-columns:90px 1fr}.stack-row .desc{display:none}}
+@media print{body{background:#fff}header{background:#fff;color:#000;padding:20px 0}.lead{color:#333}.wrap{padding:0}.toc,section{box-shadow:none;break-inside:avoid}button{display:none}.no-print{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="eyebrow">PC-88 GAME ANALYSIS · FOUNDATION 00</div>
+    <h1>PC-88 게임 분석을 위한 컴퓨터 기초 0부</h1>
+    <p class="lead">bit와 논리에서 시작해 register, RAM과 address, CPU, machine language, assembler, stack까지 이어집니다. 뒤에서 Z80과 PC-88을 분석할 때 실제로 계속 만나게 될 개념만 골라 한 흐름으로 설명합니다.</p>
+  </div>
+</header>
+
+<main class="wrap">
+<nav class="toc" aria-label="목차">
+  <strong>목차</strong>
+  <ol>
+    <li><a href="#map">먼저 전체 구조 보기</a></li>
+    <li><a href="#bit">1. bit와 논리</a></li>
+    <li><a href="#register">2. register</a></li>
+    <li><a href="#ram">3. RAM과 address</a></li>
+    <li><a href="#cpu">4. CPU</a></li>
+    <li><a href="#machine">5. machine language</a></li>
+    <li><a href="#assembler">6. assembler</a></li>
+    <li><a href="#stack">7. stack</a></li>
+    <li><a href="#connect">실제 Z80 코드로 연결하기</a></li>
+    <li><a href="#quiz">확인 문제</a></li>
+  </ol>
+</nav>
+
+<section id="map">
+  <div class="kicker">전체 구조</div>
+  <h2>컴퓨터 안에서 데이터와 명령은 어떻게 움직이는가</h2>
+  <p>처음에는 아래 한 줄만 기억하면 됩니다. 컴퓨터는 <b>bit로 데이터를 표현</b>하고, CPU는 <b>register와 RAM에 있는 값을 이용해 machine language 명령을 실행</b>합니다. 사람은 그 기계어를 직접 쓰기 불편하기 때문에 assembly language와 assembler를 사용합니다. 실행 도중 임시 보관과 함수 호출에는 stack이 사용됩니다.</p>
+  <div class="flow" aria-label="개념 흐름">
+    <div class="box">bit · 논리</div><div class="arrow">→</div>
+    <div class="box">register</div><div class="arrow">→</div>
+    <div class="box">RAM · address</div><div class="arrow">→</div>
+    <div class="box">CPU</div><div class="arrow">→</div>
+    <div class="box">machine language</div><div class="arrow">→</div>
+    <div class="box">assembler</div><div class="arrow">→</div>
+    <div class="box">stack</div>
+  </div>
+  <div class="note"><b>표기 약속:</b> 이 강좌에서는 16진수임을 분명히 할 때 <span class="inline-code">9000h</span>처럼 뒤에 <b>h</b>를 붙입니다. 같은 값은 <span class="inline-code">0x9000</span> 또는 문서에 따라 <span class="inline-code">$9000</span>으로도 표기할 수 있습니다.</div>
+</section>
+
+<section id="bit">
+<h2>bit와 논리 — 모든 데이터의 가장 작은 출발점</h2>
+
+  <h3>1-1. bit는 두 상태 중 하나를 나타낸다</h3>
+  <p><span class="term">bit</span>는 <i>binary digit</i>의 줄임말입니다. 논리적으로는 <b>0 또는 1</b>이라는 두 상태 가운데 하나를 나타냅니다. 전자회로에서는 이 상태를 전압 범위 등의 물리적인 방법으로 구현하지만, 프로그램을 배우는 단계에서는 0과 1이라는 추상적인 상태로 이해하면 됩니다.</p>
+  <div class="warning"><b>주의:</b> bit는 정보의 단위입니다. “트랜지스터 하나가 bit 하나다”처럼 물리 부품 수와 1:1로 외우면 실제 회로 구조와 맞지 않습니다.</div>
+
+  <h3>1-2. bit가 늘어나면 가능한 조합이 두 배씩 늘어난다</h3>
+  <table>
+    <thead><tr><th>bit 수</th><th>가능한 패턴 수</th><th>부호 없는 정수로 해석할 때</th></tr></thead>
+    <tbody>
+      <tr><td>1 bit</td><td>2¹ = 2</td><td>0 ~ 1</td></tr>
+      <tr><td>2 bit</td><td>2² = 4</td><td>0 ~ 3</td></tr>
+      <tr><td>4 bit</td><td>2⁴ = 16</td><td>0 ~ 15</td></tr>
+      <tr><td><b>8 bit</b></td><td><b>2⁸ = 256</b></td><td><b>0 ~ 255</b></td></tr>
+      <tr><td>16 bit</td><td>2¹⁶ = 65,536</td><td>0 ~ 65,535</td></tr>
+    </tbody>
+  </table>
+  <p><b>8 bit = 1 byte</b>입니다. 그래서 1byte는 256개의 서로 다른 bit 패턴을 가질 수 있습니다. 그 패턴을 숫자로 해석할지, 문자 코드로 해석할지, 명령어로 해석할지는 <b>그 데이터를 사용하는 방식</b>에 따라 달라집니다.</p>
+
+  <h3>1-3. 2진수와 16진수는 같은 값을 다르게 적는 방법이다</h3>
+  <p>컴퓨터 내부의 bit를 그대로 쓰면 길어지기 때문에 역분석에서는 16진수를 매우 자주 사용합니다. 4bit는 16가지 패턴을 가지므로 16진수 한 자리와 정확히 대응합니다.</p>
+  <div class="pc88-note"><b>왜 16진수를 쓰면 편할까?</b><br>
+CPU가 16진수로 계산하기 때문은 아닙니다. 컴퓨터 내부에서는 결국 0과 1의 bit로 값이 저장됩니다. 16진수가 편한 가장 큰 이유는 <b>2진수와 정확히 4bit 단위로 끊어 읽을 수 있기 때문</b>입니다.<br><br>
+예를 들어 8bit 한 byte는 2진수로 <span class="inline-code">0000 0000 ~ 1111 1111</span>처럼 8자리를 써야 하지만, 16진수로는 <span class="inline-code">00h ~ FFh</span>처럼 항상 두 자리면 됩니다. 16bit 값도 2진수로는 16자리가 필요하지만 16진수로는 <span class="inline-code">0000h ~ FFFFh</span>처럼 네 자리로 표현할 수 있습니다.<br><br>
+더 중요한 것은 <b>자리의 경계가 byte와 정확히 맞는다는 점</b>입니다. 16진수 한 자리 = 4bit, 두 자리 = 8bit = 1byte이므로 <span class="inline-code">A5h</span>를 보면 바로 <span class="inline-code">1010 0101₂</span>로 나눠 볼 수 있습니다. 반대로 2진수 <span class="inline-code">1111 1111₂</span>도 4bit씩 <span class="inline-code">1111 / 1111</span>로 끊으면 곧바로 <span class="inline-code">F / F</span>, 즉 <span class="inline-code">FFh</span>가 됩니다.<br><br>
+10진수도 같은 값을 표현할 수 있지만 bit 경계와 자릿수가 직접 대응하지 않습니다. 예를 들어 <span class="inline-code">255</span>만 보고는 각 bit가 어떻게 켜져 있는지 바로 알기 어렵지만, <span class="inline-code">FFh</span>는 두 자리 모두 <span class="inline-code">1111</span>이라는 것을 바로 알 수 있습니다. 그래서 <b>메모리 주소, opcode, byte 데이터, bit mask를 읽고 비교하는 역분석에서는 16진수가 훨씬 다루기 쉽습니다.</b></div>
+  <table>
+    <thead><tr><th>2진수</th><th>16진수</th><th>10진수</th></tr></thead>
+    <tbody>
+      <tr><td>0000</td><td>0</td><td>0</td></tr><tr><td>0001</td><td>1</td><td>1</td></tr>
+      <tr><td>1001</td><td>9</td><td>9</td></tr><tr><td>1010</td><td>A</td><td>10</td></tr>
+      <tr><td>1111</td><td>F</td><td>15</td></tr><tr><td>1111 1111</td><td>FF</td><td>255</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><b>예:</b> <span class="inline-code">1010 0101₂</span> = <span class="inline-code">A5h</span> = <span class="inline-code">165</span>입니다. 값은 하나이고 표기법만 다릅니다.</div>
+
+  <h3>1-4. 직접 눌러 보는 8bit</h3>
+  <p>아래 8개의 bit를 눌러 보십시오. 왼쪽이 bit 7, 오른쪽이 bit 0입니다. 같은 8bit 패턴이 2진수·10진수·16진수로 어떻게 보이는지 바로 확인할 수 있습니다.</p>
+  <div id="bitButtons" class="bits no-print" aria-label="8비트 편집기"></div>
+  <div class="bitlabels no-print"><span>b7</span><span>b6</span><span>b5</span><span>b4</span><span>b3</span><span>b2</span><span>b1</span><span>b0</span></div>
+  <div id="bitReadout" class="readout">2진수: 00000000 · 10진수: 0 · 16진수: 00h</div>
+
+  <h3>1-5. byte와 용량 단위</h3>
+  <table>
+    <thead><tr><th>단위</th><th>정의</th><th class="left">설명</th></tr></thead>
+    <tbody>
+      <tr><td>1 byte (B)</td><td>8 bit</td><td class="left">PC-88 게임 데이터를 볼 때 가장 자주 만나는 기본 단위</td></tr>
+      <tr><td>1 kB</td><td>1,000 B</td><td class="left">SI 십진 접두어</td></tr>
+      <tr><td>1 KiB</td><td>1,024 B</td><td class="left">2¹⁰ byte</td></tr>
+      <tr><td>1 MiB</td><td>1,024 KiB</td><td class="left">2²⁰ byte</td></tr>
+    </tbody>
+  </table>
+  <div class="pc88-note"><b>레트로 문서 읽기:</b> 오래된 컴퓨터 문서에서 <b>KB</b>라고 적고 실제로는 1,024 byte 단위를 뜻하는 경우가 많습니다. 따라서 당시 문서의 <span class="inline-code">64KB</span>는 보통 65,536 byte를 뜻하는 문맥으로 읽게 됩니다.</div>
+
+  <h3>1-6. 논리 연산 — 0과 1에 적용하는 규칙</h3>
+  <p>논리 연산은 입력 bit를 규칙에 따라 다른 bit로 바꿉니다. CPU의 ALU와 각종 상태 판정, bit mask 처리의 기초가 됩니다.</p>
+  <div class="grid2">
+    <div class="card"><h4>NOT</h4><p>입력을 반대로 바꿉니다.</p><table><tr><th>A</th><th>NOT A</th></tr><tr><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td></tr></table></div>
+    <div class="card"><h4>AND</h4><p>둘 다 1일 때만 1입니다.</p><table><tr><th>A</th><th>B</th><th>A AND B</th></tr><tr><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>1</td></tr></table></div>
+    <div class="card"><h4>OR</h4><p>둘 중 하나라도 1이면 1입니다.</p><table><tr><th>A</th><th>B</th><th>A OR B</th></tr><tr><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td></tr></table></div>
+    <div class="card"><h4>XOR</h4><p>둘이 서로 다를 때 1입니다.</p><table><tr><th>A</th><th>B</th><th>A XOR B</th></tr><tr><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td></tr></table></div>
+  </div>
+  <div class="card"><h4>NAND</h4><p><span class="inline-code">NOT (A AND B)</span>입니다. 둘 다 1인 경우만 0이고 나머지는 1입니다.</p><table><tr><th>A</th><th>B</th><th>A NAND B</th></tr><tr><td>0</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td></tr></table></div>
+
+  <h3>1-7. 논리 연산 체험</h3>
+  <div class="controls no-print"><button id="toggleA" class="btn">A = 0</button><button id="toggleB" class="btn">B = 0</button></div>
+  <div class="logic-result"><div>NOT A<strong id="rNot">1</strong></div><div>AND<strong id="rAnd">0</strong></div><div>OR<strong id="rOr">0</strong></div><div>XOR<strong id="rXor">0</strong></div><div>NAND<strong id="rNand">1</strong></div></div>
+
+  <h3>1-8. 게임에서는 bit를 어떻게 쓰는가</h3>
+  <p>한 byte의 각 bit를 여러 상태 표시로 사용할 수 있습니다. 예를 들어 아래는 설명을 위한 가상의 상태 byte입니다.</p>
+  <pre>bit 0 = 대화 중
+bit 1 = 무적 상태
+bit 2 = 보스전
+bit 3 = 메뉴 열림
+bit 4~7 = 다른 상태</pre>
+  <p>특정 bit만 검사하거나 켜고 끄는 데 AND, OR, XOR 같은 bit 연산이 쓰입니다. 이후 Z80의 <span class="inline-code">AND</span>, <span class="inline-code">OR</span>, <span class="inline-code">XOR</span>, <span class="inline-code">BIT</span>, <span class="inline-code">SET</span>, <span class="inline-code">RES</span> 명령과 연결됩니다.</p>
+</section>
+
+<section id="register">
+<h2>register — CPU 안에서 바로 사용하는 작은 저장 공간</h2>
+
+  <h3>2-1. 왜 register가 필요한가</h3>
+  <p>CPU가 계산할 때마다 RAM까지 가서 값을 읽고 다시 쓰기만 한다면 명령을 처리하기 불편합니다. 그래서 CPU 안에는 <b>현재 계산에 필요한 값, 주소, 실행 위치, 상태</b> 등을 바로 보관하는 작은 저장 공간이 있습니다. 이것이 <span class="term">register(레지스터)</span>입니다.</p>
+  <div class="note"><b>비유:</b> RAM이 번호가 붙은 큰 서랍장이라면 register는 작업대 위에 놓인 작은 칸입니다. 서랍장에는 많은 것을 보관할 수 있지만, 지금 손에 들고 계산하는 값은 작업대 위에 놓는다고 생각하면 됩니다.</div>
+  <div class="reg-caution"><b>중요:</b> 모든 register가 똑같은 역할을 하는 것은 아닙니다. <b>B·C·D·E·H·L처럼 비교적 자유롭게 쓰는 register</b>도 있고, <b>PC·SP·I·R처럼 CPU 동작과 직접 연결된 특별한 register</b>도 있습니다. 또한 “HL은 주소용”처럼 외우면 안 됩니다. HL은 16bit 값을 담는 register이고, Z80 명령어에 HL을 주소처럼 사용하는 형태가 특히 많기 때문에 메모리 포인터로 자주 보이는 것입니다.</div>
+
+  <h3>2-2. Z80의 register 전체 지도</h3>
+  <p>PC-88의 메인 CPU인 Z80에는 우리가 자주 사용하는 <b>주 register 세트</b>, 빠르게 교체할 수 있는 <b>보조(alternate) register 세트</b>, 그리고 CPU 제어에 쓰이는 <b>특수 register</b>가 있습니다.</p>
+  <div class="reg-map" aria-label="Z80 레지스터 전체 지도">
+    <div class="reg-map-col">
+      <h4>주 register 세트</h4>
+      <div class="reg-mini-grid">
+        <div class="reg-chip"><b>A</b>Accumulator</div><div class="reg-chip"><b>F</b>Flags</div>
+        <div class="reg-chip"><b>B</b>8 bit</div><div class="reg-chip"><b>C</b>8 bit</div>
+        <div class="reg-chip"><b>D</b>8 bit</div><div class="reg-chip"><b>E</b>8 bit</div>
+        <div class="reg-chip"><b>H</b>8 bit</div><div class="reg-chip"><b>L</b>8 bit</div>
+      </div>
+    </div>
+    <div class="reg-map-col">
+      <h4>보조 register 세트</h4>
+      <div class="reg-mini-grid">
+        <div class="reg-chip alt"><b>A′</b>Alternate</div><div class="reg-chip alt"><b>F′</b>Alternate</div>
+        <div class="reg-chip alt"><b>B′</b>Alternate</div><div class="reg-chip alt"><b>C′</b>Alternate</div>
+        <div class="reg-chip alt"><b>D′</b>Alternate</div><div class="reg-chip alt"><b>E′</b>Alternate</div>
+        <div class="reg-chip alt"><b>H′</b>Alternate</div><div class="reg-chip alt"><b>L′</b>Alternate</div>
+      </div>
+    </div>
+    <div class="reg-map-col">
+      <h4>특수 register</h4>
+      <div class="reg-mini-grid">
+        <div class="reg-chip spec"><b>IX</b>Index</div><div class="reg-chip spec"><b>IY</b>Index</div>
+        <div class="reg-chip spec"><b>SP</b>Stack Pointer</div><div class="reg-chip spec"><b>PC</b>Program Counter</div>
+        <div class="reg-chip spec"><b>I</b>Interrupt Vector</div><div class="reg-chip spec"><b>R</b>Refresh</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>2-3. A — Accumulator: 계산의 중심이 되는 8bit register</h3>
+  <p><span class="inline-code">A</span>는 <b>Accumulator(누산기)</b>입니다. Z80의 많은 8bit 산술·논리 명령이 A를 중심으로 동작합니다. 값을 더하거나 빼고, AND·OR·XOR를 하고, 값을 비교하거나 I/O로 주고받을 때 A가 자주 등장합니다.</p>
+  <pre>LD A,05h      ; A에 05h를 넣음
+ADD A,03h     ; A = 05h + 03h = 08h
+AND 0Fh       ; A와 0Fh를 AND한 결과가 다시 A에 들어감
+CP 08h        ; A와 08h를 비교하고 결과 상태는 F에 기록</pre>
+  <p>따라서 디버거에서 <span class="inline-code">A=41h</span>라고 보이면 “CPU가 지금 41h라는 8bit 값을 A라는 작업 register에 들고 있다”고 읽으면 됩니다.</p>
+
+  <h3>2-4. F — Flags: 방금 한 연산의 결과 상태를 기억한다</h3>
+  <p><span class="inline-code">F</span>는 일반적인 숫자를 보관하기 위한 register라기보다, <b>연산 결과가 어떤 상태였는지 표시하는 여러 flag bit</b>를 모아 둔 register입니다. 예를 들어 결과가 0이 되었는지, 자리올림이 생겼는지 같은 정보를 다음 명령이 확인할 수 있습니다.</p>
+  <div class="flag-row" aria-label="Z80 F 레지스터 비트">
+    <div class="flag-bit"><b>S</b><small>Sign<br>부호 상태</small></div>
+    <div class="flag-bit"><b>Z</b><small>Zero<br>결과가 0</small></div>
+    <div class="flag-bit undoc"><b>5</b><small>비공식/내부<br>상태 bit</small></div>
+    <div class="flag-bit"><b>H</b><small>Half Carry<br>하위 4bit 자리올림</small></div>
+    <div class="flag-bit undoc"><b>3</b><small>비공식/내부<br>상태 bit</small></div>
+    <div class="flag-bit"><b>P/V</b><small>Parity / Overflow</small></div>
+    <div class="flag-bit"><b>N</b><small>Add/Subtract<br>뺄셈 계열 표시</small></div>
+    <div class="flag-bit"><b>C</b><small>Carry<br>자리올림/빌림</small></div>
+  </div>
+  <p>초보 단계에서 먼저 기억할 것은 <b>Z와 C</b>입니다. 예를 들어 <span class="inline-code">CP 08h</span>로 A와 08h를 비교한 뒤 두 값이 같으면 Z flag가 1이 되고, 이어지는 <span class="inline-code">JR Z,...</span> 같은 조건 분기가 그 상태를 이용합니다.</p>
+  <div class="note"><b>AF라는 표기도 있습니다.</b> A와 F를 합쳐 <span class="inline-code">AF</span>라는 16bit 쌍처럼 PUSH/POP하거나 보조 세트와 교환할 수 있습니다. 하지만 BC·DE·HL처럼 일반적인 16bit 계산용 register pair로 생각하면 안 됩니다.</div>
+
+  <h3>2-5. B, C, D, E, H, L — 자유롭게 쓰되 명령어마다 자주 맡는 일이 있다</h3>
+  <p>이 여섯 개는 Z80의 <b>general-purpose register(범용 register)</b>입니다. 즉 “B에는 반드시 반복 횟수만 넣어야 한다”처럼 고정된 용도가 있는 것은 아닙니다. 필요하면 각각 독립적인 8bit 값 하나를 저장할 수 있습니다. 다만 Z80 명령어 자체가 특정 register를 특별하게 사용하는 경우가 있어 실제 프로그램에서는 자연스럽게 자주 맡는 역할이 생깁니다.</p>
+  <table class="role-table">
+    <thead><tr><th>register</th><th>크기</th><th class="left">초보자가 이해할 역할</th><th class="left">Z80에서 특히 자주 보이는 사용</th></tr></thead>
+    <tbody>
+      <tr><td>B</td><td>8 bit</td><td class="left">일반적인 8bit 값 보관</td><td class="left"><span class="inline-code">DJNZ</span> 명령이 B를 1 감소시키고 0이 아니면 반복하므로 <b>반복 횟수(counter)</b>로 자주 보입니다. BC의 상위 byte이기도 합니다.</td></tr>
+      <tr><td>C</td><td>8 bit</td><td class="left">일반적인 8bit 값 보관</td><td class="left">BC의 하위 byte입니다. <span class="inline-code">IN r,(C)</span>, <span class="inline-code">OUT (C),r</span> 형태에서는 I/O port 주소 지정에 BC가 사용되므로 C가 port 번호 쪽으로 자주 보입니다.</td></tr>
+      <tr><td>D</td><td>8 bit</td><td class="left">일반적인 8bit 값 보관</td><td class="left">DE의 상위 byte입니다. D 단독에는 “반드시 이것”이라는 고정 역할은 없지만 DE를 주소로 쓸 때 상위 8bit를 담당합니다.</td></tr>
+      <tr><td>E</td><td>8 bit</td><td class="left">일반적인 8bit 값 보관</td><td class="left">DE의 하위 byte입니다. DE가 메모리 목적지 주소를 가리킬 때 하위 8bit를 담당합니다.</td></tr>
+      <tr><td>H</td><td>8 bit</td><td class="left">일반적인 8bit 값 보관</td><td class="left">HL의 상위 byte입니다. <span class="inline-code">HL=9000h</span>이라면 H에는 90h가 들어갑니다.</td></tr>
+      <tr><td>L</td><td>8 bit</td><td class="left">일반적인 8bit 값 보관</td><td class="left">HL의 하위 byte입니다. <span class="inline-code">HL=9000h</span>이라면 L에는 00h가 들어갑니다.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>2-6. BC, DE, HL — 8bit 두 개를 묶어서 16bit로 사용한다</h3>
+  <p>B와 C, D와 E, H와 L은 각각 두 개를 묶어 16bit register pair로 사용할 수 있습니다. 왼쪽 register가 상위 byte, 오른쪽 register가 하위 byte입니다.</p>
+  <div class="pair-diagram" aria-label="HL 레지스터 쌍 예제">
+    <div class="pair-half"><b>H = 90h</b><br><small>상위 8bit</small></div>
+    <div class="pair-half"><b>L = 00h</b><br><small>하위 8bit</small></div>
+    <div class="pair-eq">→ HL = 9000h</div>
+  </div>
+  <table class="role-table">
+    <thead><tr><th>pair</th><th class="left">실제 코드에서 자주 맡는 역할</th><th class="left">대표 예</th></tr></thead>
+    <tbody>
+      <tr><td>BC</td><td class="left"><b>개수·반복 횟수</b> 또는 16bit 일반 값으로 자주 쓰입니다. Z80의 block transfer/search 명령에서는 남은 byte 수를 BC가 관리합니다.</td><td class="left"><span class="inline-code">LDIR</span>에서 BC가 0이 될 때까지 복사를 반복합니다.</td></tr>
+      <tr><td>DE</td><td class="left"><b>목적지(destination) 주소</b>로 자주 쓰입니다. 특히 block transfer 명령이 HL에서 읽은 데이터를 DE가 가리키는 곳에 씁니다.</td><td class="left"><span class="inline-code">LDIR</span>: (HL) → (DE)</td></tr>
+      <tr><td>HL</td><td class="left"><b>메모리 주소(pointer)</b>로 매우 자주 쓰입니다. Z80 명령어에는 <span class="inline-code">(HL)</span> 형태의 메모리 간접 접근이 풍부합니다.</td><td class="left"><span class="inline-code">LD A,(HL)</span>은 HL이 가리키는 RAM의 byte를 A로 읽습니다.</td></tr>
+    </tbody>
+  </table>
+  <pre>; 메모리 8000h~80FFh의 256byte를 9000h~90FFh로 복사하는 전형적인 형태
+LD HL,8000h    ; source 주소
+LD DE,9000h    ; destination 주소
+LD BC,0100h    ; 복사할 byte 수 = 256
+LDIR           ; (HL) → (DE), HL/DE 증가, BC 감소를 반복</pre>
+  <div class="warning"><b>이 예가 아주 중요합니다.</b> “HL=source, DE=destination, BC=count”는 Z80의 block transfer 명령에서 실제로 정해진 역할입니다. 하지만 다른 코드에서는 HL·DE·BC에 전혀 다른 값을 넣어 사용할 수도 있습니다.</div>
+
+  <h3>2-7. PC — Program Counter: CPU가 어느 명령을 실행할지 가리킨다</h3>
+  <p><span class="inline-code">PC</span>는 <b>Program Counter</b>입니다. CPU가 메모리에서 다음 opcode를 가져올 주소를 유지합니다. 명령 byte를 읽으면 PC가 다음 위치로 진행하고, <span class="inline-code">JP</span>, <span class="inline-code">JR</span>, <span class="inline-code">CALL</span>, <span class="inline-code">RET</span> 같은 흐름 제어 명령을 실행하면 PC가 다른 주소로 바뀝니다.</p>
+  <div class="pointer-demo">
+    <div class="pbox"><b>PC = 8000h</b><br><small>실행 위치를 들고 있음</small></div>
+    <div class="arrow">→</div>
+    <div class="pbox"><b>RAM 8000h</b><br><span class="inline-code">3E 05</span><br><small>여기서 opcode를 가져옴</small></div>
+  </div>
+  <p>그래서 디버거가 멈췄을 때 <span class="inline-code">PC=02EDh</span>라고 보이면, 가장 먼저 “CPU 실행 흐름이 지금 02EDh의 명령 위치에 와 있다”고 읽습니다. 게임의 어떤 루틴을 찾고 있는지 판단할 때 가장 중요한 register 중 하나입니다.</p>
+
+  <h3>2-8. SP — Stack Pointer: stack의 현재 꼭대기 주소를 가리킨다</h3>
+  <p><span class="inline-code">SP</span>는 <b>Stack Pointer</b>입니다. stack은 별도의 마법 같은 저장 장치가 아니라 <b>RAM의 일부</b>이고, SP가 그 stack의 현재 top 위치를 주소로 가리킵니다.</p>
+  <div class="pointer-demo">
+    <div class="pbox"><b>SP = EFFEh</b><br><small>현재 stack top</small></div>
+    <div class="arrow">→</div>
+    <div class="pbox"><b>RAM EFFEh...</b><br><small>PUSH/POP, CALL/RET가 사용하는 영역</small></div>
+  </div>
+  <p>Z80의 <span class="inline-code">PUSH</span>와 <span class="inline-code">CALL</span>은 SP를 낮은 주소 방향으로 움직이며 stack에 값을 넣고, <span class="inline-code">POP</span>과 <span class="inline-code">RET</span>는 값을 꺼내면서 SP를 다시 높은 주소 방향으로 움직입니다. 자세한 동작은 7장 stack에서 실제 주소로 다시 확인합니다.</p>
+
+  <h3>2-9. IX와 IY — Index Register: 기준 주소 + 작은 이동값으로 메모리에 접근한다</h3>
+  <p><span class="inline-code">IX</span>와 <span class="inline-code">IY</span>는 각각 16bit <b>index register</b>입니다. HL처럼 주소를 담을 수 있지만, 특히 <span class="inline-code">(IX+d)</span>, <span class="inline-code">(IY+d)</span>처럼 <b>기준 주소(base)에 signed 8bit displacement를 더한 위치</b>에 접근할 수 있다는 점이 중요합니다.</p>
+  <div class="index-demo" aria-label="IX 인덱스 주소 예제">
+    <div class="ibox"><b>IX = 9000h</b><br><small>기준 주소</small></div>
+    <div class="arrow">+</div>
+    <div class="ibox"><b>d = +05h</b><br><small>이동값</small></div>
+    <div class="arrow">=</div>
+    <div class="ibox"><b>(IX+05h) = RAM[9005h]</b></div>
+  </div>
+  <pre>LD IX,9000h
+LD A,(IX+05h)  ; 9005h의 byte를 A에 읽음</pre>
+  <p>게임에서는 캐릭터 상태 구조체, 테이블, 여러 필드가 일정 간격으로 배치된 데이터 등을 다룰 때 이런 방식이 유용합니다. 다만 “IX는 캐릭터 전용”처럼 정해진 용도는 없습니다.</p>
+
+  <h3>2-10. I — Interrupt Vector Register: 인터럽트 처리 주소를 만드는 데 사용한다</h3>
+  <p><span class="inline-code">I</span>는 8bit <b>Interrupt Vector Register</b>입니다. 특히 Z80의 <b>Interrupt Mode 2(IM 2)</b>에서 인터럽트가 발생했을 때 사용할 vector table 주소를 만드는 데 I가 상위 8bit로 사용됩니다.</p>
+  <div class="note">초보 단계에서는 “I는 일반 계산용 register가 아니라 <b>인터럽트 처리용 주소 체계에 참여하는 특수 register</b>”라고 기억하면 충분합니다. PC-88 게임 코드를 보다가 <span class="inline-code">LD I,A</span> 또는 <span class="inline-code">LD A,I</span>를 만나면 일반적인 HL 포인터와 같은 용도로 해석하면 안 됩니다.</div>
+
+  <h3>2-11. R — Memory Refresh Register: DRAM refresh를 돕는 특수 register</h3>
+  <p><span class="inline-code">R</span>은 8bit <b>Memory Refresh Register</b>입니다. Z80은 명령 opcode를 fetch하는 과정에서 R의 하위 7bit를 자동으로 증가시키고, 이 값을 DRAM refresh 주소 생성에 이용합니다. 따라서 프로그램이 마음대로 쓰는 일반-purpose counter와는 성격이 다릅니다.</p>
+  <div class="warning"><b>R을 단순한 “시간 register”로 외우면 안 됩니다.</b> 일부 프로그램이 R 값을 읽어서 난수성이나 타이밍에 활용하기도 하지만, 본래 목적은 메모리 refresh 지원입니다.</div>
+
+  <h3>2-12. A′F′, B′C′, D′E′, H′L′ — 보조 register 세트</h3>
+  <p>Z80에는 A·F·B·C·D·E·H·L과 같은 크기의 <b>두 번째 register 세트</b>가 하나 더 있습니다. 이름에 작은 따옴표를 붙여 <span class="inline-code">A′</span>, <span class="inline-code">F′</span>, <span class="inline-code">B′</span>처럼 적습니다.</p>
+  <div class="flow">
+    <div class="box">A F / BC DE HL<br><small>현재 사용 중</small></div><div class="arrow">⇄</div><div class="box">A′ F′ / BC′ DE′ HL′<br><small>보조 세트</small></div>
+  </div>
+  <p><span class="inline-code">EX AF,AF′</span>는 AF와 AF′를 교환하고, <span class="inline-code">EXX</span>는 BC·DE·HL과 BC′·DE′·HL′를 한꺼번에 교환합니다. 빠른 인터럽트 처리처럼 기존 register 값을 stack에 하나씩 저장했다가 복원하는 시간을 줄이고 싶을 때 유용합니다.</p>
+  <p>보조 register는 평소에 <span class="inline-code">LD B′,10h</span>처럼 직접 이름을 지정해 접근하는 방식이 아닙니다. <b>주 세트와 교환해서 현재 세트로 만든 뒤 사용</b>한다는 점이 핵심입니다.</p>
+
+  <h3>2-13. 한눈에 보는 Z80 register 역할</h3>
+  <table class="role-table">
+    <thead><tr><th>register</th><th>크기</th><th class="left">핵심 역할</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>8 bit</td><td class="left">산술·논리·비교·I/O에서 가장 자주 쓰이는 누산기</td></tr>
+      <tr><td>F</td><td>8 bit</td><td class="left">연산 결과의 Zero, Carry, Sign, Overflow 등의 상태 flag 보관</td></tr>
+      <tr><td>B</td><td>8 bit</td><td class="left">범용 값; <span class="inline-code">DJNZ</span>에서 반복 counter로 특별히 사용</td></tr>
+      <tr><td>C</td><td>8 bit</td><td class="left">범용 값; BC의 하위 byte, `(C)` I/O 형식에서 port 주소 지정에 참여</td></tr>
+      <tr><td>D</td><td>8 bit</td><td class="left">범용 값; DE의 상위 byte</td></tr>
+      <tr><td>E</td><td>8 bit</td><td class="left">범용 값; DE의 하위 byte</td></tr>
+      <tr><td>H</td><td>8 bit</td><td class="left">범용 값; HL의 상위 byte</td></tr>
+      <tr><td>L</td><td>8 bit</td><td class="left">범용 값; HL의 하위 byte</td></tr>
+      <tr><td>BC</td><td>16 bit</td><td class="left">범용 16bit 값; block 명령의 byte count, I/O 주소 등에 자주 사용</td></tr>
+      <tr><td>DE</td><td>16 bit</td><td class="left">범용 16bit 값; block transfer의 destination pointer로 사용</td></tr>
+      <tr><td>HL</td><td>16 bit</td><td class="left">범용 16bit 값; 메모리 pointer와 block transfer source로 매우 자주 사용</td></tr>
+      <tr><td>IX</td><td>16 bit</td><td class="left">index/base 주소 + displacement 방식의 메모리 접근</td></tr>
+      <tr><td>IY</td><td>16 bit</td><td class="left">IX와 같은 종류의 두 번째 index register</td></tr>
+      <tr><td>PC</td><td>16 bit</td><td class="left">CPU가 실행할 명령의 메모리 주소를 관리</td></tr>
+      <tr><td>SP</td><td>16 bit</td><td class="left">RAM에 있는 stack top 주소를 관리</td></tr>
+      <tr><td>I</td><td>8 bit</td><td class="left">IM 2 인터럽트 vector table 주소 형성에 참여</td></tr>
+      <tr><td>R</td><td>8 bit</td><td class="left">DRAM memory refresh 주소 생성 지원</td></tr>
+      <tr><td>보조 세트</td><td>8/16 bit</td><td class="left">A′F′, BC′, DE′, HL′. EX/EXX로 주 세트와 빠르게 교환</td></tr>
+    </tbody>
+  </table>
+
+  <div class="pc88-note"><b>PC-88 역분석에서 처음 자주 보는 것:</b> <span class="inline-code">PC</span>는 “지금 어느 코드인가”, <span class="inline-code">HL/DE</span>는 “어느 RAM 위치를 가리키는가”, <span class="inline-code">BC</span>는 “몇 byte를 처리하는가”, <span class="inline-code">A</span>는 “지금 어떤 8bit 값을 처리하는가”, <span class="inline-code">F</span>는 “직전 계산 결과가 어떤 상태인가”, <span class="inline-code">SP</span>는 “함수 호출과 임시 저장이 어느 stack에 쌓였는가”를 추적할 때 특히 중요합니다.</div>
+</section>
+
+<section id="ram">
+<h2>RAM과 address — 데이터를 ‘어디에’ 저장했는지 구분하는 방법</h2>
+
+  <h3>3-1. RAM은 많은 저장 위치를 주소로 구분한다</h3>
+  <p><span class="term">RAM</span>은 많은 저장 위치로 이루어져 있고 각 위치를 <span class="term">address</span>로 선택해 읽고 쓸 수 있습니다. 여기서 Random Access의 “random”은 내용이 무작위라는 뜻이 아니라, 필요한 위치를 주소로 지정해 직접 접근할 수 있다는 뜻입니다.</p>
+  <div class="bus" aria-label="CPU와 RAM 사이의 주소와 데이터 이동">
+    <div class="unit cpu"><b>CPU</b><br><small>어느 위치를 읽을지 지정하고 데이터를 주고받음</small></div>
+    <div class="bus-lines"><div class="bus-line">주소</div><div class="bus-line">데이터</div><div class="bus-line">읽기/쓰기 제어</div></div>
+    <div class="unit"><b>RAM</b><br><small>주소별로 byte 값을 보관</small></div>
+  </div>
+
+  <h3>3-2. address와 value는 다른 것이다</h3>
+  <p>주소는 <b>위치</b>이고 값은 <b>그 위치에 들어 있는 내용</b>입니다. 아래에서는 HL이 어느 주소를 가리키는지 직접 바꿔 볼 수 있습니다.</p>
+  <div class="grid2">
+    <div>
+      <div class="memory" aria-label="메모리 예제">
+        <div class="addr">9000h</div><div class="val" data-address="9000">41h</div>
+        <div class="addr">9001h</div><div class="val" data-address="9001">52h</div>
+        <div class="addr">9002h</div><div class="val" data-address="9002">63h</div>
+        <div class="addr">9003h</div><div class="val" data-address="9003">7Eh</div>
+        <div class="addr">9004h</div><div class="val" data-address="9004">00h</div>
+        <div class="addr">9005h</div><div class="val" data-address="9005">FFh</div>
+      </div>
+    </div>
+    <div>
+      <div class="controls no-print">
+        <button class="btn" data-mem="9000">HL=9000h</button><button class="btn" data-mem="9001">HL=9001h</button><button class="btn" data-mem="9002">HL=9002h</button>
+        <button class="btn" data-mem="9003">HL=9003h</button><button class="btn" data-mem="9004">HL=9004h</button><button class="btn" data-mem="9005">HL=9005h</button>
+      </div>
+      <div id="memReadout" class="readout">HL = 9000h → (HL) = 41h</div>
+      <p><span class="inline-code">HL</span>은 레지스터 안의 16bit 값이고, <span class="inline-code">(HL)</span>은 Z80 표기에서 “HL이 가리키는 메모리 위치의 내용”을 뜻합니다.</p>
+    </div>
+  </div>
+  <pre>HL = 9003h
+       │
+       ▼
+RAM 9003h ──► 7Eh
+
+HL      = 9003h
+(HL)    = 7Eh</pre>
+
+  <h3>3-3. 16bit address와 64 KiB 논리 주소 공간</h3>
+  <p>16bit로는 <span class="inline-code">0000h ~ FFFFh</span>의 65,536가지 주소를 표현할 수 있습니다. 각 주소가 1byte 위치를 가리키는 byte-addressed 공간이라면 총 <b>65,536 byte = 64 KiB</b>의 논리 주소 범위를 갖습니다.</p>
+
+  <div class="pc88-note"><b>PC-88에서 중요한 예고:</b> CPU의 주소가 16bit라는 사실과 컴퓨터에 존재하는 모든 RAM·ROM·VRAM의 물리적 총량은 같은 말이 아닙니다. PC-88에서는 메모리 선택과 뱅크 전환, VRAM 접근 같은 구조를 따로 배우게 됩니다.</div>
+
+  <h3>3-4. RAM과 ROM의 차이</h3>
+  <table>
+    <thead><tr><th></th><th>RAM</th><th>ROM</th></tr></thead>
+    <tbody>
+      <tr><th>일반적인 역할</th><td>실행 중 바뀌는 작업 데이터와 프로그램 영역</td><td>기본적으로 고정된 프로그램·테이블·폰트 등의 저장</td></tr>
+      <tr><th>CPU가 읽기</th><td>가능</td><td>가능</td></tr>
+      <tr><th>일반적인 쓰기</th><td>가능</td><td>읽기 전용 성격</td></tr>
+      <tr><th>PC-88에서 만나는 예</th><td>Main RAM 등</td><td>시스템 ROM, KANJI ROM 등</td></tr>
+    </tbody>
+  </table>
+  <p>“ROM은 절대로 어떤 방식으로도 변경할 수 없다”는 의미로 받아들이면 안 됩니다. ROM은 저장 기술과 시스템 구성에 따라 종류가 다양합니다. 여기서는 CPU가 실행 중 일반 RAM처럼 자유롭게 쓰는 작업 공간과 구분하기 위한 기본 개념으로 이해합니다.</p>
+
+  <h3>3-5. little-endian — 16bit 값을 byte 두 개로 놓는 순서</h3>
+  <p>Z80 코드와 메모리를 읽다 보면 16bit 값의 <b>낮은 byte가 낮은 주소 쪽에 놓이는</b> 형태를 자주 보게 됩니다. 예를 들어 16bit 값 <span class="inline-code">9000h</span>은 low byte <span class="inline-code">00h</span>, high byte <span class="inline-code">90h</span>으로 나뉩니다.</p>
+  <table><thead><tr><th>16bit 값</th><th>high byte</th><th>low byte</th><th>기계어 operand에서 보이는 순서</th></tr></thead><tbody><tr><td>9000h</td><td>90h</td><td>00h</td><td><b>00 90</b></td></tr><tr><td>1234h</td><td>12h</td><td>34h</td><td><b>34 12</b></td></tr></tbody></table>
+  <p>이 순서는 뒤의 machine language와 stack 예제에서 다시 사용합니다.</p>
+</section>
+
+<section id="cpu">
+<h2>CPU — 명령을 읽고 실제 동작으로 바꾸는 장치</h2>
+
+  <h3>4-1. CPU 안에는 계산, 저장, 제어 역할이 나뉘어 있다</h3>
+  <p><span class="term">CPU</span>(Central Processing Unit)는 단순한 계산기 하나가 아니라 여러 기능이 함께 동작하는 처리 장치입니다. 입문 단계에서는 아래 세 부분으로 나누어 보면 이해하기 쉽습니다.</p>
+  <div class="cpu-inside">
+    <div class="cpu-part"><b>ALU</b><br><span class="muted">산술·논리 연산</span></div>
+    <div class="cpu-part"><b>Registers</b><br><span class="muted">현재 쓰는 값과 상태 보관</span></div>
+    <div class="cpu-part"><b>Control</b><br><span class="muted">명령 해석과 실행 순서 제어</span></div>
+  </div>
+  <div class="bus" aria-label="CPU 메모리 입출력 관계">
+    <div class="unit"><b>Memory</b><br><small>명령과 데이터</small></div>
+    <div class="bus-lines"><div class="bus-line">주소</div><div class="bus-line">데이터</div><div class="bus-line">제어</div></div>
+    <div class="unit cpu"><b>CPU</b><br><small>ALU + Registers + Control</small></div>
+  </div>
+  <div class="flow"><div class="box">CPU</div><div class="arrow">↔</div><div class="box">Memory</div><div class="arrow">·</div><div class="box">I/O</div></div>
+  <p>I/O는 키보드, 화면, 사운드, 디스크 컨트롤러처럼 CPU가 외부 기능과 데이터를 주고받는 통로입니다. PC-88에서는 메모리뿐 아니라 I/O port 접근도 매우 중요하지만, 구체적인 port 구조는 PC-88 하드웨어 편에서 다룹니다.</p>
+
+  <h3>4-2. Fetch → Decode → Execute</h3>
+  <p>CPU의 동작을 개념적으로 단순화하면 <b>명령을 가져오고(Fetch), 뜻을 해석하고(Decode), 실행한다(Execute)</b>는 반복으로 볼 수 있습니다.</p>
+  <div id="cpuCycle" class="cpu-cycle">
+    <div class="stage"><b>1. FETCH</b><br>PC가 가리키는 메모리에서 opcode를 읽음</div>
+    <div class="stage"><b>2. DECODE</b><br>opcode가 어떤 명령인지 해석</div>
+    <div class="stage"><b>3. EXECUTE</b><br>register·ALU·memory 등을 사용해 동작</div>
+  </div>
+  <div class="controls no-print"><button id="cycleNext" class="btn primary">다음 단계</button><button id="cycleReset" class="btn">처음으로</button></div>
+  <div id="cycleText" class="readout">예: PC=8000h → 메모리 8000h에서 opcode를 가져오는 단계</div>
+  <div class="warning"><b>정확성 보충:</b> Fetch → Decode → Execute는 이해를 위한 개념 모델입니다. 실제 Z80 명령은 opcode와 operand의 길이, memory/I/O access, machine cycle에 따라 여러 세부 동작과 timing을 거칩니다. 모든 명령이 정확히 세 번의 물리 단계로 끝난다는 뜻은 아닙니다.</div>
+
+  <h3>4-3. PC — 실행 위치를 가리키는 Program Counter</h3>
+  <p>Z80의 <span class="term">PC</span>는 현재 가져올 명령의 16bit 주소를 유지합니다. 명령 byte를 읽으며 다음 위치로 진행하고, jump나 CALL 같은 명령이 실행되면 새로운 주소로 바뀝니다.</p>
+  <pre>PC = 8000h
+      │
+      ▼
+8000h : 21 00 90   ← CPU가 여기서 명령을 읽기 시작
+8003h : 3E 05
+8005h : 77</pre>
+  <p>그래서 디버거에서 <span class="inline-code">PC=02ED</span>를 확인한다는 것은 실행 흐름의 현재 위치를 잡는다는 뜻입니다. 역분석에서 PC는 “지금 어느 코드가 실행되는가”를 추적하는 핵심 좌표입니다.</p>
+
+  <h3>4-4. CPU가 명령과 데이터를 구분하는 방법</h3>
+  <p>메모리에는 결국 byte가 들어 있습니다. 어떤 byte를 CPU가 PC를 통해 <b>명령으로 fetch</b>하면 machine instruction으로 해석되고, 프로그램이 단순 데이터로 읽으면 숫자·문자·그래픽 등의 데이터가 됩니다. 메모리의 byte 자체에 “나는 코드”라는 딱지가 붙어 있는 것은 아닙니다.</p>
+</section>
+
+<section id="machine">
+<h2>machine language — CPU가 직접 해석하도록 정의된 명령 형식</h2>
+
+  <h3>5-1. opcode와 operand</h3>
+  <p>CPU마다 어떤 byte 패턴을 어떤 명령으로 해석할지가 정해져 있습니다. 명령의 종류를 나타내는 부분을 <span class="term">opcode</span>, 명령이 사용할 값이나 주소 같은 추가 정보를 <span class="term">operand</span>라고 부릅니다.</p>
+  <div class="byte-row"><span class="byte op">3E</span><span class="byte operand">05</span><span class="arrow">→</span><code>LD A,05h</code></div>
+  <table><thead><tr><th>byte</th><th>역할</th></tr></thead><tbody><tr><td>3Eh</td><td>opcode — Z80의 <span class="inline-code">LD A,n</span></td></tr><tr><td>05h</td><td>operand — A에 넣을 즉시값</td></tr></tbody></table>
+  <p>이 명령을 실행하면 A register에는 <span class="inline-code">05h</span>가 들어갑니다.</p>
+
+  <h3>5-2. 명령은 길이가 모두 같지 않다</h3>
+  <p>Z80 명령은 1byte짜리도 있고, operand나 prefix가 붙어 여러 byte가 되는 명령도 있습니다. 따라서 역어셈블할 때는 “한 byte = 한 명령”이라고 생각하면 안 됩니다.</p>
+  <table><thead><tr><th>주소</th><th>기계어</th><th>assembly 표현</th><th>길이</th></tr></thead><tbody><tr><td>8000h</td><td>21 00 90</td><td><code>LD HL,9000h</code></td><td>3 bytes</td></tr><tr><td>8003h</td><td>3E 05</td><td><code>LD A,05h</code></td><td>2 bytes</td></tr><tr><td>8005h</td><td>77</td><td><code>LD (HL),A</code></td><td>1 byte</td></tr></tbody></table>
+
+  <h3>5-3. 실제 Z80 예제 — 16bit 즉시값과 little-endian</h3>
+  <div class="byte-row"><span class="byte op">21</span><span class="byte operand">00</span><span class="byte operand">90</span><span class="arrow">→</span><code>LD HL,9000h</code></div>
+  <table><thead><tr><th>위치</th><th>값</th><th>역할</th></tr></thead><tbody><tr><td>1</td><td>21h</td><td>opcode: <span class="inline-code">LD HL,nn</span></td></tr><tr><td>2</td><td>00h</td><td>nn의 low byte</td></tr><tr><td>3</td><td>90h</td><td>nn의 high byte</td></tr></tbody></table>
+  <p>즉 사람이 보는 16bit 값은 <span class="inline-code">9000h</span>이지만 명령 byte 안에서는 <span class="inline-code">00 90</span> 순서로 나타납니다.</p>
+
+  <h3>5-4. 같은 byte도 문맥에 따라 코드일 수도 데이터일 수도 있다</h3>
+  <p>hex editor에서 <span class="inline-code">21 00 90</span>을 발견했다고 해서 무조건 <span class="inline-code">LD HL,9000h</span>라고 결론 내릴 수 없습니다. CPU가 그 위치를 실행 흐름으로 가져오면 명령이지만, 프로그램이 문자열이나 테이블의 일부로 읽으면 데이터입니다.</p>
+  <div class="warning"><b>역분석의 기본 원칙:</b> byte 패턴만 보고 코드·데이터를 확정하지 않습니다. 실행 추적, 참조하는 코드, 주변 데이터 구조를 함께 확인합니다.</div>
+</section>
+
+<section id="assembler">
+<h2>assembler — 사람이 읽는 assembly를 machine code로 바꾸는 프로그램</h2>
+
+  <h3>6-1. assembly language와 assembler는 다른 말이다</h3>
+  <table><thead><tr><th>용어</th><th class="left">뜻</th></tr></thead><tbody><tr><td><b>assembly language</b></td><td class="left">CPU 명령을 mnemonic과 symbol로 표현하는 저수준 언어. 예: <code>LD HL,9000h</code></td></tr><tr><td><b>assembler</b></td><td class="left">assembly source를 machine code 또는 object code로 번역하는 프로그램</td></tr></tbody></table>
+
+  <h3>6-2. assembler가 하는 일</h3>
+  <div class="translate" aria-label="어셈블 과정">
+    <div class="box"><code>LD HL,9000h</code><br><span class="muted">assembly source</span></div><div class="arrow">→</div><div class="box tool">assembler</div><div class="arrow">→</div><div class="box"><code>21 00 90</code><br><span class="muted">machine/object code</span></div>
+  </div>
+  <p>단순히 영어 단어를 숫자로 치환하는 것만이 아닙니다. assembler는 label과 symbol을 실제 주소나 값으로 계산하고, 명령 형식에 맞는 byte를 만들어 냅니다.</p>
+  <pre>START:
+    LD HL,9000h
+LOOP:
+    LD A,(HL)
+    INC HL
+    JP LOOP</pre>
+  <p><span class="inline-code">START</span>, <span class="inline-code">LOOP</span> 같은 이름은 사람이 코드를 관리하기 위한 symbol입니다. assembler는 최종 코드에서 필요한 실제 주소를 계산합니다.</p>
+
+  <h3>6-3. assembler와 linker</h3>
+  <p>도구에 따라 assembler가 곧바로 최종 binary를 만들기도 하고, 먼저 <b>object file</b>을 만든 뒤 <b>linker</b>가 여러 object와 section을 배치해 최종 결과를 만들기도 합니다.</p>
+  <div class="flow"><div class="box">.asm</div><div class="arrow">→</div><div class="box">assembler</div><div class="arrow">→</div><div class="box">object</div><div class="arrow">→</div><div class="box">linker</div><div class="arrow">→</div><div class="box">binary</div></div>
+  <p>나중에 WLA-DX 같은 toolchain을 다룰 때 assembler와 linker가 따로 등장하는 이유가 이것입니다.</p>
+
+  <h3>6-4. 역분석에서는 disassembler가 반대 방향으로 간다</h3>
+  <div class="grid2">
+    <div class="card"><h4>제작</h4><div class="flow"><div class="box">assembly</div><div class="arrow">→</div><div class="box">assembler</div><div class="arrow">→</div><div class="box">machine code</div></div></div>
+    <div class="card"><h4>분석</h4><div class="flow"><div class="box">machine code</div><div class="arrow">→</div><div class="box">disassembler</div><div class="arrow">→</div><div class="box">assembly 표현</div></div></div>
+  </div>
+  <p>disassembler는 opcode를 assembly 형태로 되돌려 보여줄 수 있지만 원 개발자가 썼던 변수명, 함수명, 주석, 자료구조의 의미까지 자동으로 되살리는 것은 아닙니다. 그 의미를 다시 붙이는 작업이 역분석입니다.</p>
+
+  <h3>6-5. compiler와도 구분한다</h3>
+  <div class="flow"><div class="box">C / BASIC 등</div><div class="arrow">→</div><div class="box">compiler</div><div class="arrow">→</div><div class="box">assembly / object / machine code</div></div>
+  <p>compiler는 고급 언어를 더 낮은 수준의 코드로 변환합니다. assembler는 assembly language를 해당 CPU의 machine code 형식으로 옮기는 역할입니다. 실제 개발 환경에서는 compiler → assembler → linker가 이어질 수 있습니다.</p>
+</section>
+
+<section id="stack">
+<h2>stack — RAM의 일부를 LIFO 방식으로 사용하는 구조</h2>
+
+  <h3>7-1. LIFO: Last In, First Out</h3>
+  <p><span class="term">stack</span>은 마지막에 넣은 값이 가장 먼저 나오는 <b>LIFO</b> 구조입니다. 접시를 쌓은 뒤 위에서부터 다시 꺼내는 모습을 떠올리면 됩니다.</p>
+  <div class="stack-wrap">
+    <div>
+      <div class="controls no-print"><button class="btn" data-push="AA">PUSH AAh</button><button class="btn" data-push="BB">PUSH BBh</button><button class="btn" data-push="CC">PUSH CCh</button><button id="popBtn" class="btn">POP</button><button id="stackReset" class="btn">초기화</button></div>
+      <div id="stackMsg" class="readout">SP=F000h · stack 비어 있음</div>
+      <p class="muted">이 체험은 LIFO 개념을 보기 쉽게 1byte 단위로 표시합니다. 실제 Z80의 <span class="inline-code">PUSH qq</span>는 16bit register pair를 저장합니다.</p>
+    </div>
+    <div><div id="spLabel" class="sp-label">SP → F000h</div><div id="stackView" class="stack" aria-label="스택 시뮬레이터"></div></div>
+  </div>
+
+  <h3>7-2. SP는 stack의 top 위치를 가리킨다</h3>
+  <p>Z80의 <span class="term">SP</span>(Stack Pointer)는 RAM 안에 놓인 stack의 현재 top을 가리키는 16bit register입니다. Z80에서 PUSH는 SP를 감소시키며 데이터를 저장하므로 stack은 <b>낮은 주소 방향으로 자랍니다.</b></p>
+  <div class="flow"><div class="box">SP = F000h</div><div class="arrow">→</div><div class="box">PUSH 16bit</div><div class="arrow">→</div><div class="box">SP = EFFEh</div></div>
+
+  <h3>7-3. 실제 PUSH는 memory에 어떻게 놓이는가</h3>
+  <p>예를 들어 <span class="inline-code">BC=1234h</span>, <span class="inline-code">SP=F000h</span>에서 <span class="inline-code">PUSH BC</span>를 실행한다고 합시다. Z80은 SP를 한 번 낮춰 high byte를 쓰고, 다시 한 번 낮춰 low byte를 씁니다.</p>
+  <div class="stack-memory" aria-label="PUSH BC 메모리 배치">
+    <div class="stack-row"><div class="a">F000h</div><div class="v">이전 stack 위쪽</div><div class="desc">PUSH 전 SP</div></div>
+    <div class="stack-row hot"><div class="a">EFFFh</div><div class="v"><b>12h</b></div><div class="desc">B = high byte</div></div>
+    <div class="stack-row hot"><div class="a">EFFEh</div><div class="v"><b>34h</b></div><div class="desc">C = low byte · PUSH 후 SP</div></div>
+  </div>
+  <pre>PUSH 전 : BC = 1234h, SP = F000h
+
+1) SP = EFFFh, [EFFFh] = 12h
+2) SP = EFFEh, [EFFEh] = 34h
+
+PUSH 후 : SP = EFFEh
+메모리를 낮은 주소부터 보면 34 12</pre>
+  <p>따라서 앞에서 배운 little-endian의 byte 배치와도 연결됩니다. POP은 이 과정을 반대로 진행해 값을 register pair로 복원하고 SP를 증가시킵니다.</p>
+
+  <h3>7-4. CALL과 RET가 stack을 사용하는 이유</h3>
+  <p><span class="inline-code">CALL</span>은 다른 subroutine으로 실행을 옮기지만, 나중에 원래 코드의 다음 명령으로 돌아와야 합니다. 그래서 Z80은 <b>return address</b>를 stack에 저장한 뒤 호출 대상 주소로 이동합니다. <span class="inline-code">RET</span>는 stack의 return address를 다시 PC로 꺼냅니다.</p>
+  <div class="flow"><div class="box">현재 코드</div><div class="arrow">CALL</div><div class="box">return address를 stack에 저장</div><div class="arrow">→</div><div class="box">subroutine</div><div class="arrow">RET</div><div class="box">원래 코드로 복귀</div></div>
+
+  <h4>실제 주소로 추적</h4>
+  <p>주소 <span class="inline-code">1234h</span>에 3byte짜리 <span class="inline-code">CALL 4000h</span>가 있고 CALL 직전 SP가 <span class="inline-code">F000h</span>이라고 가정합니다.</p>
+  <table><thead><tr><th>단계</th><th>PC</th><th>SP</th><th class="left">동작</th></tr></thead><tbody>
+    <tr><td>CALL 시작</td><td>1234h</td><td>F000h</td><td class="left">CALL opcode와 16bit 대상 주소를 읽음</td></tr>
+    <tr><td>다음 주소 계산</td><td>1237h</td><td>F000h</td><td class="left">3byte 명령 다음 주소 1237h가 return address</td></tr>
+    <tr><td>return address 저장</td><td>1237h</td><td>EFFEh</td><td class="left">1237h를 stack에 PUSH</td></tr>
+    <tr><td>subroutine 진입</td><td>4000h</td><td>EFFEh</td><td class="left">PC가 호출 대상 4000h로 변경</td></tr>
+    <tr><td>RET</td><td>1237h</td><td>F000h</td><td class="left">stack에서 1237h를 꺼내 PC로 복원</td></tr>
+  </tbody></table>
+  <div class="pc88-note"><b>디버거에서의 의미:</b> CALL 대상만 따라가는 것이 아니라 CALL 직전과 직후의 PC·SP를 함께 보면 “어디서 호출했고 어디로 돌아가는가”를 추적할 수 있습니다.</div>
+</section>
+
+<section id="connect">
+  <div class="kicker">통합</div>
+  <h2>실제 Z80 코드 한 조각으로 전부 연결하기</h2>
+  <p>아래 세 명령만으로도 앞의 개념이 거의 모두 연결됩니다.</p>
+  <table><thead><tr><th>주소</th><th>machine code</th><th>assembly 표현</th><th class="left">동작</th></tr></thead><tbody>
+    <tr><td>8000h</td><td>21 00 90</td><td><code>LD HL,9000h</code></td><td class="left">HL에 9000h를 넣음</td></tr>
+    <tr><td>8003h</td><td>3E 05</td><td><code>LD A,05h</code></td><td class="left">A에 05h를 넣음</td></tr>
+    <tr><td>8005h</td><td>77</td><td><code>LD (HL),A</code></td><td class="left">HL이 가리키는 RAM 위치에 A를 기록</td></tr>
+  </tbody></table>
+  <pre>PC = 8000h
+
+8000h  21 00 90    LD HL,9000h   → HL = 9000h
+8003h  3E 05       LD A,05h       → A  = 05h
+8005h  77          LD (HL),A      → RAM[9000h] = 05h</pre>
+  <div class="grid2">
+    <div class="card"><h4>bit / byte</h4><p><span class="inline-code">21</span>, <span class="inline-code">00</span>, <span class="inline-code">90</span>은 각각 1byte입니다.</p></div>
+    <div class="card"><h4>register</h4><p>HL과 A가 CPU 내부 작업 값으로 사용됩니다.</p></div>
+    <div class="card"><h4>RAM / address</h4><p>9000h가 RAM의 위치를 가리키고 그곳의 값이 05h로 바뀝니다.</p></div>
+    <div class="card"><h4>CPU</h4><p>PC가 opcode를 차례로 fetch하고 명령을 실행합니다.</p></div>
+    <div class="card"><h4>machine language</h4><p>CPU는 byte 패턴을 Z80 명령 규칙으로 해석합니다.</p></div>
+    <div class="card"><h4>assembler</h4><p><code>LD HL,9000h</code> 같은 source를 해당 byte로 변환할 수 있습니다.</p></div>
+    <div class="card"><h4>stack</h4><p>이 코드가 subroutine 안에 있다면 호출자의 return address가 stack에 있을 수 있습니다.</p></div>
+  </div>
+  <h3>PC-88 게임 분석에서는 여기에 디스크가 하나 더 붙는다</h3>
+  <div class="flow"><div class="box">D88의 sector data</div><div class="arrow">→</div><div class="box">게임 loader</div><div class="arrow">→</div><div class="box">RAM</div><div class="arrow">→</div><div class="box">CPU 실행</div><div class="arrow">→</div><div class="box">화면·사운드·게임 동작</div></div>
+  <div class="warning"><b>중요:</b> D88 파일 안의 파일 오프셋, 디스크의 track/sector 위치, CPU가 보는 RAM address는 서로 다른 좌표 체계입니다. 뒤의 D88 강좌에서는 이 세 가지를 분리해서 다룹니다.</div>
+</section>
+
+<section id="quiz" class="quiz">
+  <div class="kicker">확인</div>
+  <h2>확인 문제</h2>
+  <details><summary>Q1. 8bit는 몇 가지 서로 다른 bit 패턴을 만들 수 있는가?</summary><div class="answer">2⁸ = 256가지입니다.</div></details>
+  <details><summary>Q2. A5h를 2진수로 쓰면?</summary><div class="answer">A = 1010, 5 = 0101이므로 1010 0101입니다.</div></details>
+  <details><summary>Q3. 주소 9000h에 값 41h가 있다. 9000h와 41h는 각각 무엇인가?</summary><div class="answer">9000h는 address, 41h는 그 address에 저장된 value입니다.</div></details>
+  <details><summary>Q4. HL=9000h이고 RAM[9000h]=41h라면 HL과 (HL)은?</summary><div class="answer">HL은 9000h, (HL)은 41h입니다.</div></details>
+  <details><summary>Q5. F register는 왜 필요한가?</summary><div class="answer">산술·논리 연산 결과의 상태를 flag bit로 남겨 조건 분기 등의 다음 동작에서 사용할 수 있게 합니다.</div></details>
+  <details><summary>Q5-1. B register가 반복 횟수로 자주 보이는 이유는?</summary><div class="answer">Z80의 DJNZ 명령이 B를 자동으로 1 감소시키고, B가 0이 아니면 지정한 위치로 분기하기 때문입니다. 하지만 B가 항상 반복 횟수 전용인 것은 아닙니다.</div></details>
+  <details><summary>Q5-2. HL=9000h일 때 H와 L에는 각각 무엇이 들어 있는가?</summary><div class="answer">H는 상위 byte 90h, L은 하위 byte 00h입니다.</div></details>
+  <details><summary>Q5-3. LDIR에서 HL, DE, BC는 각각 어떤 역할을 하는가?</summary><div class="answer">HL은 source 주소, DE는 destination 주소, BC는 남은 byte 수를 담당합니다. 복사할 때마다 HL과 DE는 증가하고 BC는 감소합니다.</div></details>
+  <details><summary>Q5-4. IX와 IY가 HL과 다른 대표적인 장점은?</summary><div class="answer">(IX+d), (IY+d)처럼 기준 주소에 signed 8bit displacement를 더해 구조체나 테이블의 여러 필드에 접근하기 쉽다는 점입니다.</div></details>
+  <details><summary>Q5-5. I와 R은 일반-purpose register인가?</summary><div class="answer">아닙니다. I는 주로 IM 2 인터럽트 vector 주소 형성에, R은 DRAM refresh 지원에 쓰이는 특수 register입니다.</div></details>
+  <details><summary>Q6. Fetch → Decode → Execute는 무엇을 뜻하는가?</summary><div class="answer">명령을 가져오고, 어떤 명령인지 해석하고, 실제 동작을 수행한다는 CPU 실행의 개념적 흐름입니다.</div></details>
+  <details><summary>Q7. 21 00 90에서 00 90 순서가 나오는 이유는?</summary><div class="answer">9000h의 16bit operand가 low byte 00h, high byte 90h 순서로 인코딩되기 때문입니다.</div></details>
+  <details><summary>Q8. assembly language와 assembler의 차이는?</summary><div class="answer">assembly language는 사람이 작성하는 저수준 언어이고, assembler는 그 source를 machine/object code로 번역하는 프로그램입니다.</div></details>
+  <details><summary>Q9. disassembler가 원래 주석과 변수명을 그대로 복구하지 못하는 이유는?</summary><div class="answer">최종 machine code에는 원래 source의 많은 이름과 주석, 고수준 의미가 남아 있지 않기 때문입니다.</div></details>
+  <details><summary>Q10. Z80에서 PUSH 후 SP는 어느 방향으로 이동하는가?</summary><div class="answer">낮은 address 방향으로 이동합니다. 16bit PUSH에서는 SP가 총 2 감소합니다.</div></details>
+  <details><summary>Q11. CALL이 stack을 사용하는 핵심 이유는?</summary><div class="answer">subroutine이 끝난 뒤 원래 실행 위치로 돌아가기 위한 return address를 보관하기 위해서입니다.</div></details>
+  <details><summary>Q12. D88 파일 오프셋과 RAM address는 같은 숫자 체계인가?</summary><div class="answer">아닙니다. D88 파일 내부 위치와 CPU가 보는 RAM address는 서로 다른 좌표이며 loader/sector 구조를 통해 대응 관계를 찾아야 합니다.</div></details>
+</section>
+</main>
+<footer>PC-88 게임 분석 기초 · 0부</footer>
+
+<script>
+(function(){
+  // 8-bit editor
+  const bitBox=document.getElementById('bitButtons'), read=document.getElementById('bitReadout');
+  let bits=Array(8).fill(0);
+  function drawBits(){
+    bitBox.innerHTML='';
+    bits.forEach((v,i)=>{const b=document.createElement('button');b.className='bitbtn'+(v?' on':'');b.textContent=v;b.title='bit '+(7-i);b.setAttribute('aria-label','bit '+(7-i)+' = '+v);b.addEventListener('click',()=>{bits[i]^=1;drawBits();});bitBox.appendChild(b);});
+    const bin=bits.join(''),dec=parseInt(bin,2)||0,hex=dec.toString(16).toUpperCase().padStart(2,'0');
+    read.textContent=`2진수: ${bin} · 10진수: ${dec} · 16진수: ${hex}h`;
+  }
+  drawBits();
+
+  // Logic simulator
+  let A=0,B=0;const aBtn=document.getElementById('toggleA'),bBtn=document.getElementById('toggleB');
+  function logic(){aBtn.textContent='A = '+A;bBtn.textContent='B = '+B;document.getElementById('rNot').textContent=A?0:1;document.getElementById('rAnd').textContent=A&B;document.getElementById('rOr').textContent=A|B;document.getElementById('rXor').textContent=A^B;document.getElementById('rNand').textContent=(A&B)?0:1;}
+  aBtn.addEventListener('click',()=>{A^=1;logic()});bBtn.addEventListener('click',()=>{B^=1;logic()});logic();
+
+  // Memory explorer
+  const mem={9000:'41',9001:'52',9002:'63',9003:'7E',9004:'00',9005:'FF'};
+  document.querySelectorAll('[data-mem]').forEach(btn=>btn.addEventListener('click',()=>{
+    const addr=btn.dataset.mem;
+    document.querySelectorAll('.val[data-address]').forEach(x=>x.classList.toggle('sel',x.dataset.address===addr));
+    document.querySelectorAll('.addr').forEach(x=>x.classList.toggle('sel',x.textContent.startsWith(addr)));
+    document.getElementById('memReadout').textContent=`HL = ${addr}h → (HL) = ${mem[addr]}h`;
+  }));
+  const firstMem=document.querySelector('[data-mem="9000"]');if(firstMem)firstMem.click();
+
+  // CPU cycle
+  let stage=0;const stages=[...document.querySelectorAll('#cpuCycle .stage')];
+  const texts=['예: PC=8000h → 메모리 8000h에서 opcode를 가져오는 단계','예: 가져온 21h를 Z80 명령 규칙에 따라 LD HL,nn으로 해석하는 단계','예: 뒤의 operand를 읽어 HL에 9000h를 기록하고 다음 명령으로 진행하는 단계'];
+  function drawCycle(){stages.forEach((el,i)=>{el.classList.toggle('active',i===stage);el.classList.toggle('done',i<stage);});document.getElementById('cycleText').textContent=texts[stage];}
+  document.getElementById('cycleNext').addEventListener('click',()=>{stage=(stage+1)%3;drawCycle();});document.getElementById('cycleReset').addEventListener('click',()=>{stage=0;drawCycle();});drawCycle();
+
+  // Concept-only 1-byte stack simulator
+  let sp=0xF000,stack=[];const view=document.getElementById('stackView'),msg=document.getElementById('stackMsg'),spLabel=document.getElementById('spLabel');
+  function hex4(n){return n.toString(16).toUpperCase().padStart(4,'0')+'h';}
+  function drawStack(last=''){
+    view.innerHTML='';
+    stack.forEach(item=>{const d=document.createElement('div');d.className='stack-item';d.textContent=`${hex4(item.addr)} : ${item.val}h`;view.appendChild(d);});
+    spLabel.textContent='SP → '+hex4(sp);
+    msg.textContent=`SP=${hex4(sp)} · ${stack.length?('top='+stack[stack.length-1].val+'h'):'stack 비어 있음'}${last?' · '+last:''}`;
+  }
+  document.querySelectorAll('[data-push]').forEach(btn=>btn.addEventListener('click',()=>{sp--;stack.push({addr:sp,val:btn.dataset.push});drawStack('마지막 동작: PUSH '+btn.dataset.push+'h');}));
+  document.getElementById('popBtn').addEventListener('click',()=>{if(!stack.length){drawStack('POP할 값이 없음');return;}const x=stack.pop();sp++;drawStack('마지막 동작: POP '+x.val+'h');});
+  document.getElementById('stackReset').addEventListener('click',()=>{sp=0xF000;stack=[];drawStack('초기화');});drawStack();
+})();
+</script>
+</body>
+</html>
