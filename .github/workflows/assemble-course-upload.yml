@@ -1,0 +1,27 @@
+name: Assemble course upload
+on:
+  push:
+    paths:
+      - '_upload/READY'
+permissions:
+  contents: write
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble exact uploaded HTML files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p course
+          for n in 00 01 02 03; do
+            cat _upload/${n}/*.b64 | base64 -d > course/${n}.html
+          done
+          rm -rf _upload
+          rm -f .github/workflows/assemble-course-upload.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m 'Publish PC-88 analysis course 0-3'
+          git push origin HEAD:main
