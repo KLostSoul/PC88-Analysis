@@ -1,0 +1,43 @@
+전송합니다.</p>
+<div class="term-intro"><b>이제 이름을 붙이면:</b> 이런 디스크 제어 장치를 <b>FDC(Floppy Disk Controller)</b>라고 합니다. 앞에서 배운 SEEK, 회전 대기, C/H/R/N 비교가 FDC의 읽기 과정에서 하나로 연결됩니다.</div>
+<div class="pc88-chip-box"><b>PC-88에서 실제로 만나는 이름 — μPD765 / μPD765A</b><p>PC-88의 대표적인 5.25인치 디스크 서브시스템에서는 NEC의 <b>μPD765/μPD765A 계열 FDC</b>를 만납니다. 따라서 실제 게임 분석에서 <code>SEEK</code>, <code>READ DATA</code>, <code>READ ID</code>, <code>C/H/R/N</code> 같은 이름이 나오면 이 FDC가 수행하는 디스크 작업과 연결해서 생각할 수 있습니다. <code>ST0/ST1/ST2</code>는 명령 실행 뒤 FDC가 돌려주는 상태 정보로, 정상 완료 여부나 오류 원인을 판정할 때 사용합니다.</p><p>다만 <b>FDC라는 일반 개념과 μPD765라는 특정 칩 이름은 같은 말이 아닙니다.</b> 또한 초기 외장 지능형 디스크 장치와 후속 내장형 모델은 물리적 구성 방식이 다를 수 있습니다.</p></div>
+<div class="process-flow"><div class="process-step"><b>1. 목표 기록 줄로 이동</b><span>필요하면 SEEK로 Head를 목표 Track/Cylinder 위치까지 이동</span></div><div class="process-arrow">↓</div><div class="process-step"><b>2. 원하는 Sector가 올 때까지 기다림</b><span>원판이 회전하면서 ID Field가 Head 아래로 지나감</span></div><div class="process-arrow">↓</div><div class="process-step"><b>3. C/H/R/N 비교</b><span>요청한 ID와 지금 읽은 ID가 모두 맞는지 확인</span></div><div class="process-arrow">↓</div><div class="process-step"><b>4. Data Field 읽기</b><span>목표 ID를 찾으면 뒤따르는 Sector Data를 전송</span></div></div>
+<div class="beginner"><b>앞의 내용과 연결:</b> 2장은 1번의 위치 이동, Lab 1은 2번의 회전, Lab 4는 3번의 ID 비교를 보여 줬습니다. 여기서는 이 동작들이 실제 FDC의 읽기 과정에서 이어진다는 것을 정리합니다.</div>
+</section>
+<section id="subcpu"><div class="kicker">일을 나누는 구조</div><h2>9. PC-88에서는 메인 CPU가 디스크 장치를 혼자 직접 다루지 않고, 디스크 일을 맡은 별도 쪽에 요청한다</h2><p class="plain-intro">게임을 실행하는 주 CPU가 모든 디스크 동작을 직접 처리한다고 생각하면 실제 코드를 따라가다가 막힐 수 있습니다. PC-88의 대표적인 디스크 구조에서는 디스크 작업을 맡은 별도의 처리 쪽이 있고, 주 CPU는 그쪽에 요청을 보내 결과를 받습니다.</p><div class="term-intro"><b>이제 이름을 붙이면:</b> 게임을 주로 실행하는 쪽을 <b>MAIN CPU</b>, 디스크 처리를 맡은 쪽을 <b>SUB CPU</b>라고 부릅니다. SUB CPU 쪽에서 <b>FDC</b>를 제어해 실제 드라이브와 데이터를 주고받는 구조를 볼 수 있습니다.</div><div class="flow"><div class="box">MAIN CPU</div><div class="arrow">→</div><div class="box">8255 / Disk Interface</div><div class="arrow">→</div><div class="box">SUB CPU</div><div class="arrow">→</div><div class="box">μPD765 / μPD765A<br/><small>FDC</small></div><div class="arrow">→</div><div class="box">FDD</div><div class="arrow">→</div><div class="box">Floppy</div></div><div class="warning"><b>따라서:</b> MAIN CPU 코드에서 FDC 제어 명령이 직접 보이지 않는다고 해서 이상한 것이 아닙니다. MAIN은 SUB에 요청하고 SUB가 FDC를 제어하는 구조가 존재합니다.</div></section>
+<section id="handshake">
+<div class="kicker">서로 확인하며 통신하기</div><h2>10. 두 CPU는 “보냈다”, “받았다”, “끝났다”를 서로 확인하면서 일을 주고받는다</h2>
+<p class="plain-intro">한쪽이 데이터를 써 놓았다고 해서 다른 쪽이 정확히 같은 순간에 읽었다고 가정할 수 없습니다. 그래서 한쪽이 요청을 준비하면 상대가 그것을 확인하고, 받은 뒤에는 받았다는 상태를 돌려주고, 작업이 끝나면 결과가 준비됐다는 상태를 다시 알려 줍니다.</p><div class="term-intro"><b>이제 이름을 붙이면:</b> 이렇게 서로 준비 상태와 수신 상태를 확인하는 절차를 <b>Handshake</b>라고 부릅니다. PC-88의 MAIN과 디스크 SUB 사이에서는 8255 계열 인터페이스를 통해 이런 신호와 데이터를 주고받습니다.</div>
+<div class="handshake-flow">
+<div class="handshake-node"><b>MAIN CPU</b><span>요청 Data/Command 준비</span></div>
+<div class="handshake-down"><b>요청 방향</b><span>MAIN → SUB</span><span>“요청이 준비됨”을 알리고 상대가 받았는지 확인</span></div>
+<div class="handshake-node"><b>SUB CPU</b><span>요청 수신 → 필요하면 FDC/FDD 작업 수행</span></div>
+<div class="handshake-up"><b>반환 방향</b><span>SUB → MAIN</span><span>Data/Status가 준비됐음을 알리고 MAIN 수신을 확인</span></div>
+<div class="handshake-node"><b>MAIN CPU</b><span>반환 Data/Status 수신 후 다음 처리</span></div>
+</div>
+<div class="note"><b>이후 debugger와 연결:</b> PC-8801 MAIN 쪽에서는 <code>FCh~FFh</code> 부근의 8255 interface와 ATN/DAC/RFD/DAV 같은 신호 이름을 만나게 됩니다. 3부에서는 우선 “양쪽이 일방적으로 던지는 것이 아니라 준비/수신 상태를 확인한다”는 원리를 이해합니다.</div>
+</section>
+<section class="section-break" id="d88"><div class="kicker">플로피를 파일로 보관하기</div><h2>11. 실제 플로피를 컴퓨터 파일 하나로 보관하려면 데이터뿐 아니라 “어디에 있던 데이터인지” 정보도 함께 저장해야 한다</h2><p class="plain-intro">실제 플로피에는 여러 둥근 기록 줄과 여러 데이터 구간이 있습니다. 이를 PC 파일 하나로 옮길 때 실제 데이터 바이트만 이어 붙이면 각 데이터가 원래 어느 줄의 어느 구간이었는지 알기 어렵습니다. 그래서 위치와 상태를 설명하는 정보도 함께 파일 안에 기록합니다.</p><div class="term-intro"><b>이제 이름을 붙이면:</b> 이런 방식으로 PC-88 계열 플로피의 논리 구조를 보존하는 대표적인 디스크 이미지 형식이 <b>D88</b>입니다. D88은 실제 자기 신호 전체를 그대로 복사한 것이 아니라 Track/Sector 정보와 payload, 일부 상태를 파일 구조로 표현합니다.</div><div class="grid2"><div class="card"><h4>실제 Floppy</h4><p>회전, 자기 신호, 실제 gap, timing, 물리적 angular 위치가 존재합니다.</p></div><div class="card"><h4>D88 File</h4><p>Disk Header, Track Offset Table, Sector Header, Sector Payload로 track/sector와 일부 상태 정보를 표현합니다.</p></div></div><div class="misconception"><b>D88 = 실물의 완전한 bit-for-bit 자기 복제는 아닙니다.</b> 정확한 flux와 모든 gap/timing 정보를 그대로 저장하는 raw flux 형식과는 성격이 다릅니다.</div></section>
+<section id="d88-map">
+<div class="kicker">파일 안의 위치표</div><h2>12. D88 파일 앞부분에는 “각 Track 데이터가 파일의 어디에서 시작하는지” 알려 주는 위치표가 있다</h2>
+<p class="plain-intro">D88 안에 여러 Track의 데이터가 이어져 있다면 원하는 Track을 찾으려고 파일 처음부터 전부 훑을 필요가 없습니다. 파일 앞부분에 “첫 번째 Track은 몇 번째 바이트부터, 다음 Track은 몇 번째 바이트부터”처럼 각 Track의 시작 위치를 적어 둔 표가 있습니다.</p>
+<div class="term-intro"><b>이제 이름을 붙이면:</b> 이 위치표를 <b>Track Offset Table</b>이라고 합니다. 각 entry는 D88 파일 시작을 기준으로 해당 <b>Track Block</b>이 시작되는 <b>file offset</b>을 나타냅니다.</div>
+<h3>D88 파일 맨 앞의 기본 구조</h3>
+<p>Track 위치표를 읽기 전에 파일 맨 앞에 무엇이 놓이는지만 확인합니다. 아래 값은 D88에서 흔히 사용하는 기본 Header 배치입니다.</p>
+<table><thead><tr><th>File offset</th><th>내용</th><th class="left">뜻</th></tr></thead><tbody>
+<tr><td><code>00h~10h</code></td><td>Disk name</td><td class="left">디스크 이름 영역</td></tr>
+<tr><td><code>11h~19h</code></td><td>Reserved</td><td class="left">예약 영역</td></tr>
+<tr><td><code>1Ah</code></td><td>Write protect</td><td class="left">쓰기 보호 상태</td></tr>
+<tr><td><code>1Bh</code></td><td>Media type</td><td class="left">2D/2DD/2HD 등의 media 식별값</td></tr>
+<tr><td><code>1Ch~1Fh</code></td><td>Disk size</td><td class="left">D88 파일 전체 크기 값</td></tr>
+<tr><td><code>20h~</code></td><td>Track Offset Table</td><td class="left">각 Track block의 시작 file offset</td></tr>
+</tbody></table>
+<h3>4바이트 값을 실제 파일 위치로 읽는 예</h3><pre>파일에 보이는 4byte
+B0 02 00 00
+
+little-endian 32bit 값
+= 000002B0h
+
+따라서
+D88 파일 offset 000002B0h에서 해당 Track Block 시작</pre>
+<div class="lab"><h4>Lab 5 — 위치표의 값이 Track block 시작점을 가리키는 모습 보기</h4><p>이 Lab에서는 <b>Track bl
