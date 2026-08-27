@@ -15,8 +15,11 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p course
-          for n in 00 01 02 03; do
+          for n in 00 01; do
             cat _upload/${n}/*.b64 | base64 -d | xz -dc > course/${n}.html
+          done
+          for n in 02 03; do
+            cat _upload/${n}/*.part > course/${n}.html
           done
           rm -rf _upload
           rm -f .github/workflows/assemble-course-upload.yml
