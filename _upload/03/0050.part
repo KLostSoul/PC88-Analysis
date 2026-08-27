@@ -1,0 +1,45 @@
+="jisExample"><option value="3441">3441h 漢</option><option value="3B7A">3B7Ah 字</option></select></label><button class="btn" id="jisNext">계산 단계 진행</button><button class="btn" id="jisReset">처음</button></div><div class="bit-route" id="jisBits"></div><div class="readout" id="jisReadout"></div><h4>계산된 KANJI access에서 16줄이 이어지는 범위</h4><p>여기서는 아직 ROM dump 파일의 byte offset을 계산하지 않습니다. 현재는 한 glyph의 16개 raster가 KANJI access에서 어떻게 연속되는지만 봅니다.</p><div class="slot-table" id="slotTable"></div></div>
+<div class="mapping-example"><b>비한자 영역 예 — JIS 2421h</b><pre>(2421h &amp; 001Fh) &lt;&lt; 4 = 0010h
+(2421h &amp; 0060h) &lt;&lt; 7 = 1000h
+(2421h &amp; 0700h) &lt;&lt; 1 = 0800h
+
+0010h | 1000h | 0800h = 1810h</pre></div>
+<div class="mapping-example"><b>제1수준 한자 예 — JIS 3441h</b><pre>(3441h &amp; 001Fh) &lt;&lt; 4 = 0010h
+(3441h &amp; 0060h) &lt;&lt; 9 = 8000h
+(3441h &amp; 1F00h) &lt;&lt; 1 = 2800h
+
+0010h | 8000h | 2800h = A810h</pre></div>
+<div class="note"><b>영역을 먼저 확인:</b> <code>2421h → 1810h</code>와 <code>3441h → A810h</code>는 서로 다른 JIS 영역의 주소 배치 예입니다. 하나의 식을 모든 JIS 값에 적용하지 않습니다. 제2수준 한자 영역은 이 절에서 섞지 않습니다.</div>
+</section><section id="kanji-io">
+<div class="kicker">계산한 위치값으로 실제 글자 모양 읽기</div><h2>21. KANJI access를 아래쪽·위쪽 바이트로 나눠 지정한 뒤 한 줄의 왼쪽 8점과 오른쪽 8점을 읽는다</h2>
+<p class="plain-intro">앞 장에서 JIS를 계산해 <b>KANJI access</b>를 얻었습니다. 이제 CPU는 그 위치값을 Kanji ROM 회로에 알려 준 뒤, 현재 줄의 왼쪽 8개 점과 오른쪽 8개 점을 각각 한 바이트씩 읽습니다. 한 줄을 읽고 위치값을 하나 증가시키면 다음 줄을 읽을 수 있습니다.</p>
+<div class="term-intro"><b>이제 I/O 이름을 붙이면:</b> PC-8801의 제1수준 Kanji ROM에서는 <b>E8h/E9h I/O port</b>로 위치값과 좌우 8dot 데이터를 주고받습니다. 전통적인 호환 절차에서는 <b>EAh</b>가 read start, <b>EBh</b>가 read end 역할을 합니다.</div>
+<table><thead><tr><th>Port</th><th>WRITE</th><th>READ</th></tr></thead><tbody><tr><td>E8h</td><td>access low 설정</td><td>오른쪽 8dot</td></tr><tr><td>E9h</td><td>access high 설정</td><td>왼쪽 8dot</td></tr><tr><td>EAh</td><td>전통적인 read start</td><td>-</td></tr><tr><td>EBh</td><td>전통적인 read end</td><td>-</td></tr></tbody></table>
+<div class="lab"><h4>Lab 9 — KANJI access 1810h로 글자 모양 한 줄을 읽는 순서 보기</h4><div class="io-diagram"><div class="io-side" id="ioCpu"><b>Z80</b><div>Access: <code id="ioAccessText">1810h</code></div></div><div class="io-arrow" id="ioArrow"><b>E8h WRITE</b><small>Z80 → Kanji ROM</small></div><div class="io-side" id="ioRom"><b>Kanji ROM</b><div class="io-register"><div id="ioLow">LOW: --</div><div id="ioHigh">HIGH: --</div><div id="ioLeft">LEFT: --</div><div id="ioRight">RIGHT: --</div></div></div></div><div id="ioStages"><div class="fdc-stage active">1. E8h WRITE — low byte 설정</div><div class="fdc-stage">2. E9h WRITE — high byte 설정</div><div class="fdc-stage">3. EAh — read start</div><div class="fdc-stage">4. 8 state 대기</div><div class="fdc-stage">5. E9h READ — 왼쪽 8dot 읽기</div><div class="fdc-stage">6. E8h READ — 오른쪽 8dot 읽기</div><div class="fdc-stage">7. EBh — read end</div><div class="fdc-stage">8. access + 1 → 다음 raster</div></div><div class="controls"><button class="btn" id="ioNext">다음</button><button class="btn" id="ioReset">처음</button></div><div class="readout" id="ioReadout"></div></div>
+<div class="note"><b>모델 차이:</b> 위 순서는 전통적인 제1수준 Kanji ROM 호환 절차입니다. <b>PC-8801mkIIFR 이후</b>에는 <code>EAh read start → 8 state 대기 → EBh read end</code> 절차를 생략해도 동작하는 구성이 있으므로, 모든 모델의 코드가 반드시 같은 형태로 보인다고 가정하지 않습니다.</div><details><summary><b>고급 참고 — 제2수준 Kanji ROM</b></summary><p>제2수준 Kanji ROM 접근에서는 <code>ECh/EDh</code> 계열 I/O를 사용합니다. 이 장의 Lab은 먼저 제1수준 Kanji ROM의 <code>E8h/E9h</code> 접근을 이해하는 데 집중합니다.</p></details>
+</section>
+<section id="rom-offset"><div class="kicker">하드웨어 위치와 파일 위치</div><h2>22. Kanji ROM 회로가 쓰는 위치값과 ROM 덤프 파일의 바이트 위치도 서로 다른 좌표다</h2><p class="plain-intro">하드웨어에서는 KANJI access 하나를 지정하고 그 위치에서 왼쪽 8점과 오른쪽 8점을 각각 한 바이트씩 읽습니다. 반면 Kanji ROM 내용을 PC 파일로 덤프해 좌·우 바이트를 선형으로 배열하면 access 하나마다 파일 안에 두 바이트가 놓입니다.</p><div class="term-intro"><b>이제 이름을 붙이면:</b> 하드웨어에 지정하는 값은 <b>KANJI access</b>, 덤프 파일에서 몇 번째 byte인지 나타내는 값은 <b>ROM dump byte offset</b>입니다. 이 강좌에서 다루는 좌/우 byte 순서의 선형 dump 표현에서는 <code>byte offset = access × 2</code>로 대응합니다.</div><div class="formula">ROM dump byte offset = KANJI access × 2</div><pre>KANJI access A810h
+× 2
+= ROM dump offset 15020h
+
+한 16×16 glyph:
+access A810h ~ A81Fh
+byte   15020h ~ 1503Fh
+총 32 bytes</pre></section>
+<section id="custom-font"><div class="kicker">글꼴의 출처 구분</div><h2>23. 화면에 일본어가 보인다고 해서 반드시 컴퓨터 내장 글꼴을 사용했다고 단정할 수는 없다</h2><div class="grid2"><div class="card"><h4>시스템 Kanji ROM</h4><pre>게임 내부 문자값
+→ 필요하면 게임별 변환 / JIS
+→ KANJI access
+→ Kanji ROM byte
+→ 출력 루틴
+→ 화면</pre></div><div class="card"><h4>게임 자체 Font</h4><pre>게임의 font data
+→ 게임 출력 루틴
+→ 화면</pre></div></div><p class="plain-intro">게임은 컴퓨터에 들어 있는 글자 모양 저장소를 사용할 수도 있지만, 게임 디스크 안에 자기만의 글자 그림 데이터를 따로 넣어 두고 그것을 화면에 그릴 수도 있습니다. 화면 결과만 보고 어느 쪽인지 결정하면 틀릴 수 있습니다.</p><div class="term-intro"><b>이제 이름을 붙이면:</b> PC-88 환경에서 시스템 Kanji ROM의 한자·가나 글꼴을 쓰는 방식을 <b>system Kanji ROM 사용</b>이라고 하고, 게임이 별도 글꼴 데이터를 가지고 있는 경우를 <b>custom font</b> 또는 자체 Font 방식이라고 구분합니다. 실제 I/O와 데이터 경로를 확인해 판정해야 합니다.</div></section>
+<section class="section-break" id="coordinates">
+<div class="kicker">모든 위치값 다시 구분</div><h2>24. 지금까지 나온 숫자는 모두 “위치처럼 보이지만” 서로 다른 단계의 값이다</h2>
+<p class="plain-intro">숫자 모양이 같다고 해서 같은 위치를 뜻하는 것은 아닙니다. 실제 Head가 있는 물리적 위치, Sector ID에 기록된 C/H/R/N, D88 파일 안의 offset, 실행 중 RAM 주소, 문자와 Kanji ROM의 위치값은 서로 다른 세계의 값입니다.</p>
+<div class="term-intro"><b>최종적으로 다섯 영역을 구분:</b> <b>물리적 Disk 위치 / Sector ID / D88 File / Runtime RAM / Text·Kanji</b>를 따로 적습니다. 특히 <b>실제 Head의 반지름 위치와 실제 Track 위치는 ID Field의 H·C 값과 개념적으로 같은 값이 아닙니다.</b></div>
+<div class="coord-summary coord-five">
+<div class="coord-col"><h4>1. 물리적 Disk</h4><div class="coord-item"><b>Head 위치</b>바깥쪽/안쪽의 실제 반지름 위치</div><div class="coord-item"><b>기록면</b>어느 물리적 면을 읽는가</div></div>
+<div class="coord-col"><h4>2. Sector ID</h4><div class="coord-item"><b>ID Field</b>C=02 H=01 R=07 N=01</div></div>
+<div class="coord-col"><h4>3. D88 File</h4><div class="coord-item"><b>Track offset</b>000002B0h</div><div class="coord-item"><b>Sector block</b>000027E0h</div></div>
+<div cla
