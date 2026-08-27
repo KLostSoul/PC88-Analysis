@@ -1,0 +1,197 @@
+<div class="box">값·주소</div><div class="arrow">→</div>
+<div class="box">register 변화</div><div class="arrow">→</div>
+<div class="box">조건·분기</div><div class="arrow">→</div>
+<div class="box">subroutine·stack</div><div class="arrow">→</div>
+<div class="box">I/O</div><div class="arrow">→</div>
+<div class="box">루틴 해석</div>
+</div>
+<div class="beginner"><b>2부의 가장 중요한 원칙:</b> 어셈블리 코드를 한국어 문장으로 한 줄씩 번역하는 것만으로는 역분석이 되지 않습니다. 먼저 각 명령이 <b>무엇을 읽고, 무엇을 바꾸고, 다음에 어디로 실행을 이어가는지</b>를 추적한 뒤, 여러 줄을 묶어 “이 코드 블록이 무슨 일을 하는가?”를 판단해야 합니다.</div>
+<h3>처음에는 이렇게 읽고</h3>
+<pre>LD E,(HL)          ; HL이 가리키는 메모리의 1byte를 E로 읽음
+INC HL             ; HL을 1 증가시켜 다음 byte를 가리킴
+LD A,E             ; E의 값을 A로 복사
+AND 0Fh            ; A의 하위 4bit만 남김
+CP 01h             ; A가 01h인지 비교
+JP Z,0452h         ; 같으면 0452h로 이동</pre>
+<h3>마지막에는 이렇게 보이는 코드도 읽는다</h3>
+<pre>02ED  5E        LD E,(HL)
+02EE  23        INC HL
+02EF  7B        LD A,E
+02F0  32 84 0C  LD (0C84h),A
+02F3  E6 0F     AND 0Fh
+02F5  FE 01     CP 01h
+02F7  CA 52 04  JP Z,0452h</pre>
+<p>주소와 machine code byte, assembly만 보이는 상태에서도 register와 memory의 변화를 따라가고, 마지막에는 이 코드가 <b>stream에서 값을 하나 읽어 분류하는 형태</b>라는 식으로 한 단계 높은 해석을 할 수 있게 되는 것이 목표입니다.</p>
+</section>
+
+<section id="syntax">
+<div class="kicker">문법</div>
+<h2>1. Z80 코드를 읽기 위한 표기법</h2>
+<h3>1-1. 어셈블리 한 줄은 무엇으로 이루어지는가</h3>
+<p>처음 Z80 코드를 보면 영어 약자와 괄호, 쉼표, 숫자가 섞여 있어 한 줄 전체가 하나의 암호처럼 보일 수 있습니다. 그러나 한 줄을 구성하는 요소는 몇 가지로 나눌 수 있습니다.</p>
+<pre>LOOP:
+    LD A,(HL)      ; HL이 가리키는 byte를 A로 읽음
+    INC HL         ; 다음 주소로 이동
+    JR NZ,LOOP     ; Z flag가 0이면 LOOP로 돌아감</pre>
+<div class="code-anatomy">
+<div class="label">LOOP:</div><div class="desc"><b>label</b>입니다. 사람이 위치에 이름을 붙인 것입니다.</div>
+<div class="label">LD / INC / JR</div><div class="desc"><b>mnemonic</b>입니다. CPU instruction을 사람이 읽을 수 있게 적은 이름입니다.</div>
+<div class="label">A, (HL), HL</div><div class="desc"><b>operand</b>입니다. 명령이 사용할 register, 값, 주소 등을 나타냅니다.</div>
+<div class="label">,</div><div class="desc">여러 operand를 구분합니다.</div>
+<div class="label">;</div><div class="desc">이 뒤는 <b>comment</b>입니다. CPU가 실행하지 않으며 사람이 이해하기 위해 적습니다.</div>
+</div>
+<div class="misconception"><b>헷갈리지 말 것:</b> <span class="inline-code">LOOP</span>라는 글자가 게임 ROM이나 RAM의 machine code 안에 그대로 들어 있는 것이 아닙니다. assembler는 label을 실제 주소나 상대 이동값으로 바꿉니다. 반대로 disassembler가 자동으로 보여주는 이름도 사람이 이해하기 쉽게 붙인 이름일 수 있습니다.</div>
+
+<h3>1-2. 두 operand 명령은 보통 ‘목적지, 원본’ 순서로 읽는다</h3>
+<p>Z80의 <span class="inline-code">LD</span>처럼 두 operand를 쓰는 명령은 처음에 <b>왼쪽이 목적지, 오른쪽이 원본</b>이라는 방향을 익히면 읽기 쉽습니다.</p>
+<pre>LD A,B             ; B → A
+LD (HL),A          ; A → HL이 가리키는 메모리
+LD HL,9000h        ; 9000h → HL</pre>
+<div class="formula">LD destination, source</div>
+<p><span class="inline-code">LD A,B</span>는 “A를 B에 넣는다”가 아니라 <b>B의 값을 A로 복사한다</b>고 읽습니다. 다만 모든 Z80 instruction을 억지로 이 공식에 맞추면 안 됩니다. <span class="inline-code">CP</span>, <span class="inline-code">JR</span>, <span class="inline-code">PUSH</span>처럼 operand의 의미가 전혀 다른 명령도 있습니다.</p>
+
+<h3>1-3. Z80 설명서의 n, nn, r, d, e, b, cc와 register-pair 기호</h3>
+<p>Z80 CPU manual이나 instruction table에는 실제 숫자와 register 이름 대신 <span class="inline-code">n</span>, <span class="inline-code">nn</span>, <span class="inline-code">r</span>, <span class="inline-code">d</span> 같은 기호가 나옵니다. 이 기호들은 CPU가 실행하는 문자가 아니라 <b>여러 실제 instruction을 한 줄로 나타내기 위한 자리표시자</b>입니다.</p>
+<div class="beginner"><b>예를 먼저 봅시다.</b><br/><code>LD r,n</code>은 완성된 instruction 하나가 아닙니다. <code>r=B</code>, <code>n=3Ch</code>를 대입하면 실제 instruction <code>LD B,3Ch</code>가 됩니다.<br/><br/><code>설명서의 일반형 → 실제 operand 대입 → 실제 assembly</code>라는 순서로 읽으면 됩니다.</div>
+
+<h4>먼저 용어 두 개: 즉시값과 displacement</h4>
+<div class="grid2">
+<div class="card"><h4>즉시값(immediate value)</h4><p>명령 안에 <b>값 자체가 직접 들어 있는 경우</b>입니다.</p><pre>LD A,05h           ; 05h라는 값 자체를 A에 넣음</pre><p>여기서 05h를 다른 RAM 위치에서 읽어 오는 것이 아닙니다.</p></div>
+<div class="card"><h4>displacement</h4><p>기준 위치에서 <b>얼마나 앞이나 뒤로 떨어졌는지</b> 나타내는 이동량입니다.</p><pre>IX = 9000h
++5  → 9005h
+-2  → 8FFEh</pre><p><b>signed</b>라고 적혀 있으면 +와 -를 모두 표현하는 값으로 해석합니다.</p></div>
+</div>
+
+<h4>먼저 자주 만나는 기본 기호</h4>
+<table><thead><tr><th>표기</th><th class="left">Zilog 설명서에서의 뜻</th><th class="left">실제 예</th></tr></thead><tbody>
+<tr><td><code>r</code></td><td class="left">8bit register A, B, C, D, E, H, L 중 하나</td><td class="left"><code>LD r,n → LD B,3Ch</code></td></tr>
+<tr><td><code>n</code></td><td class="left">0~255 범위의 1byte unsigned 값</td><td class="left"><code>n=3Ch</code></td></tr>
+<tr><td><code>nn</code></td><td class="left">0~65535 범위의 2byte unsigned 값</td><td class="left"><code>nn=9000h</code></td></tr>
+<tr><td><code>d</code></td><td class="left">IX/IY indexed addressing에 쓰이는 -128~+127 범위의 1byte signed displacement</td><td class="left"><code>(IX+05h)</code>, <code>(IY-02h)</code></td></tr>
+<tr><td><code>b</code></td><td class="left">bit 번호 0~7</td><td class="left"><code>BIT b,r → BIT 7,A</code></td></tr>
+<tr><td><code>e</code></td><td class="left">Zilog 표에서 <b>현재 instruction 위치</b>를 기준으로 표시하는 JR 목적지의 상대 offset. 범위 -126~+129</td><td class="left"><code>JR e</code></td></tr>
+<tr><td><code>cc</code></td><td class="left">조건 코드: NZ, Z, NC, C, PO, PE, P, M 중 하나</td><td class="left"><code>JP cc,nn → JP Z,9000h</code></td></tr>
+</tbody></table>
+<div class="note"><b><code>e</code>와 실제 JR operand의 차이</b><br/><code>e</code>를 “기계어에 그대로 저장되는 signed 8bit displacement”라고 이해하면 정확하지 않습니다. Zilog의 notation table에서 <code>e</code>는 <b>현재 instruction 위치 기준</b> 상대 offset이라 -126~+129로 적혀 있습니다. 반면 JR 기계어의 실제 operand byte는 <b>JR 다음 PC 기준</b> signed 8bit displacement이며 -128~+127입니다. 아래에서 숫자로 직접 비교합니다.</div>
+
+<h4>n — 1byte 값 하나가 들어가는 자리</h4>
+<pre>LD r,n             ; 설명서의 일반형
+LD B,3Ch           ; r=B, n=3Ch를 대입한 실제 instruction</pre>
+<div class="formula">LD r,n → r=B, n=3Ch → LD B,3Ch</div>
+<pre>06 3C
+│  └─ n = 3Ch
+└──── opcode: LD B,n</pre>
+<p>즉 설명서의 추상 표기 <code>LD r,n</code>이 실제 assembly <code>LD B,3Ch</code>가 되고, 다시 CPU가 읽는 machine code <code>06 3C</code>로 이어집니다.</p>
+<p><code>n</code>은 문자 n 하나를 프로그램에 적으라는 뜻이 아닙니다. <b>한 byte짜리 unsigned 값이 들어가는 자리</b>라는 뜻입니다.</p>
+<div class="misconception"><b>잘못된 이해:</b> “n이 한 글자라서 8bit다.”<br/><b>정확한 이해:</b> Zilog가 1byte unsigned operand를 나타내기 위해 기호 <code>n</code>을 사용하기로 정한 것입니다.</div>
+
+<h4>nn — 2byte 값 하나가 들어가는 자리</h4>
+<pre>LD dd,nn           ; Zilog 상세 16bit Load 설명의 일반형
+LD HL,9000h        ; dd=HL, nn=9000h</pre>
+<p>여기서 <code>dd</code>는 BC/DE/HL/SP 중 하나를 뜻하며 아래 register-pair 절에서 다시 정확히 정리합니다. <code>nn</code>은 “n 두 개”라는 뜻이 아니라 <b>16bit 값 하나</b>를 뜻합니다. 같은 9000h라도 instruction에 따라 역할이 달라집니다.</p>
+<pre>LD HL,9000h        ; 9000h라는 16bit 값을 HL에 넣음
+JP 9000h           ; 9000h를 다음 실행 주소로 사용</pre>
+<div class="misconception"><b>nn = 주소</b>라고 외우면 안 됩니다. <code>nn</code>은 16bit 값 자리입니다. 그 값을 주소로 사용할지 단순 숫자로 사용할지는 instruction의 의미가 결정합니다.</div>
+<p>나중에 machine code까지 연결하면 <code>LD HL,9000h</code>은 다음처럼 보입니다.</p>
+<pre>21 00 90
+│  └──┘
+│   nn = 9000h
+└─ opcode</pre>
+<p>16bit 값 9000h가 operand byte에서는 <code>00 90</code> 순서로 놓이는 이유는 Z80의 little-endian 저장 순서 때문입니다.</p>
+
+<h4>r — 설명서 기호에 실제 register를 대입한다</h4>
+<pre>LD r,n             ; 설명서
+   │ │
+   │ └─ n = 3Ch
+   └─── r = B
+
+        ↓
+
+LD B,3Ch           ; 실제 instruction</pre>
+<p>Zilog의 기본 notation에서 <code>r</code>은 <b>A, B, C, D, E, H, L</b> 중 하나입니다.</p>
+<pre>INC r              ; 일반형
+INC A              ; r=A
+INC B              ; r=B
+INC C              ; r=C</pre>
+
+<h4>d — IX/IY의 기준 주소에 더하는 실제 signed 8bit displacement</h4>
+<p><code>d</code>는 실제로 -128~+127 범위의 signed 8bit 값입니다.</p>
+<pre>LD A,(IX+d)        ; 설명서의 일반형</pre>
+<p>IX=9000h, d=+05h라면:</p>
+<pre>LD A,(IX+05h)      ; RAM[9005h]의 1byte를 A로 읽음</pre>
+<div class="formula">9000h + 0005h = 9005h</div>
+<p>이번에는 d=-2라면:</p>
+<pre>LD A,(IX-02h)      ; RAM[8FFEh]의 1byte를 A로 읽음</pre>
+<div class="formula">9000h - 0002h = 8FFEh</div>
+<p>즉 <code>d</code>는 <b>메모리의 effective address를 계산</b>할 때 IX/IY에 더해지는 값입니다.</p>
+
+<h4>e — Zilog 설명서의 e와 JR 기계어 displacement를 구분한다</h4>
+<p>여기가 <code>d</code>와 가장 쉽게 섞이는 부분입니다. 둘 다 상대값이지만 <b>무엇을 기준으로 무엇을 계산하는지</b>가 다릅니다.</p>
+<div class="grid2">
+<div class="card"><h4>d</h4><pre>LD A,(IX+05h)</pre><p><b>IX + d</b>로 메모리 주소를 계산합니다.</p></div>
+<div class="card"><h4>JR의 상대값</h4><pre>JR SKIP</pre><p><b>실행 흐름의 다음 PC</b>를 계산합니다.</p></div>
+</div>
+<p>예를 들어 JR instruction 시작 주소가 8000h이고 목적지가 8008h라고 합시다.</p>
+<pre>8000h : 18 06      JR 8008h
+8002h : ...
+8008h : ...         ; 목적지</pre>
+<div class="step-list">
+<div class="step"><b>Zilog notation의 현재 위치 기준 offset e</b>는 8008h-8000h = <b>+8</b>입니다.</div>
+<div class="step"><b>JR instruction 길이</b>는 2byte이므로 instruction을 읽은 뒤 PC는 <b>8002h</b>입니다.</div>
+<div class="step"><b>기계어에 실제 저장되는 displacement byte</b>는 8008h-8002h = <b>+6</b>입니다.</div>
+<div class="step">그래서 machine code가 <code>18 06</code>이 됩니다. <code>18</code>은 JR opcode, <code>06</code>은 실제 signed displacement입니다.</div>
+</div>
+<div class="formula">Zilog 표의 e = +8 / 실제 encoded displacement = +6</div>
+<p>최대·최소 범위도 이 2byte 차이 때문에 다릅니다.</p>
+<table><thead><tr><th>구분</th><th>기준점</th><th>범위</th></tr></thead><tbody>
+<tr><td>Zilog notation의 <code>e</code></td><td>현재 JR instruction 시작 위치</td><td>-126 ~ +129</td></tr>
+<tr><td>기계어 displacement byte</td><td>JR 2byte를 읽고 난 뒤의 PC</td><td>-128 ~ +127</td></tr>
+</tbody></table>
+<div class="beginner"><b>실제 source에서는 보통 직접 +6을 적을 필요가 없습니다.</b> <code>JR SKIP</code>처럼 label을 쓰면 assembler가 목적지와 현재 주소를 계산해 실제 displacement byte를 만들어 줍니다. 역분석할 때는 반대로 machine byte를 보고 목적지를 계산하게 됩니다.</div>
+
+<h4>b — BIT/SET/RES에서 어느 bit를 말하는가</h4>
+<pre>BIT b,r            ; 설명서의 일반형
+BIT 7,A            ; b=7, r=A → A의 bit 7 검사
+
+SET b,r            ; 일반형
+SET 3,B            ; b=3, r=B → B의 bit 3을 1로
+
+RES b,r            ; 일반형
+RES 0,C            ; b=0, r=C → C의 bit 0을 0으로</pre>
+<p><code>b</code>는 0~7 사이의 bit 번호입니다. 8bit 값의 최상위가 bit 7, 최하위가 bit 0입니다.</p>
+
+<h4>cc — 조건 자체가 들어가는 자리</h4>
+<p><code>cc</code>는 조건부 JP/CALL/RET 등에 들어가는 <b>condition code</b>입니다.</p>
+<table><thead><tr><th>cc</th><th class="left">검사하는 상태</th></tr></thead><tbody>
+<tr><td><code>NZ</code></td><td class="left">Z=0</td></tr>
+<tr><td><code>Z</code></td><td class="left">Z=1</td></tr>
+<tr><td><code>NC</code></td><td class="left">C=0</td></tr>
+<tr><td><code>C</code></td><td class="left">C=1</td></tr>
+<tr><td><code>PO</code></td><td class="left">P/V=0</td></tr>
+<tr><td><code>PE</code></td><td class="left">P/V=1</td></tr>
+<tr><td><code>P</code></td><td class="left">S=0</td></tr>
+<tr><td><code>M</code></td><td class="left">S=1</td></tr>
+</tbody></table>
+<pre>JP cc,nn           ; 설명서의 일반형
+JP Z,9000h         ; cc=Z, nn=9000h
+JP NZ,8000h        ; cc=NZ, nn=8000h</pre>
+<div class="warning"><b>P와 M을 단순히 “signed 크기 비교 결과”라고 외우면 안 됩니다.</b> P/M은 S flag가 0인지 1인지를 검사합니다. signed 대소 비교는 overflow까지 고려해야 하므로 CP 뒤에서 S만 보는 것으로 항상 해결되지 않습니다.</div>
+
+<h4>register pair 기호는 하나가 아니다</h4>
+<p>16bit register를 나타내는 설명서 기호를 전부 <code>rr</code>이라고 뭉뚱그리면 실제 Zilog manual을 읽을 때 틀리게 됩니다. <b>instruction마다 허용되는 register pair 집합이 달라서 서로 다른 기호를 사용합니다.</b></p>
+<table><thead><tr><th>기호</th><th class="left">들어갈 수 있는 register pair</th><th class="left">실제 manual 예</th></tr></thead><tbody>
+<tr><td><code>qq</code></td><td class="left">BC, DE, HL, AF</td><td class="left"><code>PUSH qq</code>, <code>POP qq</code></td></tr>
+<tr><td><code>ss</code></td><td class="left">BC, DE, HL, SP</td><td class="left"><code>ADD HL,ss</code>, <code>INC ss</code></td></tr>
+<tr><td><code>pp</code></td><td class="left">BC, DE, IX, SP</td><td class="left"><code>ADD IX,pp</code></td></tr>
+<tr><td><code>rr</code></td><td class="left">BC, DE, IY, SP</td><td class="left"><code>ADD IY,rr</code></td></tr>
+<tr><td><code>dd</code></td><td class="left">BC, DE, HL, SP</td><td class="left"><code>LD dd,nn</code> — Zilog의 상세 16bit LD 설명에서 사용</td></tr>
+</tbody></table>
+<div class="note"><b>왜 qq/ss/pp/rr가 따로 있는가?</b> 예를 들어 <code>PUSH qq</code>에서는 AF가 가능한 반면 SP는 그 자리에 들어가지 않습니다. 반대로 <code>ADD HL,ss</code>에서는 SP가 가능하지만 AF는 들어가지 않습니다. 따라서 “16bit register 아무거나”라고 한 기호로 쓰면 허용 operand를 표현할 수 없습니다.</div>
+<pre>PUSH qq            ; qq = BC, DE, HL, AF
+PUSH AF            ; 가능
+
+ADD HL,ss          ; ss = BC, DE, HL, SP
+ADD HL,SP          ; 가능
+
+ADD IX,pp          ; pp = BC, DE, IX, SP
+ADD
