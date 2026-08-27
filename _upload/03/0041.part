@@ -1,0 +1,33 @@
+s="rep-row"><span class="payload-chip">Payload A</span><span class="rep-arrow">→</span><span class="payload-chip">Payload B</span></div>
+</div><div class="rep-caption">여기서는 비교를 위해 metadata를 빼고 Sector payload만 순서대로 이어 놓은 것으로 봅니다.</div></div>
+</div>
+<div class="note"><b>같은 초록색 Payload A/B를 비교하세요.</b> 데이터 내용은 같아도 D88에서는 Header와 Track/Sector metadata 사이에 놓이고, 학습용 RAW 배열에서는 payload만 연속해 있습니다. 이 그림은 설명용이며 클릭하는 예제가 아닙니다.</div>
+<p>같은 Sector Data라도 D88에서는 metadata 사이에 들어가므로 <b>D88 file offset과 단순 payload 배열의 offset은 같지 않을 수 있습니다.</b></p>
+<div class="grid2"><div class="card"><h4>Sector 계층</h4><pre>Disk
+└─ Track
+   └─ Sector
+      └─ Payload</pre></div><div class="card"><h4>File system 계층</h4><pre>File system
+├─ Directory
+└─ File
+   └─ allocated sectors</pre></div></div>
+<div class="beginner"><b>핵심:</b> 게임이 반드시 운영체제의 일반 File 단위로 데이터를 읽는 것은 아닙니다. 직접 Sector를 지정해 읽고 자체 테이블로 관리할 수도 있습니다.</div>
+</section>
+<section id="disk-ram"><div class="kicker">서로 다른 위치 체계</div><h2>16. 디스크 이미지 파일에서의 위치와 게임 실행 중 메모리에서의 위치는 자동으로 같은 주소가 되지 않는다</h2><div class="flow"><div class="box">D88 안의 Sector Data<br/><code>file offset</code></div><div class="arrow">→</div><div class="box">게임 Loader가 읽음<br/><small>어느 RAM 주소에 둘지 결정</small></div><div class="arrow">→</div><div class="box">실행 중 RAM<br/><code>RAM address</code></div></div><p class="plain-intro">PC에서 D88 파일을 열었을 때의 “파일에서 몇 번째 바이트인가”와, 게임 실행 중 Z80이 보는 “메모리 몇 번지인가”는 서로 다른 위치 체계입니다. 디스크에서 읽은 데이터를 어느 RAM 주소에 둘지는 게임 프로그램의 Loader가 결정합니다.</p><div class="term-intro"><b>이제 이름을 붙이면:</b> 앞의 위치를 <b>D88 file offset</b>, 실행 중 CPU가 보는 위치를 <b>RAM address</b>라고 부릅니다. 어느 Sector가 어느 RAM 주소로 들어가는지는 D88 파일 구조만 보고 자동 계산하는 것이 아니라 <b>Loader의 실제 읽기 동작을 실행 중 추적</b>해서 확인합니다.</div></section>
+<section class="section-break" id="kanji"><div class="kicker">글자 모양을 가져오는 곳</div><h2>17. 화면에 일본어 문자를 그리려면 먼저 “그 글자의 점 모양”을 저장해 둔 곳에서 데이터를 가져와야 한다</h2><p class="plain-intro">화면에 <b>「あ」나 「漢」</b> 같은 문자를 그린다고 해서 CPU가 그 모양을 스스로 알고 있는 것은 아닙니다. 어느 점을 켜고 끌지 나타내는 작은 그림 데이터가 저장된 곳이 있고, 프로그램은 그 데이터를 읽어 화면 메모리에 옮겨 표시합니다.</p><div class="term-intro"><b>이제 이름을 붙이면:</b> 이 점 모양 데이터를 <b>Glyph</b>라고 부릅니다. Kanji ROM을 사용할 수 있는 PC-8801 환경에서는 한자·가나 등의 글자 모양을 담은 하드웨어 ROM을 <b>Kanji ROM</b>이라고 부릅니다. Kanji ROM은 글자를 직접 화면에 그리는 장치가 아니라 Glyph byte를 제공하는 저장 장치입니다.</div><div class="flow"><div class="box">Z80 / 문자 출력 루틴</div><div class="arrow">주소 지정 →</div><div class="box">Kanji ROM</div><div class="arrow">Glyph byte →</div><div class="box">Z80 / 출력 루틴</div><div class="arrow">→</div><div class="box">VRAM / 화면</div></div><div class="misconception"><b>Kanji ROM이 화면에 직접 글자를 그리는 것은 아닙니다.</b> ROM은 dot pattern byte를 제공하고, 프로그램의 문자 출력 루틴이 그 데이터를 VRAM 등에 써서 화면에 표시합니다.</div></section>
+<section id="glyph"><div class="kicker">점으로 만든 글자</div><h2>18. 16칸 × 16칸짜리 흑백 글자 그림은 한 줄에 2바이트, 전체 32바이트로 저장할 수 있다</h2><p class="plain-intro">가로로 16개의 점이 있는 한 줄을 생각합니다. 한 바이트는 8개의 켜짐/꺼짐 상태를 담을 수 있으므로, 16개의 점은 왼쪽 8개를 한 바이트, 오른쪽 8개를 한 바이트에 담으면 됩니다. 이런 줄이 16개이므로 전체는 32바이트가 됩니다.</p><div class="term-intro"><b>이제 이름을 붙이면:</b> 이렇게 글자 하나를 점 배열로 표현한 데이터를 <b>16×16 Glyph</b>라고 부릅니다. 한 줄은 <b>raster</b>라고도 하며, Kanji ROM에서는 한 raster마다 왼쪽 8dot와 오른쪽 8dot를 읽습니다.</div><div class="formula">한 row = 왼쪽 8dot 1byte + 오른쪽 8dot 1byte → 2byte × 16 rows = 32byte</div><div class="lab"><h4>Lab 7 — 16×16 점 그림을 직접 켜 보며 32바이트가 되는 이유 확인하기</h4><div class="glyph-editor"><div><div class="glyph-grid" id="glyphGrid"></div><div class="controls"><button class="btn" id="glyphClear">모두 끄기</button><button class="btn" id="glyphSample">샘플</button></div></div><div><div class="glyph-rows" id="glyphRows"></div><div class="row-focus"><div class="byte-big" id="leftByteBig">Left: 00h</div><div class="byte-big" id="rightByteBig">Right: 00h</div></div><div class="readout" id="glyphReadout"></div></div></div></div><div class="note"><b>bit 방향:</b> 이 강좌에서는 한 byte의 bit7을 왼쪽 pixel, bit0을 오른쪽 pixel로 표시합니다. 파란 세로선은 16pixel을 왼쪽 8dot와 오른쪽 8dot로 나누는 경계입니다.</div></section>
+<section id="jis">
+<div class="kicker">게임 속 문자값과 문자 코드</div><h2>19. 게임 데이터 안의 문자값과 Kanji ROM을 찾을 때 사용하는 JIS는 같은 값이라고 단정할 수 없다</h2>
+<p class="plain-intro">게임 디스크에서 두 바이트를 발견했다고 해서 그것이 곧바로 Kanji ROM의 위치를 뜻하는 것은 아닙니다. 게임은 문자를 자체 번호나 token으로 저장할 수도 있고, Shift-JIS 계열 값을 사용할 수도 있으며, 출력 직전에 다른 문자 코드로 바꾸는 구조일 수도 있습니다.</p>
+<div class="term-intro"><b>이제 이름을 붙이면:</b> 게임 안에서 사용하는 값을 <b>게임 내부 문자값</b>, Kanji ROM 주소 계산에 들어가는 문자 코드 단계의 값을 여기서는 <b>JIS</b>라고 구분합니다. <b>게임 내부 문자값 → JIS</b> 변환 방식은 게임마다 다를 수 있으므로 실제 코드를 확인해야 합니다.</div>
+<div class="process-flow"><div class="process-step"><b>게임 내부 문자값</b><span>게임이 디스크·RAM에서 사용하는 자체 표현</span></div><div class="process-arrow">↓ 게임별 변환이 있을 수 있음</div><div class="process-step"><b>JIS</b><span>Kanji ROM 위치 계산에 사용하는 문자 코드 단계</span></div><div class="process-arrow">↓ 하드웨어 주소용 bit 재배열</div><div class="process-step"><b>KANJI access</b><span>Kanji ROM 회로에 지정하는 위치값</span></div></div>
+<div class="warning"><b>보편 형식으로 단정하지 말 것:</b> Shift-JIS 계열 두 바이트가 보인다고 해서 모든 PC-88 게임이 같은 내부 문자 형식을 사용한다고 결론 내리면 안 됩니다. 실제 게임의 문자 읽기·변환 루틴으로 확인합니다.</div>
+</section>
+<section id="jis-mapping">
+<div class="kicker">JIS에서 Kanji ROM 위치값 만들기</div><h2>20. JIS 값의 특정 비트를 재배열해서 Kanji ROM 회로가 사용하는 위치값을 만든다</h2>
+<p class="plain-intro">JIS는 문자 번호이고 Kanji ROM 회로는 별도의 주소 배치를 사용합니다. 따라서 JIS 값을 그대로 ROM 주소로 쓰는 것이 아니라, 문자 영역에 맞는 규칙으로 특정 비트들을 골라 다시 배치해야 합니다.</p>
+<div class="term-intro"><b>이제 이름을 붙이면:</b> PC-8801 Kanji ROM 회로에 지정하는 위치값을 이 강좌에서는 <b>KANJI access</b>라고 부릅니다. 비한자 영역과 제1수준 한자 영역은 주소 배치 규칙이 서로 다릅니다.</div>
+<div class="mapping-cards">
+<div class="mapping-rule-card"><b>JIS 21xx~27xx — 기호·가나 등 비한자</b><code>A = ((J &amp; 001Fh) &lt;&lt; 4)<br/>| ((J &amp; 0060h) &lt;&lt; 7)<br/>| ((J &amp; 0700h) &lt;&lt; 1)</code></div>
+<div class="mapping-rule-card"><b>JIS 30xx~4Fxx — 제1수준 한자</b><code>A = ((J &amp; 001Fh) &lt;&lt; 4)<br/>| ((J &amp; 0060h) &lt;&lt; 9)<br/>| ((J &amp; 1F00h) &lt;&lt; 1)</code></div>
+</div>
+<div class="lab"><h4>Lab 8 — 제1수준 한자 JIS가 KANJI access로 바뀌는 계산 보기</h4><p>먼저 제1수준 한자 예제로 한 식의 비트 재배열을 단계별로 확인합니다. 비한자 영역은 아래 별도 예에서 다른 식을 사용합니다.</p><div class="row"><label>검증 예제 <select id
