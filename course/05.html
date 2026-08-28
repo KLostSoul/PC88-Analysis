@@ -162,7 +162,7 @@ QUASI88&gt;disasm #63
   <div class="callout warn"><h3>여기서 하지 않는 판단</h3><p><code>PC=04DA</code>는 첫 브레이크가 걸린 현재 실행 위치입니다. 처리 Code의 시작 주소도, 작은 글자의 원천 주소도 아닙니다. 주변 명령과 호출 관계를 더 확인해야 역할을 판단할 수 있습니다.</p></div>
   <div class="diagram"><h3>현재까지 확인한 타이틀 구조</h3><p>화면에서 시작했지만, 아직 Data의 위치나 처리 Code의 역할은 확정하지 않았습니다.</p><pre class="mermaid">flowchart TD
   S["조사 대상으로 선택한<br>작은 夢幻戦士"] --> B["오프닝 화면에서 강제 브레이크"]
-  B --> P["PC 04DA · INC HL · RR (HL) 반복"]
+  B --> P["PC 04DA · INC HL · RR (HL)반복"]
   P --> Q["이 Code의 역할은 아직 미확정"]
 </pre></div>
   <div class="callout"><h3>다음 행동을 추론한다</h3><p><code>DEC B</code> 다음에 <code>JP NZ,04B4</code>가 있으므로, <code>B</code>가 안쪽 <code>RR (HL)</code> 반복 횟수를 관리한다고 가정할 수 있습니다. 이어서 두 번의 <code>EX DE,HL</code> 사이에서 주소에 <code>0050H</code>를 더하고, <code>DEC IXH</code>와 <code>JP NZ,04ACH</code>가 이어집니다. 따라서 안쪽 반복이 끝나면 DE 쪽 다음 행 위치를 준비하고 IXH를 줄인 뒤 바깥 반복을 계속한다고 가정할 수 있습니다.</p><p>이 가정을 확인하려면 두 진입점 앞의 준비 명령, 즉 포트 선택·HL/DE 초기값·반복 카운터 설정을 함께 봐야 합니다. 주소를 생략한 출력은 <code>04DA</code>에서 시작하므로 준비 명령이 보이지 않습니다. <code>04AC</code>보다 앞인 <code>04A0</code>부터 다시 확인합니다.</p></div>
@@ -374,7 +374,7 @@ D8D8 : 08 00 02 00 80 00 00 00 08 41 00 00 00 00 00 04 |.........A......|</div>
   S["조사 대상으로 선택한 화면 요소"] --> P["PC 04DA에서 반복 관찰"]
   P --> D["disasm 04A0 / 반복 준비 확인"]
   D --> K["04CB와 04CC 선택"]
-  K --> B["PC breakpoint 04CB / reset / g"]
+  K --> B["PC breakpoint 04CB<br>reset / g"]
   B --> M["04CB INC HL -> 04CC RR (HL)"]
   M --> W["D8E0 값 10 -> 08"]
 </pre></div>
@@ -550,7 +550,7 @@ QUASI88&gt;g
   P1 --> C["각 plane에서 CALL 061F"]
   P2 --> C
   P3 --> C
-  C --> N["HL + 50 / IXH 감소 / 05AD 반복"]
+  C --> N["HL+50 / IXH 감소 / 05AD 반복"]
 </pre></div>
 </section>
 
@@ -725,7 +725,7 @@ QUASI88&gt;disasm 0x631A #8
   W["D400 WRITE breakpoint"] --> L["6344 LDIR"]
   L --> Z["00을 넓은 범위에 기록"]
   Z --> P["5C / 5D / 5E plane에서 반복"]
-  P --> X["GVRAM plane clear / 작은 夢幻戦士 처리 후보에서 제외"]
+  P --> X["GVRAM plane clear<br>작은 夢幻戦士 처리 후보에서<br>제외"]
 </pre></div>
   <div class="question">판별 기준: <strong>무엇을 쓰는가? 얼마나 넓게 반복하는가? 여러 plane에서 같은가? 화면 변화 시점과 맞는가?</strong></div>
 </section>
