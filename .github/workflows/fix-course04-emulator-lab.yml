@@ -20,5 +20,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add course/04.html
-          git commit -m 'Refocus course 04 section 4 on emulator-based practice'
+          git commit -m 'Present emulator as course practice environment'
           git push
