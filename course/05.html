@@ -140,6 +140,24 @@ QUASI88&gt;disasm #64
 0536 DD25     +DEC   IXH
 0538 C2AC04    JP    NZ,04ACH
 053B C9        RET</div>
+  <h3>disasm 한 줄은 이렇게 읽는다</h3>
+  <p><code>disasm</code> 결과를 처음부터 전부 번역할 필요는 없습니다. 한 줄을 <strong>주소 → 명령 → 대상</strong> 순서로 읽고, 그 명령이 register·Memory·실행 흐름 중 무엇을 바꾸는지만 확인합니다.</p>
+  <div class="table-wrap"><table><thead><tr><th>출력 부분</th><th>뜻</th><th>초보자가 던질 질문</th></tr></thead><tbody>
+    <tr><td><code>04DA</code></td><td>그 명령이 들어 있는 주소</td><td>현재 PC가 이 줄을 가리키는가? 다음 실행 주소는 어디인가?</td></tr>
+    <tr><td><code>23</code>, <code>CB1E</code></td><td>CPU가 실제로 읽는 기계어 byte</td><td>이번 단계에서는 외우지 않고, 뒤의 명령 표기를 이해하는 근거로만 본다.</td></tr>
+    <tr><td><code>INC HL</code>, <code>RR (HL)</code></td><td>CPU가 수행하는 동작과 대상</td><td>register 자체가 바뀌는가? HL이 가리키는 Memory가 바뀌는가?</td></tr>
+    <tr><td><code>JP NZ,04B4H</code></td><td>조건이 맞으면 다음 실행 위치를 바꾸는 명령</td><td>무슨 값이 조건을 결정하고, 어디로 되돌아가는가?</td></tr>
+  </tbody></table></div>
+  <div class="callout"><h3>읽는 순서</h3><ol class="steps"><li>화살표와 <code>PC</code>로 현재 실행 위치를 확인합니다.</li><li>현재 줄의 명령이 register, Memory, I/O, 분기 중 무엇을 다루는지 분류합니다.</li><li><code>HL</code>이나 <code>DE</code>처럼 주소 역할을 하는 register가 어떻게 바뀌는지 봅니다.</li><li>분기·호출·복귀 명령을 찾아 다음에 실행될 Code의 범위를 정합니다.</li><li>disassembly만으로 확정할 수 없는 내용은 <code>step</code>이나 <code>dump</code>로 실제 변화를 확인합니다.</li></ol></div>
+  <h3>이번 출력에서 반복을 읽는 실제 예</h3>
+  <div class="table-wrap"><table><thead><tr><th>로그에서 찾은 줄</th><th>한 줄씩 해석</th><th>여기서 세우는 가정</th></tr></thead><tbody>
+    <tr><td><code>INC HL</code></td><td>HL 값을 1 증가시킵니다. 다음 Memory 위치를 가리키게 될 수 있습니다.</td><td>HL이 처리 위치를 가리키는 pointer일 가능성</td></tr>
+    <tr><td><code>RR (HL)</code></td><td>HL이 가리키는 byte를 오른쪽으로 회전시키고, 결과를 같은 Memory 위치에 기록합니다.</td><td>Memory를 읽고 다시 쓰는 처리일 가능성</td></tr>
+    <tr><td><code>DEC B</code><br><code>JP NZ,04B4H</code></td><td>B를 1 줄인 뒤 0이 아니면 <code>04B4</code>로 돌아갑니다.</td><td>B가 안쪽 반복 횟수를 관리할 가능성</td></tr>
+    <tr><td><code>ADD HL,0050H</code></td><td>HL에 <code>0050H</code>를 더해 다음 처리 위치로 이동합니다.</td><td>한 줄 처리가 끝난 뒤 다음 줄로 이동할 간격일 가능성</td></tr>
+    <tr><td><code>DEC IXH</code><br><code>JP NZ,04ACH</code></td><td>IXH를 1 줄인 뒤 0이 아니면 바깥쪽 진입점으로 돌아갑니다.</td><td>여러 줄을 반복하는 바깥 카운터일 가능성</td></tr>
+  </tbody></table></div>
+  <p>이 표의 마지막 열은 확정된 설명이 아니라 <strong>다음 조사를 정하기 위한 가정</strong>입니다. 그래서 다음 단계에서는 반복 진입점 앞의 준비 명령을 확인하고, 이어서 실제 Memory 변화까지 검증합니다.</p>
   <div class="grid2"><article><h4>관찰</h4><p><code>INC HL</code>과 <code>RR (HL)</code>이 반복되고, 끝에서 <code>JP NZ,04B4</code>, <code>JP NZ,04AC</code>으로 되돌아갑니다.</p></article><article><h4>판단</h4><p>HL이 가리키는 Memory를 일정한 순서로 처리하는 반복 구조입니다. 아직 이것이 로고 처리 Code의 시작이라고 할 수는 없습니다.</p></article></div>
   <div class="callout warn"><h3>여기서 하지 않는 판단</h3><p><code>PC=04DA</code>는 첫 브레이크가 걸린 현재 실행 위치입니다. 처리 Code의 시작 주소도, 작은 글자의 원천 주소도 아닙니다. 주변 명령과 호출 관계를 더 확인해야 역할을 판단할 수 있습니다.</p></div>
   <div class="diagram"><h3>현재까지 확인한 타이틀 구조</h3><p>화면에서 시작했지만, 아직 Data의 위치나 처리 Code의 역할은 확정하지 않았습니다.</p><pre class="mermaid">flowchart TD
@@ -241,6 +259,19 @@ QUASI88&gt;disasm #64
 0536 DD25     +DEC   IXH
 0538 C2AC04    JP    NZ,04ACH
 053B C9        RET</div>
+  <h3>범위를 넓힌 뒤에는 준비·반복·종료로 나누어 읽는다</h3>
+  <p>앞 단계에서 발견한 분기 주소를 포함하도록 <code>04A0</code>부터 다시 표시했습니다. 이제 긴 출력에서 모든 줄을 같은 비중으로 보지 않고, <strong>반복에 들어가기 전 준비</strong>, <strong>반복 안의 처리</strong>, <strong>반복을 끝내는 조건</strong>으로 나눕니다.</p>
+  <div class="table-wrap"><table><thead><tr><th>로그 구간</th><th>명령의 역할</th><th>이 명령으로 알 수 있는 것</th></tr></thead><tbody>
+    <tr><td><code>04A1 OUT (5C),A</code></td><td>A의 값을 포트 <code>5C</code>에 출력합니다.</td><td>반복 전에 화면의 특정 plane을 선택하는 준비가 있을 수 있습니다.</td></tr>
+    <tr><td><code>04A3 LD IXH,48H</code></td><td>IXH에 반복에 사용할 값을 넣습니다.</td><td>뒤의 <code>DEC IXH</code>와 연결해 바깥 반복 카운터 후보로 봅니다.</td></tr>
+    <tr><td><code>04A6 LD HL,D400H</code><br><code>04A9 LD DE,D44FH</code></td><td>두 주소를 register에 준비합니다.</td><td>이후 명령이 어느 Memory 위치를 기준으로 동작하는지 확인할 출발점입니다.</td></tr>
+    <tr><td><code>04AC EX DE,HL</code><br><code>04AD LD A,(HL)</code><br><code>04AE SRL A</code></td><td>주소 register를 서로 바꾸고, HL이 가리키는 byte를 A로 읽어 비트 이동을 합니다.</td><td>반복 전에 별도의 값을 읽어 처리 조건이나 준비값으로 사용할 가능성이 있습니다. 정확한 역할은 실행값과 함께 확인합니다.</td></tr>
+    <tr><td><code>04B2 LD B,02H</code><br><code>04B4 RR (HL)</code></td><td>B를 준비한 뒤 HL이 가리키는 Memory 처리에 들어갑니다.</td><td>앞에서 본 안쪽 반복이 어디서 시작되는지 연결됩니다.</td></tr>
+    <tr><td><code>052B DEC B</code> → <code>052C JP NZ,04B4H</code></td><td>안쪽 반복 횟수를 줄이고, 남아 있으면 <code>04B4</code>로 돌아갑니다.</td><td>반복의 끝과 되돌아가는 방향을 확인할 수 있습니다.</td></tr>
+    <tr><td><code>0530</code>~<code>0538</code></td><td>HL을 다음 위치로 옮기고 IXH를 줄인 뒤 <code>04AC</code>으로 돌아갑니다.</td><td>안쪽 반복과 바깥 반복이 분리된 구조라는 가정이 생깁니다.</td></tr>
+    <tr><td><code>053B RET</code></td><td>현재 Code를 호출한 곳으로 돌아갑니다.</td><td>반복이 끝난 뒤에는 stack의 반환 주소를 조사할 수 있습니다.</td></tr>
+  </tbody></table></div>
+  <div class="callout"><h3>disasm에서 다음 조사 지점을 고르는 방법</h3><p>출력에 주소가 많이 나와도 다음 조사 지점은 명령의 종류에서 고릅니다. <strong>값을 준비하는 명령</strong>이 궁금하면 그 앞을 더 보고, <strong>Memory가 실제로 바뀌는지</strong>가 궁금하면 반복 안의 <code>RR (HL)</code>을 step으로 확인하고, <strong>누가 호출했는지</strong>가 궁금하면 <code>RET</code>과 stack을 봅니다. 이처럼 disasm은 주소 목록이 아니라 다음 질문을 정하는 자료입니다.</p></div>
   <div class="grid2"><article><h4>가정과 맞는 관찰</h4><p><code>04A1 OUT (5C),A</code>로 plane을 선택하고, <code>04A3 LD IXH,48H</code>로 바깥 반복 카운터를 준비합니다. 이어서 <code>04A6 LD HL,D400H</code>와 <code>04A9 LD DE,D44FH</code>가 처리 위치를 준비합니다.</p></article><article><h4>아직 확인할 것</h4><p><code>04B4</code>의 반복이 실제로 어떤 Memory를 바꾸는지는 disassembly만으로 확정하지 않습니다. <code>HL</code>이 가리키는 byte를 실행 전후로 비교해야 합니다.</p></article></div>
   <div class="callout"><h3>반복 구조를 읽는 법</h3><p>준비 명령부터 반복과 종료까지 이어지는 Code 묶음을 하나의 <strong>routine</strong>이라고 부를 수 있습니다. routine은 특별한 종류의 명령이 아니라, 한 작업을 맡은 여러 명령의 묶음입니다. 여기서는 용어를 외우는 것보다 <code>RR (HL)</code>가 반복되는 부분과 그 앞의 준비 명령을 나누어 보는 것이 중요합니다. 다음 Code를 고를 때는 반복 구조와 각 register의 변화를 함께 봅니다.</p></div>
   <div class="diagram"><h3>현재까지 확인한 타이틀 구조</h3><p><code>04A0</code>은 Data의 원천이 아니라, 반복에 들어가기 전 무엇을 준비하는지 확인하기 위해 넓힌 범위입니다.</p><pre class="mermaid">flowchart TD
@@ -300,6 +331,25 @@ QUASI88&gt;dump 0xD8D8 #16
 addr : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F
 ---- : -----------------------------------------------
 D8D8 : 08 00 02 00 80 00 00 00 08 41 00 00 00 00 00 04 |.........A......|</div>
+  <h3>dump 결과는 주소표로 읽는다</h3>
+  <p><code>dump 0xD8D8 #16</code>의 한 줄은 16바이트를 보여줍니다. 왼쪽의 행 주소가 시작 주소이고, 위의 <code>+0</code>부터 <code>+F</code>까지가 그 행 안의 offset입니다. 따라서 <code>D8E0</code>은 <code>D8D8 + 08</code>이고, 실제 출력에서 아홉 번째 hex 값 <code>10</code>을 가리킵니다.</p>
+  <div class="table-wrap"><table><thead><tr><th>dump 표시</th><th>읽는 방법</th><th>이번 로그에서의 사용</th></tr></thead><tbody>
+    <tr><td>행 주소 <code>D8D8</code></td><td>그 줄의 첫 byte가 있는 Memory 주소입니다.</td><td>관찰할 Memory 범위를 고정합니다.</td></tr>
+    <tr><td>열 <code>+8</code></td><td>행 주소에서 8바이트 떨어진 위치입니다.</td><td><code>D8D8 + 08 = D8E0</code>으로 계산합니다.</td></tr>
+    <tr><td>hex 영역의 <code>10</code> → <code>08</code></td><td>그 주소에 실제로 저장된 byte가 바뀐 것입니다.</td><td>두 step 사이의 Memory 변화를 명령 실행 결과와 연결합니다.</td></tr>
+    <tr><td>오른쪽 ASCII 영역</td><td>byte를 문자처럼 표시한 보조 영역입니다.</td><td>그래픽 byte나 제어값은 점으로 보일 수 있으므로, 해석의 기준은 hex 값과 주소입니다.</td></tr>
+  </tbody></table></div>
+  <div class="callout"><h3>dump만 보고 결론 내리지 않는 이유</h3><p>dump는 특정 시점의 Memory 사진입니다. 그 값이 입력인지 출력인지 알려면 <strong>어떤 register가 그 주소를 가리켰는지</strong>, <strong>직전·직후 어떤 명령이 실행됐는지</strong>, <strong>다시 dump했을 때 값이 바뀌었는지</strong>를 함께 봐야 합니다. 이번 단계에서는 <code>HL=D8E0</code>, 현재 명령 <code>RR (HL)</code>, 실행 후 <code>D8E0: 10 → 08</code>을 묶어 읽었기 때문에 Memory WRITE를 확인할 수 있었습니다.</p></div>
+  <h3>step와 dump는 한 쌍으로 비교한다</h3>
+  <p><code>disasm</code>은 명령이 무엇을 할지 보여주고, <code>step</code>과 <code>dump</code>는 그 예상이 실제로 맞았는지 보여줍니다. 따라서 한 번의 <code>s</code> 뒤에 현재 <code>PC</code>, 주소 register, 대상 Memory를 함께 비교합니다.</p>
+  <div class="table-wrap"><table><thead><tr><th>순서</th><th>로그에서 읽는 값</th><th>분석 결과</th></tr></thead><tbody>
+    <tr><td>step 전</td><td>PC=<code>04CB</code>, HL=<code>D8DF</code>. <code>dump</code>에서 HL이 다음에 가리킬 <code>D8E0</code>의 값은 <code>10</code>.</td><td>현재 명령은 <code>INC HL</code>이므로 먼저 주소 register가 변할 것으로 예상합니다.</td></tr>
+    <tr><td>첫 번째 <code>s</code> 직후</td><td>PC=<code>04CC</code>, HL=<code>D8E0</code>. 다음 명령은 <code>RR (HL)</code>.</td><td><code>INC HL</code>이 실행되어 HL만 <code>D8DF → D8E0</code>으로 이동했습니다.</td></tr>
+    <tr><td>첫 번째 <code>s</code> 뒤의 <code>dump</code></td><td><code>D8E0</code>의 값이 아직 <code>10</code>.</td><td>이번 step은 Memory 내용을 바꾸지 않고 다음 대상 주소를 정한 것으로 볼 수 있습니다.</td></tr>
+    <tr><td>두 번째 <code>s</code> 직후</td><td>PC=<code>04CE</code>, 다음 명령은 <code>INC HL</code>.</td><td><code>RR (HL)</code>이 실행됐으므로 대상 Memory의 변화를 다시 확인합니다.</td></tr>
+    <tr><td>두 번째 <code>s</code> 뒤의 <code>dump</code></td><td><code>D8E0</code>의 값이 <code>10 → 08</code>.</td><td><code>RR (HL)</code>이 HL이 가리키는 byte를 읽고 같은 주소에 결과를 기록한다는 것을 실행으로 확인했습니다.</td></tr>
+  </tbody></table></div>
+  <div class="callout"><h3>초보자가 기록해야 할 세 가지</h3><p>step을 실행할 때는 명령 이름만 적지 않습니다. <strong>실행 전 PC와 register</strong>, <strong>실행 후 PC와 register</strong>, <strong>대상 Memory의 전후 값</strong>을 한 줄에 묶어 기록합니다. 그러면 “<code>RR (HL)</code>은 값을 바꿀 것 같다”는 해석이 “<code>D8E0: 10 → 08</code>로 실제 변경됐다”는 근거로 바뀝니다.</p></div>
   <div class="grid2"><article><h4>관찰</h4><p><code>HL=D8E0</code>인 상태에서 <code>RR (HL)</code>을 실행한 뒤 <code>D8E0</code>의 값이 <code>10</code>에서 <code>08</code>로 바뀌었습니다.</p></article><article><h4>판단</h4><p>이 반복 Code는 HL이 가리키는 Memory를 실제로 읽고 같은 위치에 변경된 값을 기록합니다.</p></article></div>
   <div class="callout ok"><h3>이제 확정할 수 있는 범위</h3><p><code>04B4</code> 이후의 반복은 D8xx 계열 그래픽 처리 영역을 비트 단위로 변형하는 동작과 연결됩니다. 하지만 이 Code가 어디서 호출되었고, 원천 Data가 어디에 있는지는 아직 남은 질문입니다.</p></div>
   <div class="diagram"><h3>현재까지 확인한 타이틀 구조</h3><p><code>04CB</code>는 첫 정지 위치가 아니라, 앞서 읽은 Code에서 고른 확인 지점입니다.</p><pre class="mermaid">flowchart TD
@@ -367,6 +417,14 @@ addr : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F
 0405 2002      JR    NZ,0409H
 0407 18E5      JR    03EEH
 0409 CDA90B    CALL  0BA9H</div>
+  <h3>CALL과 반환 주소를 함께 읽는다</h3>
+  <p>stack에서 얻은 <code>03F1</code>을 disasm의 주소로 넣는 목적은 그곳이 routine의 시작인지 확인하려는 것이 아닙니다. <code>CALL</code>은 호출한 다음 명령의 주소를 stack에 넣으므로, 반환 주소 바로 앞에서 어떤 <code>CALL</code>이 있었는지를 확인합니다.</p>
+  <div class="table-wrap"><table><thead><tr><th>로그</th><th>읽는 방법</th><th>분석상 의미</th></tr></thead><tbody>
+    <tr><td><code>03EE CALL 04A1H</code></td><td><code>04A1</code> routine으로 이동합니다.</td><td>호출이 끝난 뒤 돌아올 다음 주소가 <code>03F1</code>이 됩니다.</td></tr>
+    <tr><td><code>03F1 3A7C08 LD A,(087CH)</code></td><td><code>CALL</code> 바로 다음에 실제 명령이 놓여 있습니다.</td><td>stack의 <code>F1 03 → 03F1</code> 해석과 주변 Code가 서로 맞습니다.</td></tr>
+    <tr><td><code>03E6 CALL 05ADH</code></td><td>같은 상위 Code 안에서 별도로 발견한 호출입니다.</td><td><code>03F1</code>의 반환 주소와 혼동하지 않고, 다음에 실행되는 후보로 따로 검증합니다.</td></tr>
+  </tbody></table></div>
+  <div class="callout"><h3>호출 관계를 확정하는 조건</h3><ol class="steps"><li>RET 직전 stack에서 반환 주소 후보를 읽습니다.</li><li>little-endian 순서로 주소를 복원합니다.</li><li>그 주소 바로 앞을 disasm하여 실제 <code>CALL</code>의 다음 주소인지 확인합니다.</li><li>같은 주변 Code에 다른 <code>CALL</code>이 있으면 별도의 후보로 기록하고, 실제 breakpoint로 다시 확인합니다.</li></ol></div>
   <div class="grid2"><article><h4>이제 발견한 것</h4><p><code>03EE CALL 04A1</code>가 있고 그 다음 주소가 <code>03F1</code>입니다. stack에서 읽은 반환 주소와 실제 <code>CALL</code>이 맞습니다.</p></article><article><h4>중요한 전환</h4><p><code>03E6 CALL 05AD</code>는 같은 상위 Code 블록에 보이는 별도 호출입니다. 반환 주소 자체는 아니지만, 타이틀 처리 후보 <code>05AD</code>를 실제 실행으로 확인할 근거가 됩니다.</p></article></div>
   <div class="diagram"><h3>현재까지 확인한 타이틀 구조</h3><p>stack은 <code>04A1</code>의 호출 관계를 확인했고, 같은 상위 Code에서 다음 후보 <code>05AD</code>도 발견했습니다.</p><pre class="mermaid">flowchart TD
   A["04CB에서 D8E0 변화 확인"] --> R["053B RET"]
@@ -438,6 +496,17 @@ QUASI88&gt;g
 05C8 DD25     +DEC   IXH
 05CA C2AD05    JP    NZ,05ADH
 05CD C9        RET</div>
+  <h3>같은 패턴이 반복되는지 먼저 찾는다</h3>
+  <p>이 출력에서는 한 줄씩 따로 외우기보다 같은 모양이 세 번 나오는지 비교합니다. 비교할 때는 <strong>선택</strong>, <strong>호출</strong>, <strong>복원</strong>의 순서를 묶어서 읽습니다.</p>
+  <div class="table-wrap"><table><thead><tr><th>로그 구간</th><th>명령의 의미</th><th>분석에서 얻는 근거</th></tr></thead><tbody>
+    <tr><td><code>05AD OUT (5C),A</code></td><td>첫 번째 GVRAM plane을 선택합니다.</td><td>이 routine이 화면의 한 plane을 대상으로 시작한다는 단서입니다.</td></tr>
+    <tr><td><code>05AF PUSH HL</code><br><code>05B0 CALL 061FH</code><br><code>05B3 POP HL</code></td><td>HL을 잠시 보관하고 <code>061F</code>를 호출한 뒤 HL을 되돌립니다.</td><td>공통 처리 Code가 HL을 사용해도 바깥 routine의 위치 정보는 유지하려는 구조입니다.</td></tr>
+    <tr><td><code>05B4 OUT (5D),A</code> … <code>05BA POP HL</code></td><td>plane만 바꾸고 같은 호출 구조를 반복합니다.</td><td>처리 대상은 달라도 실제 처리는 같은 <code>061F</code>가 맡는다는 근거입니다.</td></tr>
+    <tr><td><code>05BB OUT (5E),A</code> … <code>05C1 POP HL</code></td><td>세 번째 plane에서도 동일한 순서를 수행합니다.</td><td>세 plane 공통 호출이라는 패턴이 완성됩니다.</td></tr>
+    <tr><td><code>05C3 LD DE,0050H</code><br><code>05C6 ADD HL,DE</code></td><td>HL에 줄 간격을 더해 다음 처리 위치로 이동합니다.</td><td>한 번의 plane 처리가 끝난 뒤 다음 row로 이동하는 흐름을 읽을 수 있습니다.</td></tr>
+    <tr><td><code>05C8 DEC IXH</code><br><code>05CA JP NZ,05ADH</code></td><td>반복 횟수를 줄이고 남아 있으면 다시 <code>05AD</code>로 돌아갑니다.</td><td><code>05AD</code>가 여러 row를 반복 처리한다는 구조를 확인합니다.</td></tr>
+  </tbody></table></div>
+  <div class="callout"><h3>왜 <code>061F</code>를 다음에 보는가</h3><p>disasm 출력에서 세 plane마다 같은 <code>CALL 061F</code>가 반복됩니다. 따라서 지금까지 확인한 것은 “plane을 선택하는 바깥 구조”이고, 실제 Data를 읽고 결과를 쓰는 명령이 있는지는 공통 호출 대상인 <code>061F</code>에서 확인해야 합니다. 다음 주소는 미리 정한 것이 아니라, 반복 패턴에서 공통으로 남는 호출을 따라 선택한 것입니다.</p></div>
   <div class="grid2"><article><h4>1부와 연결</h4><p><code>5C</code>, <code>5D</code>, <code>5E</code>는 PC-88 GVRAM plane을 선택하는 포트입니다. 포트 선택만으로 그림이 생기는 것은 아닙니다.</p></article><article><h4>반복 구조</h4><p>같은 <code>061F</code>를 세 plane에서 호출하고, <code>HL += 50H</code>, <code>IXH--</code> 뒤 다시 <code>05AD</code>로 돌아갑니다.</p></article></div>
   <div class="question">다음 조사 주소는 어떻게 고를까요? <strong>세 plane에서 공통으로 호출되는 <code>061F</code>가 실제 Data 처리와 WRITE를 담당하는지 확인합니다.</strong></div>
   <div class="state"><b>게임 상태</b><span><code>05AD</code> 구조에서 공통 <code>CALL 061F</code>를 발견한 상태</span><b>다음 실행</b><span>현재 <code>#1</code> breakpoint를 지우고 <code>break pc 0x061F #1</code>을 설정한 뒤 <code>g</code></span><b>예측 결과</b><span><code>061F</code> 진입 시 입력 후보·출력 후보가 register에 함께 나타남</span></div>
@@ -518,6 +587,26 @@ QUASI88&gt;disasm 0x061F #128
 0654 D603      SUB   03H
 0656 FE06      CP    06H
 0658 DA4706    JP    C,0647H</div>
+  <h3>061F disasm은 입력과 출력을 나누어 따라간다</h3>
+  <p>여기서는 명령 하나하나의 뜻을 모두 외우는 대신, <code>HL</code>이 어느 register 묶음에 있는지와 byte가 어디로 이동하는지를 따라갑니다. 특히 <code>EXX</code>는 현재 BC·DE·HL 묶음과 보조 BC′·DE′·HL′ 묶음을 교환한다는 표시입니다.</p>
+  <div class="table-wrap"><table><thead><tr><th>로그 구간</th><th>명령을 연결해서 읽는 방법</th><th>이 단계의 판단</th></tr></thead><tbody>
+    <tr><td><code>061F LD B,19H</code></td><td>반복 처리에 사용할 횟수 값을 B에 준비합니다.</td><td>뒤의 <code>DJNZ 0621H</code>와 연결해 반복 범위의 시작으로 봅니다.</td></tr>
+    <tr><td><code>0621 EXX</code><br><code>0622 LD A,(HL)</code><br><code>0623 INC HL</code><br><code>0624 EXX</code></td><td>보조 register 묶음으로 바꾼 뒤 보조 HL이 가리키는 byte를 A로 읽고, 보조 HL을 다음 byte로 이동한 뒤 원래 묶음으로 돌아옵니다.</td><td><code>HL'=4405</code>가 입력 Data를 순서대로 읽는 후보라는 근거입니다.</td></tr>
+    <tr><td><code>0625 CP 0DH</code><br><code>0627 JP C,0632H</code></td><td>A의 값을 기준값과 비교하고 조건에 따라 다른 처리 구간으로 분기합니다.</td><td>입력 byte가 모두 같은 방식으로 출력되는 것이 아니라, 값에 따라 처리 경로가 갈릴 수 있습니다.</td></tr>
+    <tr><td><code>062A LD (HL),A</code><br><code>062B INC HL</code></td><td>현재 MAIN HL이 가리키는 출력 위치에 A를 기록하고 다음 위치로 이동합니다.</td><td><code>HL=C50E</code>가 출력 후보라는 근거입니다.</td></tr>
+    <tr><td><code>062E DJNZ 0621H</code></td><td>B를 줄여 남은 횟수가 있으면 입력 읽기 구간으로 되돌아갑니다.</td><td>한 byte만 처리하고 끝나는 Code가 아니라 반복 처리 Code입니다.</td></tr>
+    <tr><td><code>0632</code> 이후의 <code>CP</code>·<code>JP</code></td><td>특정 값에 따라 별도 경로로 분기합니다.</td><td>이 부에서는 각 제어값의 전체 의미를 해독하지 않고, 입력을 검사한 뒤 출력 경로를 선택한다는 수준까지만 확인합니다.</td></tr>
+  </tbody></table></div>
+  <div class="callout"><h3>disasm 분석의 핵심</h3><p><code>061F</code>에서 중요한 것은 주소를 외우는 것이 아닙니다. <strong>어디서 읽는가</strong>(보조 HL), <strong>어디에 쓰는가</strong>(MAIN HL), <strong>어떤 명령이 둘 사이를 연결하는가</strong>(<code>EXX</code>, <code>LD A,(HL)</code>, <code>LD (HL),A</code>)를 표시해 두는 것입니다. 그 표시가 register 출력과 dump 값으로 뒷받침되는지 확인합니다.</p></div>
+  <h3>긴 dump는 문자열이 아니라 구조를 찾으며 읽는다</h3>
+  <p><code>dump 0x4405 #0x80</code>은 <code>4405</code>부터 128바이트를 보여줍니다. 먼저 각 행의 주소와 offset으로 실제 위치를 계산하고, 그 다음 hex byte가 반복되는지·일정한 간격을 갖는지·읽을 수 있는 문자처럼 이어지는지를 봅니다. 오른쪽 ASCII 표시는 참고용일 뿐이며, 그래픽용 byte열을 문자로 억지로 해석하지 않습니다.</p>
+  <div class="table-wrap"><table><thead><tr><th>dump에서 보는 부분</th><th>이번 출력의 관찰</th><th>분석할 때의 의미</th></tr></thead><tbody>
+    <tr><td>시작 주소 <code>4405</code></td><td>061F 진입 시 보조 <code>HL'=4405</code>로 표시된 주소와 같습니다.</td><td>현재 실행이 이 범위에서 byte를 읽을 가능성을 확인하는 출발점입니다.</td></tr>
+    <tr><td><code>4405 : 00 04 07 C0 ...</code></td><td>일본어 문자열처럼 연속된 문자 코드가 아니라 여러 hex 값의 byte열입니다.</td><td>화면에 글자가 보인다는 이유만으로 Memory에 문자열이 있다고 가정하지 않습니다.</td></tr>
+    <tr><td><code>4415</code>, <code>4425</code> …</td><td>비슷한 값과 패턴이 여러 행에서 반복됩니다.</td><td>고정 길이 그래픽 Data나 제어값이 섞인 형식일 가능성을 생각할 수 있지만, 이 dump만으로 전체 포맷을 확정하지 않습니다.</td></tr>
+    <tr><td>오른쪽 <code>|...............p|</code></td><td>인쇄 가능한 byte만 문자로 보이고 나머지는 점으로 표시됩니다.</td><td>ASCII 모양이 없다는 것은 “문자열이 아니다”를 보조할 뿐, 그 자체가 그래픽 형식을 증명하지는 않습니다.</td></tr>
+  </tbody></table></div>
+  <div class="callout"><h3>dump와 disasm을 연결하는 방법</h3><ol class="steps"><li>register 출력에서 데이터 후보 주소를 찾습니다. 여기서는 보조 <code>HL'=4405</code>입니다.</li><li>dump로 그 주소의 실제 byte열을 확인합니다.</li><li>disasm에서 <code>EXX</code> 뒤의 <code>LD A,(HL)</code>를 찾아 보조 HL이 가리키는 byte를 A로 읽는 흐름을 확인합니다.</li><li>다시 <code>EXX</code>한 뒤 <code>LD (HL),A</code>를 찾아 MAIN HL 쪽에 결과를 기록하는 흐름을 확인합니다.</li><li>이렇게 세 자료가 같은 실행에서 맞물릴 때만 “입력 Data 후보가 처리 Code를 거쳐 출력 후보로 전달된다”고 판단합니다.</li></ol></div>
   <p>이 값들을 바로 확정된 역할로 읽지 않고, 각각이 가리키는 방향을 확인합니다.</p>
   <div class="table-wrap"><table><thead><tr><th>관찰값</th><th>이 단계에서의 질문</th><th>다음 확인</th></tr></thead><tbody>
     <tr><td><code>HL=C50E</code></td><td>이 주소는 읽는 곳인가, 쓰는 곳인가?</td><td><code>061F</code>의 <code>LD (HL),A</code>와 출력 Memory 확인</td></tr>
