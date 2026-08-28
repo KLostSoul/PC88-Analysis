@@ -15,8 +15,8 @@ html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans KR","Malgun Gothic",sans-serif;line-height:1.75}
 a{color:var(--accent2)}
 header{background:linear-gradient(135deg,#172554,#2746b8);color:#fff;padding:54px 20px 46px}
-.header-inner{max-width:1080px;margin:auto}.eyebrow{font-size:.9rem;letter-spacing:.08em;font-weight:800;opacity:.82}
-h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.13;margin:.35rem 0 .8rem}.lead{max-width:920px;font-size:1.08rem;color:#e3e9ff;margin:0}
+.header-inner{max-width:1080px;margin:auto}.crumb{font-size:.9rem;font-weight:800;opacity:.85;margin-bottom:12px}.crumb a{color:inherit;text-decoration:none}.crumb a:hover{text-decoration:underline}.eyebrow{font-size:.9rem;letter-spacing:.08em;font-weight:800;opacity:.82}
+h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.13;margin:.35rem 0 .8rem}.lead{max-width:930px;font-size:1.08rem;color:#e3e9ff;margin:0}
 .wrap{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
 nav.toc{background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:18px;padding:20px 22px;margin-top:-24px;position:relative}
 nav.toc strong{display:block;margin-bottom:8px;font-size:1.15rem}nav.toc ol{margin:0;padding-left:1.4rem;columns:2;column-gap:2rem}nav.toc li{break-inside:avoid;margin:.25rem 0}
@@ -58,6 +58,7 @@ footer{max-width:1080px;margin:0 auto 60px;padding:0 20px;color:var(--muted);fon
 <body>
 <header>
 <div class="header-inner">
+<div class="crumb"><a href="../index.html">PC-88 게임 분석 기초 강좌</a> / 1부</div>
 <div class="eyebrow">PC-88 GAME ANALYSIS · FOUNDATION 01</div>
 <h1>PC-88 게임 분석을 위한 기초 강좌 1부</h1>
 <p class="lead">PC-8801이 어떤 컴퓨터였는지부터 시작해 세대별 변화가 왜 생겼는지, 64KiB 주소 공간에서 192KB RAM을 왜 32KB bank로 나누어 쓰는지, ROM·RAM mapping과 GVRAM·KANJI ROM·사운드·FDD SUB 시스템이 실제 게임에서 어떻게 연결되는지를 초보자도 따라갈 수 있도록 단계별로 설명합니다.</p>
