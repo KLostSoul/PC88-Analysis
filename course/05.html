@@ -161,7 +161,7 @@ QUASI88&gt;disasm #63
   <div class="grid2"><article><h4>관찰</h4><p><code>INC HL</code>과 <code>RR (HL)</code>이 반복되고, 끝에서 <code>JP NZ,04B4</code>, <code>JP NZ,04AC</code>으로 되돌아갑니다.</p></article><article><h4>판단</h4><p>HL이 가리키는 Memory를 일정한 순서로 처리하는 반복 구조입니다. 아직 이것이 로고 처리 Code의 시작이라고 할 수는 없습니다.</p></article></div>
   <div class="callout warn"><h3>여기서 하지 않는 판단</h3><p><code>PC=04DA</code>는 첫 브레이크가 걸린 현재 실행 위치입니다. 처리 Code의 시작 주소도, 작은 글자의 원천 주소도 아닙니다. 주변 명령과 호출 관계를 더 확인해야 역할을 판단할 수 있습니다.</p></div>
   <div class="diagram"><h3>현재까지 확인한 타이틀 구조</h3><p>화면에서 시작했지만, 아직 Data의 위치나 처리 Code의 역할은 확정하지 않았습니다.</p><pre class="mermaid">flowchart TD
-  S["조사 대상으로 선택한 작은 夢幻戦士"] --> B["오프닝 화면에서 강제 브레이크"]
+  S["조사 대상으로 선택한<br>작은 夢幻戦士"] --> B["오프닝 화면에서 강제 브레이크"]
   B --> P["PC 04DA · INC HL · RR (HL) 반복"]
   P --> Q["이 Code의 역할은 아직 미확정"]
 </pre></div>
