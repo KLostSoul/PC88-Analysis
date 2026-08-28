@@ -33,7 +33,7 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
   <p>타이틀 화면은 한 번에 완성되지 않습니다. 화면에 나타나는 순서를 비교하면 작은 「夢幻戦士」, 영문 부제, 배경, 큰 로고와 크레딧이 서로 다른 시점에 나타나는 것을 확인할 수 있습니다.</p>
   <p>먼저 나타나는 작은 「夢幻戦士」를 조사 대상으로 정합니다. 오프닝 화면 처리 중 강제로 브레이크를 걸고, 그 시점의 PC와 주변 명령을 확인합니다. 이후 disasm에서 반복 구조를 읽고, step과 dump로 Memory 변화를 검증하면서 호출자와 Data 처리 위치를 차례대로 좁혀 갑니다.</p>
   <div class="badges"><span class="badge">실제 QUASI88 로그</span><span class="badge">관찰 → 판단 → 다음 행동</span><span class="badge">근거 기반 조사</span><span class="badge">후속 조사 과제</span></div>
-  <div class="flow"><span>화면 관찰</span><span>현재 PC 확인</span><span>주변 Code 확장</span><span>Memory 변화 검증</span><span>호출자 추적</span><span>공통 처리 확인</span><span>필요한 지점에서 종료</span></div>
+  <div class="flow"><span>화면 관찰</span><span>현재 PC 확인</span><span>주변 Code 확장</span><span>Memory 변화 검증</span><span>호출자 추적</span><span>공통 처리 확인</span><span>근거 확인 후 다음 질문</span></div>
   <nav class="toc" aria-label="목차"><h3>분석 순서</h3><ol>
     <li><a href="#screen">화면에서 조사 대상을 고른다</a></li>
     <li><a href="#first-stop">타이틀 화면에서 현재 PC와 주변 Code를 확인한다</a></li>
@@ -44,7 +44,7 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
     <li><a href="#common">공통 호출에서 다음 처리 Code를 고른다</a></li>
     <li><a href="#source-output">입력 Data와 출력 위치를 연결한다</a></li>
     <li><a href="#false-lead">잘못 잡은 단서를 버리는 법</a></li>
-    <li><a href="#finish">질문에 답했으면 멈춘다</a></li>
+    <li><a href="#finish">질문에 답할 근거를 확인하고 다음 질문으로 넘어간다</a></li>
     <li><a href="#practice">확인 문제와 독립 과제</a></li>
   </ol></nav>
 </section>
@@ -730,8 +730,8 @@ QUASI88&gt;disasm 0x631A #8
 </section>
 
 <section class="section" id="finish">
-  <div class="num">10 · KNOW WHEN TO STOP</div>
-  <h2>처음 질문에 답했으면 필요한 범위에서 멈춘다</h2>
+  <div class="num">10 · FOLLOW THE QUESTION</div>
+  <h2>질문에 답할 근거를 확인하고 다음 질문으로 넘어간다</h2>
   <p>작은 「夢幻戦士」가 나타나는 시점에서 시작해 실행 중인 Code와 Memory 변화, 호출 관계, 입력·출력 후보를 연결했습니다.</p>
   <div class="table-wrap"><table><thead><tr><th>조사 단계</th><th>실제 로그에서 얻은 근거</th><th>분석에서의 역할</th></tr></thead><tbody>
     <tr><td>화면 관찰</td><td>작은 일본어 그래픽이 다른 요소보다 먼저 나타남</td><td>조사 대상을 작게 제한</td></tr>
@@ -774,7 +774,7 @@ QUASI88&gt;disasm 0x631A #8
 
 다음에 사용할 조사 방법:
 
-이번 질문에 필요한 만큼 확인했는가?</div>
+현재 질문에 답할 근거를 확인했는가?</div>
   <h3>작성 예시: <code>RR (HL)</code>의 실제 Memory 변경 확인</h3>
   <div class="record">게임 상태:
 타이틀 그래픽 처리 중. 리셋 후 <code>PC=04CB</code>에 breakpoint가 걸린 상태.
@@ -794,7 +794,7 @@ QUASI88&gt;disasm 0x631A #8
 다음에 사용할 조사 방법:
 반복 끝의 <code>053B RET</code>에 PC breakpoint를 걸고, stack을 dump하여 반환 주소 후보를 찾은 뒤 그 주변을 disasm한다.
 
-이번 질문에 필요한 만큼 확인했는가?
+현재 질문에 답할 근거를 확인했는가?
 예. 이번 질문은 <code>RR (HL)</code>이 실제 Memory를 변경하는지 확인하는 것이었고, step 전후 dump로 <code>D8E0: 10 → 08</code>을 확인했다.</div>
   <div class="callout"><h3>예시에서 배우는 기록 방법</h3><p>관찰한 사실과 현재 판단을 섞지 않습니다. 먼저 화면·명령·register·Memory에 실제로 표시된 값을 적고, 그 다음 그 값으로 설명할 수 있는 범위만 판단에 씁니다. 판단이 끝나면 “다음에 무엇을 볼 것인가”를 질문과 조사 방법으로 구체화합니다.</p></div>
   <p class="muted">여기까지 타이틀 구조를 파악하는 데 필요한 관찰과 분석 과정을 차례대로 진행했습니다. 타이틀 구조를 더 파악하려면 <code>4405~47E2</code> 입력 Data의 구성, 호출 단위, 처리 형식 등을 추가로 관찰하고 분석해야 합니다. 그 다음 조사는 수강생의 몫으로 남겨 둡니다.</p>
@@ -815,7 +815,7 @@ QUASI88&gt;disasm 0x631A #8
   </div>
   <h3>독립 과제</h3>
   <p>타이틀 화면에서 다른 요소 하나를 골라 다음 네 항목만 기록해 보세요.</p>
-  <ol class="steps"><li>어떤 화면 변화에 주목했는가?</li><li>처음 Monitor에서 무엇을 확인할 것인가?</li><li>첫 출력에서 어떤 단서를 보고 다음 조사 범위를 정할 것인가?</li><li>현재 질문에 답하려면 언제 조사를 멈출 것인가?</li></ol>
+  <ol class="steps"><li>어떤 화면 변화에 주목했는가?</li><li>처음 Monitor에서 무엇을 확인할 것인가?</li><li>첫 출력에서 어떤 단서를 보고 다음 조사 범위를 정할 것인가?</li><li>현재 질문에 답할 근거가 충분한지 어떻게 판단할 것인가?</li></ol>
   <div class="next"><h2>5부의 핵심 습관</h2><p>현재 로그에서 확인한 사실 하나를 다음 질문으로 바꾸고, 그 질문에 맞는 관찰을 하나씩 선택합니다.</p></div>
 </section>
 <div class="nav"><a href="04.html">← 4부</a><a href="../index.html">강좌 목록 →</a></div>
