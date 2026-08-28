@@ -21,7 +21,7 @@ GitHub Pages에서 바로 볼 수 있습니다.
 | 2부 | Z80 어셈블리 코드를 읽는 법 | 완료 | [`course/02.html`](course/02.html) |
 | 3부 | 플로피·μPD765·D88·Kanji ROM | 완료 | [`course/03.html`](course/03.html) |
 | 4부 | 에뮬레이터 디버거로 실행 흐름 추적하기 | 완료 | [`course/04.html`](course/04.html) |
-| 5부 | 게임 데이터와 코드의 흐름을 추적하는 방법 | 예정 | — |
+| 5부 | 실제 게임에서 Data와 Code의 흐름 추적하기 | 완료 | [`course/05.html`](course/05.html) |
 | 6부 | 문자·Font·화면 출력 경로를 분석하는 방법 | 예정 | — |
 | 7부 | 처음 보는 PC-88 게임을 역분석하는 사고법 | 예정 | — |
 
