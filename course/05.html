@@ -68,7 +68,7 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
   <div class="num">02 · FIRST OBSERVATION</div>
   <h2>타이틀 화면에서 현재 PC와 주변 Code를 확인한다</h2>
   <p>오프닝 화면 처리 중 강제로 브레이크를 겁니다. 브레이크가 걸린 순간 QUASI88이 현재 register와 <code>PC</code> 주변 명령을 자동으로 표시합니다. 그 상태에서 주소를 생략한 <code>disasm #64</code>를 실행해 현재 PC부터 이어지는 명령을 확인합니다.</p>
-  <div class="state"><b>게임 상태</b><span>오프닝·로고 그래픽 처리 중 강제로 브레이크를 건 상태</span><b>자동 표시</b><span>브레이크가 걸리는 순간 현재 register와 PC 주변 명령이 자동으로 표시됨</span><b>실행할 명령</b><span><code>disasm #64</code>로 현재 PC부터 이어지는 명령을 확인</span><b>정상적으로 볼 결과</b><span>현재 PC와 그 주변의 반복·분기·Memory 접근 명령</span></div>
+  <div class="state"><b>게임 상태</b><span>오프닝·로고 그래픽 처리 중 강제로 브레이크를 건 상태</span><b>자동 표시</b><span>브레이크가 걸리는 순간 현재 register와 PC 주변 명령이 자동으로 표시됨</span><b>실행할 명령</b><span><code>disasm #64</code>로 현재 PC부터 이어지는 명령을 확인</span><b>예측 결과</b><span>현재 PC와 그 주변의 반복·분기·Memory 접근 명령</span></div>
   <div class="terminal compact">[MAIN]
  AF:4400[........] BC:0150  DE:DADF  HL:DAC4  IX:3300  PC:04DA  I:00 IM:2 IFF:1
  A':C47D[.Z.H.P.C] B':0050  D':0800  H':615A  IY:E55C  SP:00FE  (ck=3065998485)
@@ -154,7 +154,7 @@ QUASI88&gt;disasm #64
   <h2>관찰한 분기 주소를 따라 범위를 넓힌다</h2>
   <p>앞 단계의 출력에서 두 종류의 반복이 보였습니다. <code>04B4</code>는 <code>DEC B</code>가 남아 있을 때 되돌아가는 안쪽 반복의 시작점이고, <code>04AC</code>는 <code>ADD HL,0050H</code>와 <code>DEC IXH</code> 뒤에 다시 들어가는 바깥 반복의 지점입니다. 따라서 다음 질문은 “각 반복에 들어가기 전에 어떤 값과 포트를 준비하는가?”가 됩니다.</p>
   <div class="question">추론 가정: <strong><code>B</code>는 한 번의 가로 처리 반복 수, <code>IXH</code>는 바깥쪽 줄 반복 수, <code>0050H</code>는 다음 처리 위치로 이동하는 간격일 가능성이 있다.</strong> 이 가정을 확인하기 위해 반복 진입점보다 앞의 Code를 함께 봅니다.</div>
-  <div class="state"><b>게임 상태</b><span>타이틀 그래픽 처리 중. Monitor에서 조사 범위를 넓혀 보는 상태</span><b>관찰 과정</b><span><code>disasm 0x04A0 #72</code>를 실행하고, 앞서 보인 분기 주소와 그 앞의 준비 명령을 연결해 읽음</span><b>정상적으로 볼 결과</b><span>반복문 진입 전의 포트 선택, 시작 주소 설정, 반복 횟수와 반복 처리 부분</span></div>
+  <div class="state"><b>게임 상태</b><span>타이틀 그래픽 처리 중. Monitor에서 조사 범위를 넓혀 보는 상태</span><b>관찰 과정</b><span><code>disasm 0x04A0 #72</code>를 실행하고, 앞서 보인 분기 주소와 그 앞의 준비 명령을 연결해 읽음</span><b>예측 결과</b><span>반복문 진입 전의 포트 선택, 시작 주소 설정, 반복 횟수와 반복 처리 부분</span></div>
   <div class="terminal compact">QUASI88&gt;disasm 0x04A0 #72
 04A0 04        INC   B
 04A1 D35C      OUT   (5CH),A
@@ -270,7 +270,7 @@ QUASI88&gt;g
             04C9 CB1E      RR    (HL)
     ------> 04CB 23        INC   HL
             04CC CB1E      RR    (HL)</div>
-  <div class="state"><b>게임 상태</b><span><code>PC=04CB</code>에서 <code>INC HL</code> 직전 정지. <code>HL=D8DF</code></span><b>관찰 과정</b><span><code>dump</code> → <code>s</code>(자동 상태 출력) → <code>dump</code> → <code>s</code>(자동 상태 출력) → <code>dump</code>를 차례로 실행하며 각 시점의 PC·HL·Memory 값을 비교</span><b>정상적으로 볼 결과</b><span>첫 step은 HL만 증가하고, 다음 <code>RR (HL)</code> 뒤에는 대상 byte가 변함</span></div>
+  <div class="state"><b>게임 상태</b><span><code>PC=04CB</code>에서 <code>INC HL</code> 직전 정지. <code>HL=D8DF</code></span><b>관찰 과정</b><span><code>dump</code> → <code>s</code>(자동 상태 출력) → <code>dump</code> → <code>s</code>(자동 상태 출력) → <code>dump</code>를 차례로 실행하며 각 시점의 PC·HL·Memory 값을 비교</span><b>예측 결과</b><span>첫 step은 HL만 증가하고, 다음 <code>RR (HL)</code> 뒤에는 대상 byte가 변함</span></div>
   <p>다음은 Monitor에서 입력한 명령과 breakpoint·step 직후 QUASI88이 자동으로 표시한 출력이 이어지는 순서 그대로 재현한 로그입니다.</p>
   <div class="terminal">QUASI88&gt;dump 0xD8D8 #16
 addr : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F
@@ -339,7 +339,7 @@ addr : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F
 높은 byte: 03
 → 반환 주소 후보: 03F1</div></div>
   <p><code>03F1</code>을 routine 시작 주소로 사용하지 않습니다. “RET 뒤에 CPU가 돌아갈 후보 위치”로 사용해 그 주변을 disassemble합니다.</p>
-  <div class="state"><b>게임 상태</b><span>그래픽 처리 routine의 <code>RET</code>까지 도달한 상태</span><b>관찰 과정</b><span><code>disasm 0x03D0 #128</code>로 반환 주소 주변의 Code를 확인</span><b>정상적으로 볼 결과</b><span><code>03F1</code> 바로 앞에 현재 routine을 호출한 <code>CALL</code>이 나타남</span></div>
+  <div class="state"><b>게임 상태</b><span>그래픽 처리 routine의 <code>RET</code>까지 도달한 상태</span><b>관찰 과정</b><span><code>disasm 0x03D0 #128</code>로 반환 주소 주변의 Code를 확인</span><b>예측 결과</b><span><code>03F1</code> 바로 앞에 현재 routine을 호출한 <code>CALL</code>이 나타남</span></div>
   <div class="terminal compact">QUASI88&gt;disasm 0x03D0 #128
 03D0 CDA104    CALL  04A1H
 03D3 C1        POP   BC
@@ -382,7 +382,7 @@ addr : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F
   <div class="num">06 · VERIFY THE NEW CANDIDATE</div>
   <h2>발견한 주소가 실제 화면 처리와 관계있는지 확인한다</h2>
   <p><code>05AD</code>를 발견했다고 바로 정답으로 확정하지 않습니다. 먼저 주변 Code에서 어떤 준비와 반복이 있는지 읽고, 타이틀 표시 시 실제로 실행되는지 확인합니다.</p>
-  <div class="state"><b>게임 상태</b><span><code>03D0</code> 주변에서 <code>CALL 05AD</code>를 발견한 상태</span><b>실행할 명령</b><span>현재 <code>#1</code> breakpoint를 지우고 <code>break pc 0x05AD #1</code>을 설정한 뒤 <code>g</code></span><b>정상적으로 볼 결과</b><span>타이틀 그래픽 표시 중 <code>05AD</code>에서 정지하고, 반복에 따라 register가 변함</span></div>
+  <div class="state"><b>게임 상태</b><span><code>03D0</code> 주변에서 <code>CALL 05AD</code>를 발견한 상태</span><b>실행할 명령</b><span>현재 <code>#1</code> breakpoint를 지우고 <code>break pc 0x05AD #1</code>을 설정한 뒤 <code>g</code></span><b>예측 결과</b><span>타이틀 그래픽 표시 중 <code>05AD</code>에서 정지하고, 반복에 따라 register가 변함</span></div>
   <p>현재 breakpoint를 지우고 <code>05AD</code>에 새 breakpoint를 설정한 뒤 실행합니다. breakpoint가 걸릴 때마다 현재 register와 PC 주변 명령이 자동으로 표시됩니다.</p>
   <div class="terminal">QUASI88&gt;break clear #1
 delete break point MAIN - #1
@@ -440,7 +440,7 @@ QUASI88&gt;g
 05CD C9        RET</div>
   <div class="grid2"><article><h4>1부와 연결</h4><p><code>5C</code>, <code>5D</code>, <code>5E</code>는 PC-88 GVRAM plane을 선택하는 포트입니다. 포트 선택만으로 그림이 생기는 것은 아닙니다.</p></article><article><h4>반복 구조</h4><p>같은 <code>061F</code>를 세 plane에서 호출하고, <code>HL += 50H</code>, <code>IXH--</code> 뒤 다시 <code>05AD</code>로 돌아갑니다.</p></article></div>
   <div class="question">다음 조사 주소는 어떻게 고를까요? <strong>세 plane에서 공통으로 호출되는 <code>061F</code>가 실제 Data 처리와 WRITE를 담당하는지 확인합니다.</strong></div>
-  <div class="state"><b>게임 상태</b><span><code>05AD</code> 구조에서 공통 <code>CALL 061F</code>를 발견한 상태</span><b>다음 실행</b><span>현재 <code>#1</code> breakpoint를 지우고 <code>break pc 0x061F #1</code>을 설정한 뒤 <code>g</code></span><b>정상적으로 볼 결과</b><span><code>061F</code> 진입 시 입력 후보·출력 후보가 register에 함께 나타남</span></div>
+  <div class="state"><b>게임 상태</b><span><code>05AD</code> 구조에서 공통 <code>CALL 061F</code>를 발견한 상태</span><b>다음 실행</b><span>현재 <code>#1</code> breakpoint를 지우고 <code>break pc 0x061F #1</code>을 설정한 뒤 <code>g</code></span><b>예측 결과</b><span><code>061F</code> 진입 시 입력 후보·출력 후보가 register에 함께 나타남</span></div>
   <p><code>05AD</code>에서 같은 호출이 세 plane에 반복되므로, 그 호출 대상인 <code>061F</code>가 실제 한 줄 Data를 처리하는지 확인하는 순서가 됩니다. 다음 절에서는 이 가정을 register와 입력 Data dump로 확인합니다.</p>
   <div class="diagram"><h3>현재까지 확인한 타이틀 구조</h3><p><code>05AD</code>는 세 plane을 선택하고 같은 처리 Code를 반복 호출합니다. 이제 확인할 대상은 세 번 공통으로 호출되는 <code>061F</code>입니다.</p><pre class="mermaid">flowchart TD
   U["03E6 CALL 05AD"] --> H["05AD row 반복"]
@@ -525,7 +525,7 @@ QUASI88&gt;disasm 0x061F #128
     <tr><td><code>IXH=18H</code></td><td>반복 높이 또는 row 수와 관계있는가?</td><td><code>05AD</code>에서 row마다 줄어드는지 비교</td></tr>
   </tbody></table></div>
   <div class="callout"><h3>보조 register 설명</h3><p><code>H'=4405</code>처럼 보이는 값은 보조 register 묶음의 16비트 <code>HL'</code>입니다. 보조 HL의 상위 byte만을 뜻하지 않습니다. <code>EXX</code>가 현재 register 묶음과 보조 묶음을 교환합니다.</p></div>
-  <div class="state"><b>게임 상태</b><span><code>PC=061F</code>, <code>HL=C50E</code>, 보조 <code>HL'=4405</code>에서 브레이크가 걸린 상태</span><b>관찰한 명령</b><span><code>dump 0x4405 #0x80</code>와 <code>disasm 0x061F #128</code>를 같은 Monitor에서 순서대로 실행</span><b>정상적으로 볼 결과</b><span>입력 Data 후보는 문자열이 아닌 byte열이고, 보조 HL에서 읽은 값이 MAIN HL 쪽에 기록되는 구조</span></div>
+  <div class="state"><b>게임 상태</b><span><code>PC=061F</code>, <code>HL=C50E</code>, 보조 <code>HL'=4405</code>에서 브레이크가 걸린 상태</span><b>관찰한 명령</b><span><code>dump 0x4405 #0x80</code>와 <code>disasm 0x061F #128</code>를 같은 Monitor에서 순서대로 실행</span><b>예측 결과</b><span>입력 Data 후보는 문자열이 아닌 byte열이고, 보조 HL에서 읽은 값이 MAIN HL 쪽에 기록되는 구조</span></div>
   <div class="callout ok"><h3>관찰과 판단</h3><p>보조 HL에서 읽은 byte열은 사람이 읽는 일본어 문자열이 아니라 처리 입력 후보입니다. <code>061F</code>에는 <code>LD (HL),A</code>가 있으므로 MAIN <code>HL=C50E</code>는 출력 후보로 볼 수 있습니다.</p></div>
   <p>여기서 입력 byte열의 전체 형식을 해독하지 않습니다. 이번 부의 목적은 <strong>입력 Data 후보 → 처리 Code → 출력 후보</strong>의 관계를 같은 실행 안에서 확인하는 것입니다.</p>
   <div class="diagram"><h3>현재까지 확인한 타이틀 구조</h3><p>세 plane에서 공통으로 호출된 <code>061F</code> 안에서 보조 HL의 입력 후보와 MAIN HL의 출력 후보가 함께 관찰됐습니다.</p><pre class="mermaid">flowchart TD
@@ -541,7 +541,7 @@ QUASI88&gt;disasm 0x061F #128
   <div class="num">09 · REJECT A FALSE LEAD</div>
   <h2>breakpoint에 걸렸다고 답을 찾은 것은 아니다</h2>
   <p>실제 조사에서는 <code>D400</code> WRITE에도 breakpoint가 걸렸습니다. 화면 그래픽과 관련된 주소처럼 보이지만, 주변 Code를 확인하기 전에는 역할을 확정할 수 없습니다.</p>
-  <div class="state"><b>게임 상태</b><span>타이틀 화면이 시작되기 전부터 <code>D400</code>에 어떤 Code가 쓰는지 감시할 상태</span><b>실행할 명령</b><span>기존 breakpoint를 모두 지우고 <code>D400</code> WRITE를 설정한 뒤 <code>g</code></span><b>정상적으로 볼 결과</b><span>쓰기 명령이 실행되는 순간 PC와 실제 기록 값을 확인</span></div>
+  <div class="state"><b>게임 상태</b><span>타이틀 화면이 시작되기 전부터 <code>D400</code>에 어떤 Code가 쓰는지 감시할 상태</span><b>실행할 명령</b><span>기존 breakpoint를 모두 지우고 <code>D400</code> WRITE를 설정한 뒤 <code>g</code></span><b>예측 결과</b><span>쓰기 명령이 실행되는 순간 PC와 실제 기록 값을 확인</span></div>
   <p>이 조사는 앞선 PC breakpoint와 질문이 다르므로, 기존 breakpoint를 모두 지운 뒤 WRITE breakpoint를 설정합니다. 아래는 명령과 그 직후의 자동 출력이 이어지는 실제 Monitor 순서입니다.</p>
   <div class="terminal compact">QUASI88&gt;break clearall #0
 clear break point MAIN - all
