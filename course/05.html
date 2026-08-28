@@ -31,7 +31,7 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
   <h2>이번 부의 목적</h2>
   <p>이번 부는 타이틀 그래픽을 완벽하게 해독하는 내용이 아닙니다. 수강생이 화면에서 질문을 만들고, 실제 실행 로그를 읽고, 그 로그가 가리키는 다음 조사 위치를 스스로 고르는 것이 목표입니다.</p>
   <p>따라서 이 페이지에서는 결론만 보여주지 않습니다. <strong>어떤 화면에서 멈췄는지, 어떤 명령을 실행했는지, 그 결과에서 왜 다음 주소를 조사했는지</strong>를 함께 보여줍니다.</p>
-  <div class="badges"><span class="badge">실제 QUASI88 로그</span><span class="badge">관찰 → 판단 → 다음 행동</span><span class="badge">주소 암기 금지</span><span class="badge">완전 해독 범위 아님</span></div>
+  <div class="badges"><span class="badge">실제 QUASI88 로그</span><span class="badge">관찰 → 판단 → 다음 행동</span><span class="badge">근거 기반 조사</span><span class="badge">완전 해독 범위 아님</span></div>
   <div class="flow"><span>화면 관찰</span><span>현재 PC 확인</span><span>주변 Code 확장</span><span>Memory 변화 검증</span><span>호출자 추적</span><span>공통 처리 확인</span><span>필요한 지점에서 종료</span></div>
   <nav class="toc" aria-label="목차"><h3>이 부의 흐름</h3><ol>
     <li><a href="#screen">화면에서 조사 대상을 고른다</a></li>
@@ -64,9 +64,9 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
 </section>
 
 <section class="section" id="first-stop">
-  <div class="num">02 · START WITHOUT A PRESET ADDRESS</div>
-  <h2>아무 주소도 모른 채 현재 PC에서 시작한다</h2>
-  <p>이 시점에는 <code>05AD</code>도 <code>061F</code>도 모릅니다. 실제 기록처럼 타이틀 화면이 진행되는 동안 Monitor에 들어가 <code>reg</code>와 주소를 생략한 <code>disasm</code>을 실행합니다.</p>
+  <div class="num">02 · FIRST OBSERVATION</div>
+  <h2>타이틀 화면에서 현재 PC와 주변 Code를 확인한다</h2>
+  <p>작은 「夢幻戦士」가 나타나는 순간 Monitor에 들어갑니다. 첫 관찰은 CPU의 현재 상태와 현재 PC 주변에서 실행 중인 Code입니다. <code>reg</code>로 register를 확인하고, 주소를 생략한 <code>disasm</code>으로 현재 PC를 기준으로 명령을 표시합니다.</p>
   <div class="state"><b>게임 상태</b><span>타이틀 화면에서 작은 그래픽이 나타나는 동안 Monitor에 들어온 상태</span><b>복사할 명령</b><span><code>reg</code>로 현재 CPU 상태를 보고, <code>disasm #64</code>로 현재 PC 주변을 확인</span><b>정상적으로 볼 결과</b><span>현재 PC와 그 주변의 반복·분기·Memory 접근 명령</span></div>
   <div class="terminal">reg
 disasm #64</div>
@@ -203,7 +203,7 @@ disasm #64</div>
 0538 C2AC04    JP    NZ,04ACH
 053B C9        RET</div>
   <div class="grid2"><article><h4>가정과 맞는 관찰</h4><p><code>04A1 OUT (5C),A</code>로 plane을 선택하고, <code>04A3 LD IXH,48H</code>로 바깥 반복 카운터를 준비합니다. 이어서 <code>04A6 LD HL,D400H</code>와 <code>04A9 LD DE,D44FH</code>가 처리 위치를 준비합니다.</p></article><article><h4>아직 확인할 것</h4><p><code>04B4</code>의 반복이 실제로 어떤 Memory를 바꾸는지는 disassembly만으로 확정하지 않습니다. <code>HL</code>이 가리키는 byte를 실행 전후로 비교해야 합니다.</p></article></div>
-  <div class="callout"><h3>용어: routine과 kernel</h3><p>반복 전체를 준비하고 호출하는 덩어리를 routine이라고 부를 수 있습니다. 그 안에서 <code>RR (HL)</code>가 반복되는 핵심 부분은 처리 kernel처럼 볼 수 있습니다. 이 이름은 역할을 설명하기 위한 것이며 주소를 외우라는 뜻이 아닙니다.</p></div>
+  <div class="callout"><h3>용어: routine과 kernel</h3><p>반복 전체를 준비하고 호출하는 덩어리를 routine이라고 부를 수 있습니다. 그 안에서 <code>RR (HL)</code>가 반복되는 핵심 부분은 처리 kernel처럼 볼 수 있습니다. 다음 Code를 고를 때는 이처럼 반복의 구조와 각 register의 변화를 함께 봅니다.</p></div>
   <div class="question">현재 로그에서 다음에 확인할 것은 무엇일까요? <strong><code>RR (HL)</code>가 실제 Memory를 바꾸는지</strong>를 확인해야 합니다.</div>
 </section>
 
@@ -473,9 +473,9 @@ g</div>
     <details class="check"><summary>8. <code>D400 WRITE</code>가 로고 source가 아니라고 판단한 근거는?</summary><div class="check-answer">주변의 <code>6344 LDIR</code>가 넓은 영역에 같은 <code>00</code>을 반복 기록하고, <code>5C·5D·5E</code> 세 plane에서 같은 clear routine이 호출됐기 때문입니다.</div></details>
   </div>
   <h3>독립 과제</h3>
-  <p>타이틀 화면에서 다른 요소 하나를 골라 다음 네 항목만 기록해 보세요. 새로운 정답 주소를 미리 찾는 과제가 아닙니다.</p>
+  <p>타이틀 화면에서 다른 요소 하나를 골라 다음 네 항목만 기록해 보세요.</p>
   <ol class="steps"><li>어떤 화면 변화에 주목했는가?</li><li>처음 Monitor에서 무엇을 확인할 것인가?</li><li>첫 출력에서 어떤 단서를 보고 다음 조사 범위를 정할 것인가?</li><li>현재 질문에 답하려면 언제 조사를 멈출 것인가?</li></ol>
-  <div class="next"><h2>5부의 핵심 습관</h2><p>처음부터 정답 주소를 찾으려 하지 않습니다. 현재 로그에서 확인한 사실 하나를 다음 질문으로 바꾸고, 그 질문에 맞는 관찰을 하나씩 선택합니다.</p></div>
+  <div class="next"><h2>5부의 핵심 습관</h2><p>현재 로그에서 확인한 사실 하나를 다음 질문으로 바꾸고, 그 질문에 맞는 관찰을 하나씩 선택합니다.</p></div>
 </section>
 <div class="nav"><a href="04.html">← 4부</a><a href="../index.html">강좌 목록 →</a></div>
 </main>
