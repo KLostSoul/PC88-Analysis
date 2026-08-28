@@ -29,9 +29,9 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
 </div></header>
 <main>
 <section class="intro">
-  <h2>이번 부의 목적</h2>
-  <p>이번 부는 타이틀 그래픽을 완벽하게 해독하는 내용이 아닙니다. 수강생이 화면에서 질문을 만들고, 실제 실행 로그를 읽고, 그 로그가 가리키는 다음 조사 위치를 스스로 고르는 것이 목표입니다.</p>
-  <p>따라서 이 페이지에서는 결론만 보여주지 않습니다. <strong>어떤 화면에서 멈췄는지, 어떤 명령을 실행했는지, 그 결과에서 왜 다음 주소를 조사했는지</strong>를 함께 보여줍니다.</p>
+  <h2>타이틀 화면에서 분석을 시작한다</h2>
+  <p>타이틀 화면은 한 번에 완성되지 않습니다. 화면에 나타나는 순서를 비교하면 작은 「夢幻戦士」, 영문 부제, 배경, 큰 로고와 크레딧이 서로 다른 시점에 나타나는 것을 확인할 수 있습니다.</p>
+  <p>먼저 나타나는 작은 「夢幻戦士」를 조사 대상으로 정합니다. 오프닝 화면 처리 중 강제로 브레이크를 걸고, 그 시점의 PC와 주변 명령을 확인합니다. 이후 disasm에서 반복 구조를 읽고, step과 dump로 Memory 변화를 검증하면서 호출자와 Data 처리 위치를 차례대로 좁혀 갑니다.</p>
   <div class="badges"><span class="badge">실제 QUASI88 로그</span><span class="badge">관찰 → 판단 → 다음 행동</span><span class="badge">근거 기반 조사</span><span class="badge">완전 해독 범위 아님</span></div>
   <div class="flow"><span>화면 관찰</span><span>현재 PC 확인</span><span>주변 Code 확장</span><span>Memory 변화 검증</span><span>호출자 추적</span><span>공통 처리 확인</span><span>필요한 지점에서 종료</span></div>
   <nav class="toc" aria-label="목차"><h3>이 부의 흐름</h3><ol>
@@ -616,7 +616,7 @@ QUASI88&gt;disasm 0x061F #128
   <div class="callout"><h3>보조 register 설명</h3><p><code>H'=4405</code>처럼 보이는 값은 보조 register 묶음의 16비트 <code>HL'</code>입니다. 보조 HL의 상위 byte만을 뜻하지 않습니다. <code>EXX</code>가 현재 register 묶음과 보조 묶음을 교환합니다.</p></div>
   <div class="state"><b>게임 상태</b><span><code>PC=061F</code>, <code>HL=C50E</code>, 보조 <code>HL'=4405</code>에서 브레이크가 걸린 상태</span><b>관찰한 명령</b><span><code>dump 0x4405 #0x80</code>와 <code>disasm 0x061F #128</code>를 같은 Monitor에서 순서대로 실행</span><b>예측 결과</b><span>입력 Data 후보는 문자열이 아닌 byte열이고, 보조 HL에서 읽은 값이 MAIN HL 쪽에 기록되는 구조</span></div>
   <div class="callout ok"><h3>관찰과 판단</h3><p>보조 HL에서 읽은 byte열은 사람이 읽는 일본어 문자열이 아니라 처리 입력 후보입니다. <code>061F</code>에는 <code>LD (HL),A</code>가 있으므로 MAIN <code>HL=C50E</code>는 출력 후보로 볼 수 있습니다.</p></div>
-  <p>여기서 입력 byte열의 전체 형식을 해독하지 않습니다. 이번 부의 목적은 <strong>입력 Data 후보 → 처리 Code → 출력 후보</strong>의 관계를 같은 실행 안에서 확인하는 것입니다.</p>
+  <p>입력 byte열의 전체 형식은 여기서 해독하지 않습니다. 여기서는 <strong>입력 Data 후보 → 처리 Code → 출력 후보</strong>의 관계를 같은 실행 안에서 확인합니다.</p>
   <div class="diagram"><h3>현재까지 확인한 타이틀 구조</h3><p>세 plane에서 공통으로 호출된 <code>061F</code> 안에서 보조 HL의 입력 후보와 MAIN HL의 출력 후보가 함께 관찰됐습니다.</p><pre class="mermaid">flowchart TD
   H["05AD: 5C / 5D / 5E plane 반복"] --> C["CALL 061F"]
   I["보조 HL 4405\n입력 Data 후보"] --> E["EXX / LD A,(HL)"]
@@ -681,8 +681,8 @@ QUASI88&gt;disasm 0x6334 #64
 <section class="section" id="finish">
   <div class="num">10 · KNOW WHEN TO STOP</div>
   <h2>처음 질문에 답했으면 필요한 범위에서 멈춘다</h2>
-  <p>이번 부의 질문은 타이틀 그래픽 전체의 압축 형식을 해독하는 것이 아니었습니다. 작은 「夢幻戦士」가 어떤 처리와 관계있는지 조사하는 것이었습니다.</p>
-  <div class="table-wrap"><table><thead><tr><th>조사 단계</th><th>실제 로그에서 얻은 근거</th><th>이번 부에서의 역할</th></tr></thead><tbody>
+  <p>처음 세운 질문은 타이틀 그래픽 전체의 압축 형식을 해독하는 것이 아니었습니다. 작은 「夢幻戦士」가 어떤 처리와 관계있는지 조사하는 것이었습니다.</p>
+  <div class="table-wrap"><table><thead><tr><th>조사 단계</th><th>실제 로그에서 얻은 근거</th><th>분석에서의 역할</th></tr></thead><tbody>
     <tr><td>화면 관찰</td><td>작은 일본어 그래픽이 다른 요소보다 먼저 나타남</td><td>조사 대상을 작게 제한</td></tr>
     <tr><td>현재 위치</td><td>첫 정지에서 <code>PC=04DA</code>, <code>INC HL</code>·<code>RR (HL)</code> 반복</td><td>주소를 모른 채 실행 중인 Code에서 시작</td></tr>
     <tr><td>범위 확장</td><td><code>JP NZ,04B4</code>, <code>JP NZ,04AC</code> 발견</td><td><code>disasm 0x04A0 #72</code>을 선택</td></tr>
@@ -706,7 +706,7 @@ QUASI88&gt;disasm 0x6334 #64
   C --> O["HL' 4405 입력 후보\nHL C50E 출력 후보"]
   P -. "별도 WRITE 조사" .-> X["D400 / 6344 LDIR / plane clear"]
 </pre></div>
-  <div class="answer"><strong>이번 부에서 확인한 답:</strong> 작은 「夢幻戦士」 표시와 연결된 실행에서 보조 <code>HL'=4405</code>의 입력 Data 후보, <code>061F</code> 처리 Code, MAIN <code>HL=C50E</code>의 출력 후보, 그리고 <code>05AD</code>의 세 plane 반복을 확인했습니다. 이것은 그래픽 형식 전체를 해독했다는 뜻이 아니라, 처음 질문에 필요한 Data·Code·Output 관계를 실제 실행으로 좁혔다는 뜻입니다.</div>
+  <div class="answer"><strong>확인한 답:</strong> 작은 「夢幻戦士」 표시와 연결된 실행에서 보조 <code>HL'=4405</code>의 입력 Data 후보, <code>061F</code> 처리 Code, MAIN <code>HL=C50E</code>의 출력 후보, 그리고 <code>05AD</code>의 세 plane 반복을 확인했습니다. 이것은 그래픽 형식 전체를 해독했다는 뜻이 아니라, 처음 질문에 필요한 Data·Code·Output 관계를 실제 실행으로 좁혔다는 뜻입니다.</div>
   <h3>분석 기록 양식과 작성 예시</h3>
   <div class="record">게임 상태:
 
@@ -743,7 +743,7 @@ QUASI88&gt;disasm 0x6334 #64
 이번 질문에 필요한 만큼 확인했는가?
 예. 이번 질문은 <code>RR (HL)</code>이 실제 Memory를 변경하는지 확인하는 것이었고, step 전후 dump로 <code>D8E0: 10 → 08</code>을 확인했다.</div>
   <div class="callout"><h3>예시에서 배우는 기록 방법</h3><p>관찰한 사실과 현재 판단을 섞지 않습니다. 먼저 화면·명령·register·Memory에 실제로 표시된 값을 적고, 그 다음 그 값으로 설명할 수 있는 범위만 판단에 씁니다. 판단이 끝나면 “다음에 무엇을 볼 것인가”를 질문과 조사 방법으로 구체화합니다.</p></div>
-  <p class="muted">이번 부에서는 타이틀 구조를 파악하는 데 필요한 관찰과 분석 과정을 차례대로 진행했습니다. 타이틀 구조를 더 파악하려면 <code>4405~47E2</code> 입력 Data의 구성, 호출 단위, 처리 형식 등을 추가로 관찰하고 분석해야 합니다. 그 다음 조사는 수강생의 몫으로 남겨 둡니다.</p>
+  <p class="muted">여기까지 타이틀 구조를 파악하는 데 필요한 관찰과 분석 과정을 차례대로 진행했습니다. 타이틀 구조를 더 파악하려면 <code>4405~47E2</code> 입력 Data의 구성, 호출 단위, 처리 형식 등을 추가로 관찰하고 분석해야 합니다. 그 다음 조사는 수강생의 몫으로 남겨 둡니다.</p>
 </section>
 
 <section class="section" id="practice">
