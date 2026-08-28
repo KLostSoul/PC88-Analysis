@@ -151,7 +151,7 @@ disasm #64</div>
   <h2>관찰한 분기 주소를 따라 범위를 넓힌다</h2>
   <p>앞 단계의 출력에서 두 종류의 반복이 보였습니다. <code>04B4</code>는 <code>DEC B</code>가 남아 있을 때 되돌아가는 안쪽 반복의 시작점이고, <code>04AC</code>는 <code>ADD HL,0050H</code>와 <code>DEC IXH</code> 뒤에 다시 들어가는 바깥 반복의 지점입니다. 따라서 다음 질문은 “각 반복에 들어가기 전에 어떤 값과 포트를 준비하는가?”가 됩니다.</p>
   <div class="question">추론 가정: <strong><code>B</code>는 한 번의 가로 처리 반복 수, <code>IXH</code>는 바깥쪽 줄 반복 수, <code>0050H</code>는 다음 처리 위치로 이동하는 간격일 가능성이 있다.</strong> 이 가정을 확인하기 위해 반복 진입점보다 앞의 Code를 함께 봅니다.</div>
-  <div class="state"><b>게임 상태</b><span>타이틀 그래픽 처리 중. Monitor에서 조사 범위를 넓혀 보는 상태</span><b>복사할 명령</b><span><code>disasm 0x04A0 #80</code></span><b>정상적으로 볼 결과</b><span>반복문 진입 전의 포트 선택, 시작 주소 설정, 반복 횟수와 반복 kernel</span></div>
+  <div class="state"><b>게임 상태</b><span>타이틀 그래픽 처리 중. Monitor에서 조사 범위를 넓혀 보는 상태</span><b>복사할 명령</b><span><code>disasm 0x04A0 #80</code></span><b>정상적으로 볼 결과</b><span>반복문 진입 전의 포트 선택, 시작 주소 설정, 반복 횟수와 반복 처리 부분</span></div>
   <div class="terminal compact">04A0 04        INC   B
 04A1 D35C      OUT   (5CH),A
 04A3 DD2648   +LD    IXH,48H
@@ -203,7 +203,7 @@ disasm #64</div>
 0538 C2AC04    JP    NZ,04ACH
 053B C9        RET</div>
   <div class="grid2"><article><h4>가정과 맞는 관찰</h4><p><code>04A1 OUT (5C),A</code>로 plane을 선택하고, <code>04A3 LD IXH,48H</code>로 바깥 반복 카운터를 준비합니다. 이어서 <code>04A6 LD HL,D400H</code>와 <code>04A9 LD DE,D44FH</code>가 처리 위치를 준비합니다.</p></article><article><h4>아직 확인할 것</h4><p><code>04B4</code>의 반복이 실제로 어떤 Memory를 바꾸는지는 disassembly만으로 확정하지 않습니다. <code>HL</code>이 가리키는 byte를 실행 전후로 비교해야 합니다.</p></article></div>
-  <div class="callout"><h3>용어: routine과 kernel</h3><p>반복 전체를 준비하고 호출하는 덩어리를 routine이라고 부를 수 있습니다. 그 안에서 <code>RR (HL)</code>가 반복되는 핵심 부분은 처리 kernel처럼 볼 수 있습니다. 다음 Code를 고를 때는 이처럼 반복의 구조와 각 register의 변화를 함께 봅니다.</p></div>
+  <div class="callout"><h3>반복 구조를 읽는 법</h3><p>준비 명령부터 반복, 종료까지 이어지는 하나의 Code 덩어리를 routine이라고 부르기도 합니다. 여기서는 용어를 외우는 것보다, <code>RR (HL)</code>가 반복되는 부분과 그 앞의 준비 명령을 나누어 보는 것이 중요합니다. 다음 Code를 고를 때는 반복 구조와 각 register의 변화를 함께 봅니다.</p></div>
   <div class="question">현재 로그에서 다음에 확인할 것은 무엇일까요? <strong><code>RR (HL)</code>가 실제 Memory를 바꾸는지</strong>를 확인해야 합니다.</div>
 </section>
 
