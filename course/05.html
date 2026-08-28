@@ -72,7 +72,7 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
   <div class="terminal">break clearall #0
 reg
 disasm #64</div>
-  <p>실제 첫 기록에서는 오프닝 화면 처리 중 강제로 건 브레이크가 <code>PC=04DA</code>에서 걸렸습니다.</p>
+  <p>오프닝 화면 처리 중 강제로 브레이크를 겁니다. 정지 시점의 register 출력에서 <code>PC=04DA</code>를 확인합니다.</p>
   <div class="terminal compact">[MAIN]
  AF:4400[........] BC:0150  DE:DADF  HL:DAC4  IX:3300  PC:04DA  I:00 IM:2 IFF:1
  A':C47D[.Z.H.P.C] B':0050  D':0800  H':615A  IY:E55C  SP:00FE  (ck=3065998485)
@@ -229,7 +229,7 @@ disasm #64</div>
 break pc 0x04CB #1
 reset
 g</div>
-  <p>그 결과 브레이크가 걸린 정지 시점의 <code>PC</code>가 <code>04CB</code>가 됩니다. 실제 register 출력은 다음과 같습니다.</p>
+  <p>리셋 후 다시 실행하면 <code>04CB</code>에서 정지합니다. 이때의 register 출력은 다음과 같습니다.</p>
   <div class="terminal">[MAIN]
  AF:0044[.Z...P..] BC:0150  DE:D8FF  HL:D8DF  IX:3900  PC:04CB  I:00 IM:2 IFF:1
  A':C47D[.Z.H.P.C] B':0050  D':0800  H':615A  IY:E55C  SP:00FE
@@ -244,7 +244,7 @@ dump 0xD8D8 #16
 s
 reg
 dump 0xD8D8 #16</div>
-  <p>실제 기록의 핵심 부분은 다음과 같습니다.</p>
+  <p>이제 <code>dump</code>와 한 단계 실행을 번갈아 하며 다음 변화를 확인합니다.</p>
   <div class="terminal">D8D8 : 08 00 02 00 80 00 00 00 10 41 00 00 00 00 00 04
 
 첫 번째 s 뒤
@@ -278,7 +278,7 @@ g</div></div>
 <section class="section" id="caller">
   <div class="num">05 · FIND THE CALLER</div>
   <h2>stack의 반환 주소를 호출자 후보로 바꾼다</h2>
-  <p>실제 로그에서 반복 routine이 끝난 위치는 <code>053B RET</code>였습니다. <code>RET</code>은 stack에서 돌아갈 주소를 꺼냅니다. 따라서 stack을 보면 현재 routine을 호출한 Code 주변으로 이동할 단서를 얻을 수 있습니다.</p>
+  <p>반복 Code의 끝인 <code>053B RET</code>에서 멈추면, <code>RET</code>이 stack에서 돌아갈 주소를 꺼내기 직전의 상태를 볼 수 있습니다. stack을 확인하면 현재 Code를 호출한 곳으로 이동할 단서를 얻을 수 있습니다.</p>
   <div class="terminal">[MAIN]
  AF:2A42[.Z....N.] BC:0050  DE:EACF  HL:EA80  IX:0000  PC:053B  I:00 IM:2 IFF:1
  A':C47D[.Z.H.P.C] B':0050  D':0800  H':615A  IY:E55C  SP:00FE
@@ -340,7 +340,7 @@ dump 0x00F0 #32
   <div class="terminal">break clearall #0
 break pc 0x05AD #1
 g</div>
-  <p>실제 기록에서는 <code>05AD</code>가 한 번만 실행되는 것이 아니라 내부 row 반복마다 다시 나타났습니다.</p>
+  <p>계속 실행하면 <code>05AD</code>에서 다시 정지하고, 내부 row가 바뀔 때마다 같은 지점이 반복해서 나타납니다.</p>
   <div class="terminal">*** Break at 05ADH *** ( MAIN[#1] : PC )
 [MAIN]
  AF:FF02[......N.] BC:0000  DE:0000  HL:C5FE  IX:1500  PC:05AD
@@ -363,7 +363,7 @@ g</div>
 <section class="section" id="common">
   <div class="num">07 · FOLLOW A COMMON CALL</div>
   <h2>공통으로 반복되는 호출을 보고 다음 routine을 고른다</h2>
-  <p>실제 <code>05AD</code> 주변 로그는 다음과 같습니다.</p>
+  <p><code>05AD</code> 주변에서 다음과 같은 반복 구조를 확인합니다.</p>
   <div class="terminal compact">05AD D35C      OUT   (5CH),A
 05AF E5        PUSH  HL
 05B0 CD1F06    CALL  061FH
@@ -405,7 +405,7 @@ g</div>
 <section class="section" id="source-output">
   <div class="num">08 · CONNECT INPUT AND OUTPUT</div>
   <h2>한 번의 실행에서 입력 Data 후보와 출력 후보를 함께 본다</h2>
-  <p>실제 <code>061F</code> 정지 기록은 다음과 같습니다.</p>
+  <p><code>061F</code>에서 정지했을 때의 register와 주변 Code를 함께 확인합니다.</p>
   <div class="terminal">[MAIN]
  AF:1900[........] BC:005C  DE:0000  HL:C50E  IX:1800  PC:061F  I:00 IM:2 IFF:1
  A':C47D[.Z.H.P.C] B':0050  D':0800  H':4405  IY:E55C  SP:00FA  (ck=40239918)
