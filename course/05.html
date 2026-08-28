@@ -143,13 +143,14 @@ disasm #64</div>
 053B C9        RET</div>
   <div class="grid2"><article><h4>관찰</h4><p><code>INC HL</code>과 <code>RR (HL)</code>이 반복되고, 끝에서 <code>JP NZ,04B4</code>, <code>JP NZ,04AC</code>으로 되돌아갑니다.</p></article><article><h4>판단</h4><p>HL이 가리키는 Memory를 일정한 순서로 처리하는 반복 구조입니다. 아직 이것이 로고 routine의 시작이라고 할 수는 없습니다.</p></article></div>
   <div class="callout warn"><h3>여기서 하지 않는 판단</h3><p><code>PC=04DA</code>는 현재 멈춘 위치입니다. routine 시작 주소도, 작은 글자의 원천 주소도 아닙니다. 다른 실행 시점에는 다른 PC에서 멈출 수 있습니다.</p></div>
-  <div class="callout"><h3>다음 행동을 고르는 근거</h3><p>출력의 마지막에 반복문 진입 주소 <code>04B4</code>와 <code>04AC</code>가 보였지만 그 앞의 준비 과정은 잘렸습니다. 따라서 두 주소보다 조금 앞에서 다시 disassemble합니다.</p><div class="terminal">disasm 0x04A0 #80</div></div>
+  <div class="callout"><h3>다음 행동을 추론한다</h3><p><code>DEC B</code> 다음에 <code>JP NZ,04B4</code>가 있으므로, <code>B</code>가 안쪽 <code>RR (HL)</code> 반복 횟수를 관리한다고 가정할 수 있습니다. 이어서 <code>ADD HL,0050H</code> 뒤에 <code>DEC IXH</code>와 <code>JP NZ,04ACH</code>가 있으므로, 안쪽 반복이 끝나면 HL을 다음 줄 위치로 옮기고 IXH를 줄인 뒤 바깥 반복을 계속한다고 가정할 수 있습니다.</p><p>이 가정을 확인하려면 두 진입점 앞의 준비 명령, 즉 포트 선택·HL/DE 초기값·반복 카운터 설정을 함께 봐야 합니다. 현재 출력은 <code>04DA</code>부터 시작해 그 부분이 잘렸으므로 <code>04AC</code>보다 앞인 <code>04A0</code>부터 다시 확인합니다.</p><div class="terminal">disasm 0x04A0 #80</div></div>
 </section>
 
 <section class="section" id="widen">
   <div class="num">03 · FOLLOW THE EVIDENCE</div>
   <h2>관찰한 분기 주소를 따라 범위를 넓힌다</h2>
-  <p><code>04A0</code>은 답을 미리 알고 찍은 주소가 아닙니다. 방금 본 출력에서 <code>04AC</code>와 <code>04B4</code>가 반복문 진입점으로 나타났기 때문에, 그 앞의 준비 명령까지 포함하려고 선택한 범위입니다.</p>
+  <p>앞 단계의 출력에서 두 종류의 반복이 보였습니다. <code>04B4</code>는 <code>DEC B</code>가 남아 있을 때 되돌아가는 안쪽 반복의 시작점이고, <code>04AC</code>는 <code>ADD HL,0050H</code>와 <code>DEC IXH</code> 뒤에 다시 들어가는 바깥 반복의 지점입니다. 따라서 다음 질문은 “각 반복에 들어가기 전에 어떤 값과 포트를 준비하는가?”가 됩니다.</p>
+  <div class="question">추론 가정: <strong><code>B</code>는 한 번의 가로 처리 반복 수, <code>IXH</code>는 바깥쪽 줄 반복 수, <code>0050H</code>는 다음 처리 위치로 이동하는 간격일 가능성이 있다.</strong> 이 가정을 확인하기 위해 반복 진입점보다 앞의 Code를 함께 봅니다.</div>
   <div class="state"><b>게임 상태</b><span>타이틀 그래픽 처리 중. Monitor에서 조사 범위를 넓혀 보는 상태</span><b>복사할 명령</b><span><code>disasm 0x04A0 #80</code></span><b>정상적으로 볼 결과</b><span>반복문 진입 전의 포트 선택, 시작 주소 설정, 반복 횟수와 반복 kernel</span></div>
   <div class="terminal compact">04A0 04        INC   B
 04A1 D35C      OUT   (5CH),A
@@ -201,7 +202,7 @@ disasm #64</div>
 0536 DD25     +DEC   IXH
 0538 C2AC04    JP    NZ,04ACH
 053B C9        RET</div>
-  <div class="grid2"><article><h4>새로 보인 사실</h4><p><code>04A1</code>에서 <code>OUT (5C),A</code>가 실행되고, <code>04A6</code>에서 <code>HL=D400</code>이 준비됩니다.</p></article><article><h4>아직 모르는 것</h4><p><code>D400</code>이 원천 Data인지, 처리 대상 영역인지, 화면에 직접 보이는 영역인지는 아직 확정하지 않습니다.</p></article></div>
+  <div class="grid2"><article><h4>가정과 맞는 관찰</h4><p><code>04A1 OUT (5C),A</code>로 plane을 선택하고, <code>04A3 LD IXH,48H</code>로 바깥 반복 카운터를 준비합니다. 이어서 <code>04A6 LD HL,D400H</code>와 <code>04A9 LD DE,D44FH</code>가 처리 위치를 준비합니다.</p></article><article><h4>아직 확인할 것</h4><p><code>04B4</code>의 반복이 실제로 어떤 Memory를 바꾸는지는 disassembly만으로 확정하지 않습니다. <code>HL</code>이 가리키는 byte를 실행 전후로 비교해야 합니다.</p></article></div>
   <div class="callout"><h3>용어: routine과 kernel</h3><p>반복 전체를 준비하고 호출하는 덩어리를 routine이라고 부를 수 있습니다. 그 안에서 <code>RR (HL)</code>가 반복되는 핵심 부분은 처리 kernel처럼 볼 수 있습니다. 이 이름은 역할을 설명하기 위한 것이며 주소를 외우라는 뜻이 아닙니다.</p></div>
   <div class="question">현재 로그에서 다음에 확인할 것은 무엇일까요? <strong><code>RR (HL)</code>가 실제 Memory를 바꾸는지</strong>를 확인해야 합니다.</div>
 </section>
@@ -287,7 +288,7 @@ dump 0x00F0 #32
 0407 18E5      JR    03EEH
 0409 CDA90B    CALL  0BA9H</div>
   <div class="grid2"><article><h4>이제 발견한 것</h4><p><code>03EE CALL 04A1</code>로 현재 비트 이동 routine을 부르는 구조입니다.</p></article><article><h4>중요한 전환</h4><p><code>03E6 CALL 05AD</code>가 여기서 처음 나타납니다. 이제야 <code>05AD</code>를 다음 조사 후보로 고를 근거가 생겼습니다.</p></article></div>
-  <div class="callout ok"><h3>유추 사슬</h3><div class="flow"><span>PC=04DA</span><span>반복문 확인</span><span>실제 D8E0 변화</span><span>RET와 F1 03</span><span>03F1 주변 disasm</span><span>CALL 05AD 발견</span></div><p>주소를 외부에서 받은 것이 아니라, 실제 출력의 다음 단서를 따라 발견했습니다.</p></div>
+  <div class="callout ok"><h3>단서가 다음 조사로 바뀌는 과정</h3><div class="flow"><span>04DA에서 반복 확인</span><span>04AC·04B4 역분기</span><span>D8E0 변화 검증</span><span>RET와 F1 03</span><span>03F1 주변 CALL</span><span>05AD 발견</span></div><p>각 주소는 목록으로 외우는 값이 아니라, 앞 단계의 관찰에서 세운 가정을 확인하기 위해 다음 단계로 선택된 조사 지점입니다.</p></div>
 </section>
 
 <section class="section" id="candidate">
