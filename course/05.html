@@ -387,6 +387,10 @@ disasm 0x061F #128</div>
   <div class="num">09 · REJECT A FALSE LEAD</div>
   <h2>breakpoint에 걸렸다고 답을 찾은 것은 아니다</h2>
   <p>실제 조사에서는 <code>D400</code> WRITE에도 breakpoint가 걸렸습니다. 화면 그래픽과 관련된 주소처럼 보이지만, 주변 Code를 확인하기 전에는 역할을 확정할 수 없습니다.</p>
+  <div class="state"><b>게임 상태</b><span>타이틀 화면이 시작되기 전부터 <code>D400</code>에 어떤 Code가 쓰는지 감시할 상태</span><b>복사할 명령</b><span>기존 breakpoint를 지우고 <code>D400</code> WRITE를 설정한 뒤 실행</span><b>정상적으로 볼 결과</b><span>쓰기 명령이 실행되는 순간 PC와 실제 기록 값을 확인</span></div>
+  <div class="terminal">break clearall #0
+break write 0xD400 #1
+g</div>
   <div class="terminal">*** Break at 6346H *** ( MAIN[#1] : WRITE  addr=D400H, data=00H )
 [MAIN]
  AF:0044[.Z...P..] BC:2BF8  DE:D401  HL:D400  IX:FFFF  PC:6344  I:F3 IM:2 IFF:0
@@ -476,4 +480,3 @@ disasm 0x061F #128</div>
 </main>
 </body>
 </html>
-
