@@ -1,4 +1,4 @@
-name: Course 04 concept-first rebuild
+name: Course 04 final polish
 
 on:
   push:
@@ -13,13 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Rebuild course 04
+      - name: Polish course 04
         run: python3 .github/scripts/course04_rebuild.py
-      - name: Commit rebuilt course
+      - name: Commit polished course
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add course/04.html README.md
           git diff --cached --quiet && exit 0
-          git commit -m 'Rebuild course 04 around debugger concepts'
+          git commit -m 'Polish course 04 concept-first structure'
           git push
