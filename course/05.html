@@ -67,8 +67,8 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
 <section class="section" id="first-stop">
   <div class="num">02 · FIRST OBSERVATION</div>
   <h2>타이틀 화면에서 현재 PC와 주변 Code를 확인한다</h2>
-  <p>오프닝 화면 처리 중 강제로 브레이크를 겁니다. 브레이크가 걸린 순간 QUASI88이 현재 register와 <code>PC</code> 주변 명령을 자동으로 표시합니다. 그 상태에서 주소를 생략한 <code>disasm #64</code>를 실행해 현재 PC부터 이어지는 명령을 확인합니다.</p>
-  <div class="state"><b>게임 상태</b><span>오프닝·로고 그래픽 처리 중 강제로 브레이크를 건 상태</span><b>자동 표시</b><span>브레이크가 걸리는 순간 현재 register와 PC 주변 명령이 자동으로 표시됨</span><b>실행할 명령</b><span><code>disasm #64</code>로 현재 PC부터 이어지는 명령을 확인</span><b>예측 결과</b><span>현재 PC와 그 주변의 반복·분기·Memory 접근 명령</span></div>
+  <p>오프닝 화면 처리 중 강제로 브레이크를 겁니다. 브레이크가 걸린 순간 QUASI88이 현재 register와 <code>PC</code> 주변 명령을 자동으로 표시합니다. 그 상태에서 주소를 생략한 <code>disasm #63</code>을 실행해 현재 PC부터 이어지는 명령을 확인합니다.</p>
+  <div class="state"><b>게임 상태</b><span>오프닝·로고 그래픽 처리 중 강제로 브레이크를 건 상태</span><b>자동 표시</b><span>브레이크가 걸리는 순간 현재 register와 PC 주변 명령이 자동으로 표시됨</span><b>실행할 명령</b><span><code>disasm #63</code>으로 현재 PC부터 이어지는 명령을 확인</span><b>예측 결과</b><span>현재 PC와 그 주변의 반복·분기·Memory 접근 명령</span></div>
   <div class="terminal">[MAIN]
  AF:4400[........] BC:0150  DE:DADF  HL:DAC4  IX:3300  PC:04DA  I:00 IM:2 IFF:1
  A':C47D[.Z.H.P.C] B':0050  D':0800  H':615A  IY:E55C  SP:00FE  (ck=3065998485)
@@ -76,7 +76,7 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
     ------> 04DA 23        INC   HL
             04DB CB1E      RR    (HL)
 
-QUASI88&gt;disasm #64
+QUASI88&gt;disasm #63
 04DA 23        INC   HL
 04DB CB1E      RR    (HL)
 04DD 23        INC   HL
@@ -161,8 +161,9 @@ QUASI88&gt;disasm #64
   <div class="grid2"><article><h4>관찰</h4><p><code>INC HL</code>과 <code>RR (HL)</code>이 반복되고, 끝에서 <code>JP NZ,04B4</code>, <code>JP NZ,04AC</code>으로 되돌아갑니다.</p></article><article><h4>판단</h4><p>HL이 가리키는 Memory를 일정한 순서로 처리하는 반복 구조입니다. 아직 이것이 로고 처리 Code의 시작이라고 할 수는 없습니다.</p></article></div>
   <div class="callout warn"><h3>여기서 하지 않는 판단</h3><p><code>PC=04DA</code>는 첫 브레이크가 걸린 현재 실행 위치입니다. 처리 Code의 시작 주소도, 작은 글자의 원천 주소도 아닙니다. 주변 명령과 호출 관계를 더 확인해야 역할을 판단할 수 있습니다.</p></div>
   <div class="diagram"><h3>현재까지 확인한 타이틀 구조</h3><p>화면에서 시작했지만, 아직 Data의 위치나 처리 Code의 역할은 확정하지 않았습니다.</p><pre class="mermaid">flowchart TD
-  S["작은 夢幻戦士가 먼저 표시됨"] --> B["오프닝 화면에서 강제 브레이크"]
-  B --> P["PC 04DA\nINC HL / RR (HL) 반복"]
+  S["조사 대상으로 선택한 작은 夢幻戦士"] --> B["오프닝 화면에서 강제 브레이크"]
+  B --> P["PC 04DA · INC HL · RR (HL) 반복"]
+  P --> Q["이 Code의 역할은 아직 미확정"]
 </pre></div>
   <div class="callout"><h3>다음 행동을 추론한다</h3><p><code>DEC B</code> 다음에 <code>JP NZ,04B4</code>가 있으므로, <code>B</code>가 안쪽 <code>RR (HL)</code> 반복 횟수를 관리한다고 가정할 수 있습니다. 이어서 두 번의 <code>EX DE,HL</code> 사이에서 주소에 <code>0050H</code>를 더하고, <code>DEC IXH</code>와 <code>JP NZ,04ACH</code>가 이어집니다. 따라서 안쪽 반복이 끝나면 DE 쪽 다음 행 위치를 준비하고 IXH를 줄인 뒤 바깥 반복을 계속한다고 가정할 수 있습니다.</p><p>이 가정을 확인하려면 두 진입점 앞의 준비 명령, 즉 포트 선택·HL/DE 초기값·반복 카운터 설정을 함께 봐야 합니다. 주소를 생략한 출력은 <code>04DA</code>에서 시작하므로 준비 명령이 보이지 않습니다. <code>04AC</code>보다 앞인 <code>04A0</code>부터 다시 확인합니다.</p></div>
 </section>
@@ -292,7 +293,7 @@ QUASI88&gt;disasm 0x051C #19
   <div class="grid2"><article><h4>가정과 맞는 관찰</h4><p><code>04A1 OUT (5C),A</code>로 plane을 선택하고, <code>04A3 LD IXH,48H</code>로 바깥 반복 카운터를 준비합니다. 이어서 <code>04A6 LD HL,D400H</code>와 <code>04A9 LD DE,D44FH</code>가 처리 위치를 준비합니다.</p></article><article><h4>아직 확인할 것</h4><p><code>04B4</code>의 반복이 실제로 어떤 Memory를 바꾸는지는 disassembly만으로 확정하지 않습니다. <code>HL</code>이 가리키는 byte를 실행 전후로 비교해야 합니다.</p></article></div>
   <div class="callout"><h3>반복 구조를 읽는 법</h3><p>준비 명령부터 반복과 종료까지 이어지는 Code 묶음을 하나의 <strong>routine</strong>이라고 부를 수 있습니다. routine은 특별한 종류의 명령이 아니라, 한 작업을 맡은 여러 명령의 묶음입니다. <code>RR (HL)</code>가 반복되는 부분과 그 앞의 준비 명령을 나누고, 반복 구조와 각 register의 변화를 함께 봅니다.</p></div>
   <div class="diagram"><h3>현재까지 확인한 타이틀 구조</h3><p><code>04A0</code>은 Data의 원천이 아니라, 반복에 들어가기 전 무엇을 준비하는지 확인하기 위해 넓힌 범위입니다.</p><pre class="mermaid">flowchart TD
-  S["작은 夢幻戦士가 먼저 표시됨"] --> B["강제 브레이크"]
+  S["조사 대상으로 선택한 화면 요소"] --> B["강제 브레이크"]
   B --> P["PC 04DA / 반복 코드 관찰"]
   P --> J["JP NZ 04B4 / JP NZ 04AC"]
   J --> D["disasm 04A0"]
@@ -370,7 +371,7 @@ D8D8 : 08 00 02 00 80 00 00 00 08 41 00 00 00 00 00 04 |.........A......|</div>
   <div class="grid2"><article><h4>관찰</h4><p><code>HL=D8E0</code>인 상태에서 <code>RR (HL)</code>을 실행한 뒤 <code>D8E0</code>의 값이 <code>10</code>에서 <code>08</code>로 바뀌었습니다.</p></article><article><h4>판단</h4><p>이 반복 Code는 HL이 가리키는 Memory를 실제로 읽고 같은 위치에 변경된 값을 기록합니다.</p></article></div>
   <div class="callout ok"><h3>이제 확정할 수 있는 범위</h3><p><code>04B4</code> 이후의 반복은 D8xx 계열 그래픽 처리 영역을 비트 단위로 변형하는 동작과 연결됩니다. 하지만 이 Code가 어디서 호출되었고, 원천 Data가 어디에 있는지는 아직 남은 질문입니다.</p></div>
   <div class="diagram"><h3>현재까지 확인한 타이틀 구조</h3><p><code>04CB</code>는 첫 정지 위치가 아니라, 앞서 읽은 Code에서 고른 확인 지점입니다.</p><pre class="mermaid">flowchart TD
-  S["작은 夢幻戦士가 먼저 표시됨"] --> P["PC 04DA에서 반복 관찰"]
+  S["조사 대상으로 선택한 화면 요소"] --> P["PC 04DA에서 반복 관찰"]
   P --> D["disasm 04A0 / 반복 준비 확인"]
   D --> K["04CB와 04CC 선택"]
   K --> B["PC breakpoint 04CB / reset / g"]
@@ -669,10 +670,10 @@ QUASI88&gt;disasm 0x061F #56
   <p>같은 실행에서 확인된 범위는 <strong>입력 Data 후보 → 처리 Code → 출력 후보</strong>의 관계입니다. 입력 byte열의 전체 형식은 추가 관찰이 필요합니다.</p>
   <div class="diagram"><h3>현재까지 확인한 타이틀 구조</h3><p>세 plane에서 공통으로 호출된 <code>061F</code> 안에서 보조 HL의 입력 후보와 MAIN HL의 출력 후보가 함께 관찰됐습니다.</p><pre class="mermaid">flowchart TD
   H["05AD: 5C / 5D / 5E plane 반복"] --> C["CALL 061F"]
-  I["보조 HL 4405\n입력 Data 후보"] --> E["EXX / LD A,(HL)"]
+  I["보조 HL 4405 / 입력 Data 후보"] --> E["EXX / LD A,(HL)"]
   E --> C
   C --> W["LD (HL),A"]
-  W --> O["MAIN HL C50E\n출력 후보"]
+  W --> O["MAIN HL C50E / 출력 후보"]
 </pre></div>
 </section>
 
@@ -724,7 +725,7 @@ QUASI88&gt;disasm 0x631A #8
   W["D400 WRITE breakpoint"] --> L["6344 LDIR"]
   L --> Z["00을 넓은 범위에 기록"]
   Z --> P["5C / 5D / 5E plane에서 반복"]
-  P --> X["GVRAM plane clear\n작은 夢幻戦士 처리 후보에서 제외"]
+  P --> X["GVRAM plane clear / 작은 夢幻戦士 처리 후보에서 제외"]
 </pre></div>
   <div class="question">판별 기준: <strong>무엇을 쓰는가? 얼마나 넓게 반복하는가? 여러 plane에서 같은가? 화면 변화 시점과 맞는가?</strong></div>
 </section>
@@ -745,22 +746,22 @@ QUASI88&gt;disasm 0x631A #8
     <tr><td>후보 판별</td><td><code>6344 LDIR</code>가 넓은 영역에 <code>00</code> 반복 기록</td><td>로고 전개가 아닌 plane clear로 제외</td></tr>
   </tbody></table></div>
   <div class="diagram"><h3>관찰 결과로 만든 타이틀 구조</h3><p>관찰 결과를 이어 붙이면 다음 조사 지도가 됩니다. <code>03D0</code> 주변에서 확인한 두 호출은 서로 다른 후보로 갈라집니다.</p><pre class="mermaid">flowchart TD
-  S["작은 夢幻戦士 표시"] --> P["강제 브레이크 / PC 04DA"]
-  P --> D["disasm #64 / 반복과 분기 확인"]
+  S["조사 대상으로 선택한 화면 요소"] --> P["강제 브레이크 / PC 04DA"]
+  P --> D["disasm #63 / 반복과 분기 확인"]
   D --> E["04A0 범위 확장"]
   E --> B["04CB breakpoint / reset / g"]
   B --> M["D8E0: 10 -> 08"]
   M --> R["053B RET / stack F1 03 -> 03F1"]
   R --> U["03D0 주변에서 CALL 관계 확인"]
-  U --> A["03EE CALL 04A1\nD8xx 비트 처리 후보"]
-  U --> H["03E6 CALL 05AD\n주소 후보 발견"]
+  U --> A["03EE CALL 04A1 / D8xx 비트 처리 후보"]
+  U --> H["03E6 CALL 05AD / 주소 후보 발견"]
   H --> Q["05AD breakpoint"]
-  Q --> V["실제 호출자 026E\nHL C50E / HL' 4405"]
-  V --> C["5C -> 5D -> 5E\n각 plane에서 CALL 061F"]
-  C --> O["HL' 4405 입력 후보\nHL C50E 출력 후보"]
+  Q --> V["실제 호출자 026E / HL C50E / HL' 4405"]
+  V --> C["5C -> 5D -> 5E / 각 plane에서 CALL 061F"]
+  C --> O["HL' 4405 입력 후보 / HL C50E 출력 후보"]
   P -. "별도 WRITE 조사" .-> X["D400 / 6344 LDIR / plane clear"]
 </pre></div>
-  <div class="answer"><strong>확인한 답:</strong> 실제 <code>026E CALL 05AD</code> 실행에서 보조 <code>HL'=4405</code>의 입력 Data 후보, <code>061F</code> 처리 Code, MAIN <code>HL=C50E</code>의 출력 후보, 그리고 <code>05AD</code>의 세 plane 반복을 확인했습니다. 이 관계를 출발점으로 입력 Data의 구성과 처리 형식을 더 조사할 수 있습니다.</div>
+  <div class="answer"><strong>이번 단계에서 확인한 범위:</strong> 실제 <code>026E CALL 05AD</code> 실행에서 보조 <code>HL'=4405</code>의 입력 Data 후보, <code>061F</code> 처리 Code, MAIN <code>HL=C50E</code>의 출력 후보, 그리고 <code>05AD</code>의 세 plane 반복을 확인했습니다. 이것은 최종 화면 대응까지 대신 확정한 결론이 아니라, <code>4405~47E2</code>의 내부 구성과 실제 화면 대조를 이어 갈 수 있는 분석 출발점입니다.</div>
   <h3>분석 기록 양식과 작성 예시</h3>
   <div class="record">게임 상태:
 
@@ -797,7 +798,8 @@ QUASI88&gt;disasm 0x631A #8
 현재 질문에 답할 근거를 확인했는가?
 예. 이번 질문은 <code>RR (HL)</code>이 실제 Memory를 변경하는지 확인하는 것이었고, step 전후 dump로 <code>D8E0: 10 → 08</code>을 확인했다.</div>
   <div class="callout"><h3>예시에서 배우는 기록 방법</h3><p>관찰한 사실과 현재 판단을 섞지 않습니다. 먼저 화면·명령·register·Memory에 실제로 표시된 값을 적고, 그 다음 그 값으로 설명할 수 있는 범위만 판단에 씁니다. 판단이 끝나면 “다음에 무엇을 볼 것인가”를 질문과 조사 방법으로 구체화합니다.</p></div>
-  <p class="muted">여기까지 타이틀 구조를 파악하는 데 필요한 관찰과 분석 과정을 차례대로 진행했습니다. 타이틀 구조를 더 파악하려면 <code>4405~47E2</code> 입력 Data의 구성, 호출 단위, 처리 형식 등을 추가로 관찰하고 분석해야 합니다. 그 다음 조사는 수강생의 몫으로 남겨 둡니다.</p>
+  <p class="muted">여기까지는 화면에서 시작해 실행 지점, 처리 Code, Data와 출력 후보를 좁혀 가는 과정을 진행했습니다. 별도 분석 기록에서는 <code>4405~47E2</code>를 최종 고정 source 범위로 정리했지만, 그 내부 구성·호출 단위·처리 형식과 이것이 조사 대상으로 정한 작은 「夢幻戦士」를 실제로 그리는지의 최종 대조는 수강생이 이어서 수행할 분석입니다.</p>
+  <div class="callout"><h3>참고 자료로 범위를 계산하는 법</h3><p>분석 참고 MD에는 <code>4405~47E2</code>에 대해 전체 길이 <code>990 bytes</code>, <code>0x03DE</code>, 그리고 파싱이 끝난 다음 주소인 <code>parsed_end = 47E3</code>가 함께 기록되어 있습니다. 시작 주소에서 990바이트를 세면 <code>0x4405 + 0x03DE - 1 = 0x47E2</code>이므로 마지막으로 포함되는 주소가 <code>0x47E2</code>가 됩니다. 이 계산은 source 범위의 끝을 확인하는 참고 근거이며, 최종 화면 대조까지 대신하는 결론은 아닙니다.</p></div>
 </section>
 
 <section class="section" id="practice">
