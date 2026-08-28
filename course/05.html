@@ -60,14 +60,14 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
   </div>
   <div class="question">이번 조사 대상: <strong>먼저 나타나는 작은 「夢幻戦士」가 어떤 Data와 Code를 거쳐 화면에 나타나는가?</strong></div>
   <div class="grid2"><article><h4>관찰</h4><p>화면 요소마다 나타나는 시점이 다릅니다.</p></article><article><h4>판단</h4><p>각 요소의 실행 시점을 따로 조사할 수 있다는 단서를 얻습니다.</p></article></div>
-  <div class="callout"><h3>다음 행동</h3><p>주소를 추측하거나 디스크 전체를 뒤지지 않고, 오프닝 처리 중 Monitor에서 확보한 현재 CPU 위치부터 확인합니다.</p></div>
+  <div class="callout"><h3>다음 행동</h3><p>주소를 추측하거나 디스크 전체를 뒤지지 않고, 오프닝 화면 처리 중 강제로 브레이크를 건 뒤 현재 CPU 위치부터 확인합니다.</p></div>
 </section>
 
 <section class="section" id="first-stop">
   <div class="num">02 · FIRST OBSERVATION</div>
   <h2>타이틀 화면에서 현재 PC와 주변 Code를 확인한다</h2>
-  <p>실제 기록은 오프닝 화면 처리 중 Monitor에서 정지한 상태로 시작합니다. 먼저 <code>reg</code>로 정지 당시의 register와 <code>PC</code>를 확인하고, 주소를 생략한 <code>disasm #64</code>로 그 PC부터 이어지는 명령을 표시합니다. 이렇게 하면 조사자가 임의의 주소를 먼저 정하지 않고, 실행 중 확보한 위치에서 관찰을 시작할 수 있습니다.</p>
-  <div class="state"><b>게임 상태</b><span>오프닝·로고 그래픽 처리 중 Monitor에서 정지한 상태</span><b>복사할 명령</b><span><code>reg</code>를 실행한 뒤 <code>disasm #64</code>로 현재 PC 주변을 확인</span><b>정상적으로 볼 결과</b><span>현재 PC와 그 주변의 반복·분기·Memory 접근 명령</span></div>
+  <p>오프닝 화면 처리 중 강제로 브레이크를 겁니다. 브레이크가 걸린 정지 시점에 먼저 <code>reg</code>로 register와 <code>PC</code>를 확인하고, 주소를 생략한 <code>disasm #64</code>로 현재 PC부터 이어지는 명령을 표시합니다. 이렇게 현재 실행 위치와 주변 명령에서 조사를 시작합니다.</p>
+  <div class="state"><b>게임 상태</b><span>오프닝·로고 그래픽 처리 중 강제로 브레이크를 건 상태</span><b>복사할 명령</b><span><code>reg</code>를 실행한 뒤 <code>disasm #64</code>로 현재 PC 주변을 확인</span><b>정상적으로 볼 결과</b><span>현재 PC와 그 주변의 반복·분기·Memory 접근 명령</span></div>
   <div class="terminal">reg
 disasm #64</div>
   <p>실제 로그에서는 다음과 같이 <code>PC=04DA</code>에서 멈췄습니다.</p>
