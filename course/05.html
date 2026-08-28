@@ -24,7 +24,7 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
   <div class="crumb"><a href="../index.html">PC-88 게임 분석 기초 강좌</a> / 5부</div>
   <div class="eyebrow">FOUNDATION 05 · LOG-DRIVEN TRACE</div>
   <h1>실제 로그에서 다음 조사 위치를 찾아가는 법</h1>
-  <p class="lead">《몽환전사 바리스》 타이틀 화면의 실제 QUASI88 기록을 따라가며, 주소를 미리 받지 않은 상태에서 관찰 결과를 근거로 다음 Code와 Memory를 선택하는 방법을 배웁니다.</p>
+  <p class="lead">《몽환전사 바리스》 타이틀 화면의 실제 QUASI88 기록을 따라가며, 화면 관찰과 실행 로그를 근거로 다음 Code와 Memory를 선택하는 방법을 배웁니다.</p>
 </div></header>
 <main>
 <section class="intro">
@@ -348,7 +348,7 @@ g</div>
   <div class="terminal">break clearall #0
 break pc 0x061F #1
 g</div>
-  <p>이제 <code>061F</code>가 “처음부터 알고 있던 정답 주소”가 아니라, <code>05AD</code>의 공통 호출 구조를 보고 선택한 주소라는 점이 중요합니다.</p>
+  <p><code>05AD</code>에서 같은 호출이 세 plane에 반복되므로, 그 호출 대상인 <code>061F</code>가 실제 한 줄 Data를 처리하는지 확인하는 순서가 됩니다. 다음 절에서는 이 가정을 register와 source dump로 확인합니다.</p>
 </section>
 
 <section class="section" id="source-output">
