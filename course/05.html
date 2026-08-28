@@ -707,7 +707,7 @@ QUASI88&gt;disasm 0x6334 #64
   P -. "별도 WRITE 조사" .-> X["D400 / 6344 LDIR / plane clear"]
 </pre></div>
   <div class="answer"><strong>이번 부에서 확인한 답:</strong> 작은 「夢幻戦士」 표시와 연결된 실행에서 보조 <code>HL'=4405</code>의 입력 Data 후보, <code>061F</code> 처리 Code, MAIN <code>HL=C50E</code>의 출력 후보, 그리고 <code>05AD</code>의 세 plane 반복을 확인했습니다. 이것은 그래픽 형식 전체를 해독했다는 뜻이 아니라, 처음 질문에 필요한 Data·Code·Output 관계를 실제 실행으로 좁혔다는 뜻입니다.</div>
-  <h3>분석 기록 양식</h3>
+  <h3>분석 기록 양식과 작성 예시</h3>
   <div class="record">게임 상태:
 
 관찰한 사실:
@@ -721,7 +721,29 @@ QUASI88&gt;disasm 0x6334 #64
 다음에 사용할 조사 방법:
 
 이번 질문에 필요한 만큼 확인했는가?</div>
-  <p class="muted">더 깊이 들어가면 <code>4405~47E2</code> 입력 Data의 호출 단위와 처리 형식, Disk loader까지 조사할 수 있습니다. 그러나 그것은 이번 기초 강좌의 필수 도달점이 아닙니다.</p>
+  <h3>작성 예시: <code>RR (HL)</code>의 실제 Memory 변경 확인</h3>
+  <div class="record">게임 상태:
+타이틀 그래픽 처리 중. 리셋 후 <code>PC=04CB</code>에 breakpoint가 걸린 상태.
+
+관찰한 사실:
+첫 상태에서 <code>HL=D8DF</code>이고 현재 명령은 <code>INC HL</code>이다. 첫 번째 <code>s</code> 뒤에는 <code>PC=04CC</code>, <code>HL=D8E0</code>이 되었다. 두 번째 <code>s</code> 뒤에는 <code>PC=04CE</code>가 되었고, dump에서 <code>D8E0</code>의 값이 <code>10</code>에서 <code>08</code>로 바뀌었다.
+
+현재 판단:
+<code>INC HL</code>은 다음 Memory 주소를 가리키게 하고, 그 다음 <code>RR (HL)</code>은 HL이 가리키는 byte를 읽어 변형한 뒤 같은 주소에 기록한다.
+
+판단의 근거가 된 명령·register·Memory:
+<code>04CB INC HL</code>, <code>04CC RR (HL)</code>, <code>HL=D8DF → D8E0</code>, <code>D8E0: 10 → 08</code>.
+
+다음 질문:
+이 반복 Code를 호출한 상위 Code는 어디에 있는가?
+
+다음에 사용할 조사 방법:
+반복 끝의 <code>053B RET</code>에 PC breakpoint를 걸고, stack을 dump하여 반환 주소 후보를 찾은 뒤 그 주변을 disasm한다.
+
+이번 질문에 필요한 만큼 확인했는가?
+예. 이번 질문은 <code>RR (HL)</code>이 실제 Memory를 변경하는지 확인하는 것이었고, step 전후 dump로 <code>D8E0: 10 → 08</code>을 확인했다.</div>
+  <div class="callout"><h3>예시에서 배우는 기록 방법</h3><p>관찰한 사실과 현재 판단을 섞지 않습니다. 먼저 화면·명령·register·Memory에 실제로 표시된 값을 적고, 그 다음 그 값으로 설명할 수 있는 범위만 판단에 씁니다. 판단이 끝나면 “다음에 무엇을 볼 것인가”를 질문과 조사 방법으로 구체화합니다.</p></div>
+  <p class="muted">이번 부에서는 타이틀 구조를 파악하는 데 필요한 관찰과 분석 과정을 차례대로 진행했습니다. 타이틀 구조를 더 파악하려면 <code>4405~47E2</code> 입력 Data의 구성, 호출 단위, 처리 형식 등을 추가로 관찰하고 분석해야 합니다. 그 다음 조사는 수강생의 몫으로 남겨 둡니다.</p>
 </section>
 
 <section class="section" id="practice">
