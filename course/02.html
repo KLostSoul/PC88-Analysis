@@ -52,6 +52,7 @@ footer{max-width:1080px;margin:0 auto 60px;padding:0 20px;color:var(--muted);fon
 .lab{border:1px solid #cbd7f2;background:#f8faff;border-radius:14px;padding:16px;margin:16px 0}.lab h4{margin:0 0 8px;color:#2444a8}.lab label{font-weight:800;margin-right:6px}.lab input,.lab select{font:inherit;border:1px solid #a8b3c6;border-radius:8px;background:#fff;padding:7px 9px;min-width:90px}.lab .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:9px 0}.regboard{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}.regbox{border:1px solid var(--line);border-radius:10px;background:#fff;padding:9px 10px;text-align:center}.regbox b{display:block;color:#2444a8}.bits{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.08em;background:#111827;color:#e5e7eb;border-radius:9px;padding:9px 11px;display:inline-block}.path-taken{background:#ecfdf5;border-color:#86d7bd}.path-skip{background:#fff8e6;border-color:#e7c56f}.io-board{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}.io-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:12px}.io-box b{display:block;color:#2444a8;margin-bottom:4px}.trace-line{border-left:4px solid #3157d5;background:#eef3ff;padding:9px 12px;border-radius:8px;margin:8px 0}.trace-line.done{border-left-color:#13795b;background:#ecfdf5}.trace-line.pending{opacity:.62}
 @media(max-width:760px){nav.toc ol{columns:1}.grid2,.grid3,.compare{grid-template-columns:1fr}.grid2>*,.grid3>*,.compare>*,.card,.io-box,.regbox{min-width:0}.keypoint{grid-template-columns:1fr}.compare .middle{transform:rotate(90deg)}section{padding:23px 18px}.glossary,.code-anatomy{grid-template-columns:110px 1fr}.flag-row{grid-template-columns:repeat(4,1fr)}.stackrow{grid-template-columns:90px 1fr}.stackrow .desc{display:none}.regboard{grid-template-columns:repeat(2,minmax(0,1fr))}.io-board{grid-template-columns:1fr}h1,h2,h3,h4,.btn{word-break:keep-all;overflow-wrap:break-word}}
 @media print{body{background:#fff}header{background:#fff;color:#000;padding:20px 0}.lead{color:#333}.wrap{padding:0}.toc,section{box-shadow:none;break-inside:avoid}button{display:none}.no-print{display:none}}
+.course-nav{max-width:1080px;margin:18px auto 0;padding:0 20px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;font-weight:800}.course-nav-bottom{margin-top:28px;margin-bottom:24px}.course-nav a{padding:9px 13px;border:1px solid #d8deea;border-radius:10px;background:#fff;color:#2342a3;text-decoration:none;line-height:1.35}.course-nav a:hover{background:#eef3ff}.course-nav .course-prev{justify-self:start}.course-nav .course-index{justify-self:center}.course-nav .course-next{justify-self:end}.course-nav .nav-empty{visibility:hidden}@media(max-width:800px){.course-nav{padding:0 16px;gap:6px}.course-nav a{padding:8px 9px;font-size:.9rem}}
 </style>
 </head>
 <body>
@@ -62,6 +63,11 @@ footer{max-width:1080px;margin:0 auto 60px;padding:0 20px;color:var(--muted);fon
 <p class="lead">Z80 어셈블리 코드를 처음 보는 사람을 기준으로, 한 줄의 문법부터 값·주소·포인터, flag와 분기, stack과 subroutine, block transfer, I/O까지 실제 실행 상태를 따라가며 배웁니다. 목표는 명령어를 외우는 것이 아니라 주석 없는 실제 disassembly를 읽고 코드 블록의 역할을 판단하는 것입니다.</p>
 </div>
 </header>
+<nav class="course-nav course-nav-top" aria-label="강좌 이동">
+<a class="course-prev" href="01.html">← 1부</a>
+<a class="course-index" href="../index.html">강좌 목록</a>
+<a class="course-next" href="03.html">3부 →</a>
+</nav>
 <main class="wrap">
 <nav class="toc" aria-label="목차">
 <strong>목차</strong>
@@ -1091,6 +1097,11 @@ JP Z,0452h</pre>
 <details><summary>Q24. F5/F3는 항상 연산 결과의 bit 5/3을 복사하는가?</summary><div class="answer">아닙니다. 그런 계열이 많지만 만능 규칙은 아닙니다. 예를 들어 CP에서는 비교 operand의 bit 5/3에서 오고, indexed BIT 계열에서는 effective address의 상위 byte에서 오는 특수 동작이 알려져 있습니다.</div></details>
 <details><summary>Q25. FFh는 255인가, -1인가?</summary><div class="answer">저장된 bit pattern 자체는 FFh입니다. unsigned 8bit로 해석하면 255, signed 8bit 2의 보수로 해석하면 -1입니다. 문맥과 instruction이 해석을 결정합니다.</div></details>
 </section>
+<nav class="course-nav course-nav-bottom" aria-label="강좌 이동">
+<a class="course-prev" href="01.html">← 1부</a>
+<a class="course-index" href="../index.html">강좌 목록</a>
+<a class="course-next" href="03.html">3부 →</a>
+</nav>
 </main>
 <footer>PC-88 게임 분석 기초 · 2부</footer>
 <script>

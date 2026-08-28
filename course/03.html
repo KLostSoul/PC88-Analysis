@@ -55,10 +55,16 @@ table{width:100%;border-collapse:collapse;margin:14px 0 20px;font-size:.96rem}th
 .seek-axis{overflow:visible!important}.seek-track-row{grid-template-columns:repeat(2,minmax(0,1fr));min-width:0}.seek-track-box{min-width:0}.seek-axis-title{font-size:.9rem}
 .mapping-cards{grid-template-columns:1fr}.bit-route{grid-template-columns:repeat(8,minmax(30px,1fr));gap:5px}.bit-route span{font-size:.82rem;padding:6px 1px}
 }
+.course-nav{max-width:1080px;margin:18px auto 0;padding:0 20px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;font-weight:800}.course-nav-bottom{margin-top:28px;margin-bottom:24px}.course-nav a{padding:9px 13px;border:1px solid #d8deea;border-radius:10px;background:#fff;color:#2342a3;text-decoration:none;line-height:1.35}.course-nav a:hover{background:#eef3ff}.course-nav .course-prev{justify-self:start}.course-nav .course-index{justify-self:center}.course-nav .course-next{justify-self:end}.course-nav .nav-empty{visibility:hidden}@media(max-width:800px){.course-nav{padding:0 16px;gap:6px}.course-nav a{padding:8px 9px;font-size:.9rem}}
 </style>
 </head>
 <body>
 <header><div class="header-inner"><div class="eyebrow">PC-88 GAME ANALYSIS BASICS</div><h1>PC-88 게임 분석을 위한 기초 강좌 3부</h1><p class="lead">플로피 안에서 데이터가 어떻게 지나가고 읽히는지부터 시작해, 그 데이터가 디스크 이미지 파일과 메모리에서 어떻게 다른 위치값으로 보이는지, 그리고 글자 모양 데이터를 어떻게 찾아 화면에 그리는지 순서대로 배웁니다. 전문용어는 동작을 먼저 이해한 뒤 하나씩 붙입니다.</p><div class="hero-badges"><span class="hero-badge">플로피가 읽히는 원리</span><span class="hero-badge">디스크 데이터를 찾는 과정</span><span class="hero-badge">D88 파일 구조</span><span class="hero-badge">글자 모양 데이터</span><span class="hero-badge">필요한 실습만</span></div></div></header>
+<nav class="course-nav course-nav-top" aria-label="강좌 이동">
+<a class="course-prev" href="02.html">← 2부</a>
+<a class="course-index" href="../index.html">강좌 목록</a>
+<a class="course-next" href="04.html">4부 →</a>
+</nav>
 <div class="wrap">
 <nav class="toc"><strong>목차</strong><ol>
 <li><a href="#map">전체 흐름부터 보기</a></li><li><a href="#rotation">1. 무엇이 회전하는가</a></li><li><a href="#seek">2. 다른 기록 줄로 이동하는 방법</a></li><li><a href="#geometry">3. 디스크의 양쪽 면 읽기</a></li><li><a href="#sector">4. 한 기록 구간의 구조</a></li><li><a href="#chrn">5. 원하는 구간을 찾는 네 값</a></li><li><a href="#size">6. 데이터 크기를 나타내는 코드</a></li><li><a href="#media">7. 디스크 종류와 실제 배치</a></li><li><a href="#fdc">8. FDC와 μPD765가 데이터를 읽는 과정</a></li><li><a href="#subcpu">9. PC-88에서 디스크 일을 나누는 구조</a></li><li><a href="#handshake">10. 두 CPU가 일을 주고받는 방법</a></li><li><a href="#d88">11. 실제 플로피를 파일로 보관하는 방법</a></li><li><a href="#d88-map">12. 파일 속 Track 위치표</a></li><li><a href="#sector-header">13. 데이터 앞의 16바이트 설명 정보</a></li><li><a href="#walker">14. 다음 Sector 위치 찾기</a></li><li><a href="#raw">15. 데이터만 있는 표현과 metadata가 있는 표현</a></li><li><a href="#disk-ram">16. 파일 위치와 메모리 위치</a></li><li><a href="#kanji">17. 글자 모양 데이터는 어디에 있는가</a></li><li><a href="#glyph">18. 16×16 점 그림과 32바이트</a></li><li><a href="#jis">19. 게임 내부 문자값과 JIS 구분</a></li><li><a href="#jis-mapping">20. JIS를 Kanji ROM 위치값으로 바꾸기</a></li><li><a href="#kanji-io">21. KANJI access로 실제 글자 모양 읽기</a></li><li><a href="#rom-offset">22. 하드웨어 위치값과 ROM 파일 위치</a></li><li><a href="#custom-font">23. 내장 글꼴과 게임 자체 글꼴</a></li><li><a href="#coordinates">24. 다섯 가지 위치 체계 정리</a></li><li><a href="#final-lab">25. 숫자가 어느 단계의 값인지 분류</a></li><li><a href="#quiz">확인 문제</a></li>
@@ -393,6 +399,11 @@ byte   15020h ~ 1503Fh
 <details><summary>13. Shift-JIS 계열 token이 모든 PC-88 게임의 보편적 내부 문자 형식인가?</summary><div class="answer">아니다. 게임마다 내부 표현이 다를 수 있으며 실제 코드로 확인해야 한다.</div></details>
 <details><summary>14. 화면에 일본어가 보인다는 사실만으로 시스템 Kanji ROM 사용을 확정할 수 있는가?</summary><div class="answer">아니다. 게임 자체 Font를 사용할 수도 있으므로 실제 I/O와 Font Data 경로를 확인해야 한다.</div></details>
 </section>
+<nav class="course-nav course-nav-bottom" aria-label="강좌 이동">
+<a class="course-prev" href="02.html">← 2부</a>
+<a class="course-index" href="../index.html">강좌 목록</a>
+<a class="course-next" href="04.html">4부 →</a>
+</nav>
 </div><footer>PC-88 게임 분석 기초 · 3부</footer>
 <script>
 (()=>{
