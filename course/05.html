@@ -67,10 +67,9 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
 <section class="section" id="first-stop">
   <div class="num">02 · FIRST OBSERVATION</div>
   <h2>타이틀 화면에서 현재 PC와 주변 Code를 확인한다</h2>
-  <p>오프닝 화면 처리 중 강제로 브레이크를 겁니다. 브레이크가 걸린 정지 시점에 먼저 <code>reg</code>로 register와 <code>PC</code>를 확인하고, 주소를 생략한 <code>disasm #64</code>로 현재 PC부터 이어지는 명령을 표시합니다. 이렇게 현재 실행 위치와 주변 명령에서 조사를 시작합니다.</p>
-  <div class="state"><b>게임 상태</b><span>오프닝·로고 그래픽 처리 중 강제로 브레이크를 건 상태</span><b>복사할 명령</b><span><code>reg</code>를 실행한 뒤 <code>disasm #64</code>로 현재 PC 주변을 확인</span><b>정상적으로 볼 결과</b><span>현재 PC와 그 주변의 반복·분기·Memory 접근 명령</span></div>
+  <p>오프닝 화면 처리 중 강제로 브레이크를 겁니다. 브레이크가 걸리면 QUASI88이 현재 register와 <code>PC</code> 주변 상태를 자동으로 표시합니다. 이어 주소를 생략한 <code>disasm #64</code>를 실행해 현재 PC부터 이어지는 명령을 확인합니다.</p>
+  <div class="state"><b>게임 상태</b><span>오프닝·로고 그래픽 처리 중 강제로 브레이크를 건 상태</span><b>자동 표시</b><span>브레이크가 걸리는 순간 현재 register와 PC 주변 명령이 자동으로 표시됨</span><b>실행할 명령</b><span><code>disasm #64</code>로 현재 PC부터 이어지는 명령을 확인</span><b>정상적으로 볼 결과</b><span>현재 PC와 그 주변의 반복·분기·Memory 접근 명령</span></div>
   <div class="terminal">break clearall #0
-reg
 disasm #64</div>
   <p>오프닝 화면 처리 중 강제로 브레이크를 겁니다. 정지 시점의 register 출력에서 <code>PC=04DA</code>를 확인합니다.</p>
   <div class="terminal compact">[MAIN]
@@ -236,13 +235,12 @@ g</div>
             04C9 CB1E      RR    (HL)
     ------> 04CB 23        INC   HL
             04CC CB1E      RR    (HL)</div>
-  <div class="state"><b>게임 상태</b><span><code>PC=04CB</code>에서 <code>INC HL</code> 직전 정지. <code>HL=D8DF</code></span><b>관찰 과정</b><span><code>dump</code> → <code>s</code> → <code>reg</code> → 다시 <code>dump</code>를 차례로 실행하며 각 시점의 PC·HL·Memory 값을 비교</span><b>정상적으로 볼 결과</b><span>첫 step은 HL만 증가하고, 다음 <code>RR (HL)</code> 뒤에는 대상 byte가 변함</span></div>
+  <div class="state"><b>게임 상태</b><span><code>PC=04CB</code>에서 <code>INC HL</code> 직전 정지. <code>HL=D8DF</code></span><b>관찰 과정</b><span><code>dump</code> → <code>s</code>(자동 상태 출력) → <code>dump</code> → <code>s</code>(자동 상태 출력) → <code>dump</code>를 차례로 실행하며 각 시점의 PC·HL·Memory 값을 비교</span><b>정상적으로 볼 결과</b><span>첫 step은 HL만 증가하고, 다음 <code>RR (HL)</code> 뒤에는 대상 byte가 변함</span></div>
   <p>다음은 Monitor에서 입력한 명령과 각 명령 직후의 출력이 이어지는 순서 그대로 재현한 로그입니다.</p>
   <div class="terminal">QUASI88&gt;dump 0xD8D8 #16
 D8D8 : 08 00 02 00 80 00 00 00 10 41 00 00 00 00 00 04
 
 QUASI88&gt;s
-QUASI88&gt;reg
 [MAIN]
  AF:0044[.Z...P..] BC:0150  DE:D8FF  HL:D8E0  IX:3900  PC:04CC
             04CB 23        INC   HL
@@ -251,7 +249,6 @@ QUASI88&gt;dump 0xD8D8 #16
 D8D8 : 08 00 02 00 80 00 00 00 10 41 00 00 00 00 00 04
 
 QUASI88&gt;s
-QUASI88&gt;reg
 [MAIN]
  AF:0000[........] BC:0150  DE:D8FF  HL:D8E0  IX:3900  PC:04CE
             04CC CB1E      RR    (HL)
