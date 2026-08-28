@@ -237,28 +237,26 @@ g</div>
     ------> 04CB 23        INC   HL
             04CC CB1E      RR    (HL)</div>
   <div class="state"><b>게임 상태</b><span><code>PC=04CB</code>에서 <code>INC HL</code> 직전 정지. <code>HL=D8DF</code></span><b>관찰 과정</b><span><code>dump</code> → <code>s</code> → <code>reg</code> → 다시 <code>dump</code>를 차례로 실행하며 각 시점의 PC·HL·Memory 값을 비교</span><b>정상적으로 볼 결과</b><span>첫 step은 HL만 증가하고, 다음 <code>RR (HL)</code> 뒤에는 대상 byte가 변함</span></div>
-  <div class="terminal">dump 0xD8D8 #16
-s
-reg
-dump 0xD8D8 #16
-s
-reg
-dump 0xD8D8 #16</div>
-  <p>이제 <code>dump</code>와 한 단계 실행을 번갈아 하며 다음 변화를 확인합니다.</p>
-  <div class="terminal">D8D8 : 08 00 02 00 80 00 00 00 10 41 00 00 00 00 00 04
-
-첫 번째 s 뒤
- AF:0044[.Z...P..] BC:0150  DE:D8FF  HL:D8E0  IX:3900  PC:04CC
-            04CB 23        INC   HL
-    ------> 04CC CB1E      RR    (HL)
-
+  <p>다음은 Monitor에서 입력한 명령과 각 명령 직후의 출력이 이어지는 순서 그대로 재현한 로그입니다.</p>
+  <div class="terminal">QUASI88&gt;dump 0xD8D8 #16
 D8D8 : 08 00 02 00 80 00 00 00 10 41 00 00 00 00 00 04
 
-두 번째 s 뒤
+QUASI88&gt;s
+QUASI88&gt;reg
+[MAIN]
+ AF:0044[.Z...P..] BC:0150  DE:D8FF  HL:D8E0  IX:3900  PC:04CC
+            04CB 23        INC   HL
+    ------&gt; 04CC CB1E      RR    (HL)
+QUASI88&gt;dump 0xD8D8 #16
+D8D8 : 08 00 02 00 80 00 00 00 10 41 00 00 00 00 00 04
+
+QUASI88&gt;s
+QUASI88&gt;reg
+[MAIN]
  AF:0000[........] BC:0150  DE:D8FF  HL:D8E0  IX:3900  PC:04CE
             04CC CB1E      RR    (HL)
-    ------> 04CE 23        INC   HL
-
+    ------&gt; 04CE 23        INC   HL
+QUASI88&gt;dump 0xD8D8 #16
 D8D8 : 08 00 02 00 80 00 00 00 08 41 00 00 00 00 00 04</div>
   <div class="grid2"><article><h4>관찰</h4><p><code>HL=D8E0</code>인 상태에서 <code>RR (HL)</code>을 실행한 뒤 <code>D8E0</code>의 값이 <code>10</code>에서 <code>08</code>로 바뀌었습니다.</p></article><article><h4>판단</h4><p>이 반복 Code는 HL이 가리키는 Memory를 실제로 읽고 같은 위치에 변경된 값을 기록합니다.</p></article></div>
   <div class="callout ok"><h3>이제 확정할 수 있는 범위</h3><p><code>04B4</code> 이후의 반복은 D8xx 계열 그래픽 처리 영역을 비트 단위로 변형하는 동작과 연결됩니다. 하지만 이 Code가 어디서 호출되었고, 원천 Data가 어디에 있는지는 아직 남은 질문입니다.</p></div>
