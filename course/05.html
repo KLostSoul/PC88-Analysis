@@ -236,7 +236,7 @@ g</div>
             04C9 CB1E      RR    (HL)
     ------> 04CB 23        INC   HL
             04CC CB1E      RR    (HL)</div>
-  <div class="state"><b>게임 상태</b><span><code>PC=04CB</code>에서 <code>INC HL</code> 직전 정지. <code>HL=D8DF</code></span><b>복사할 명령</b><span><code>dump</code> → <code>s</code> → <code>reg</code> → 다시 <code>dump</code>를 실행하며 한 명령씩 비교</span><b>정상적으로 볼 결과</b><span>첫 step은 HL만 증가하고, 다음 <code>RR (HL)</code> 뒤에는 대상 byte가 변함</span></div>
+  <div class="state"><b>게임 상태</b><span><code>PC=04CB</code>에서 <code>INC HL</code> 직전 정지. <code>HL=D8DF</code></span><b>관찰 과정</b><span><code>dump</code> → <code>s</code> → <code>reg</code> → 다시 <code>dump</code>를 차례로 실행하며 각 시점의 PC·HL·Memory 값을 비교</span><b>정상적으로 볼 결과</b><span>첫 step은 HL만 증가하고, 다음 <code>RR (HL)</code> 뒤에는 대상 byte가 변함</span></div>
   <div class="terminal">dump 0xD8D8 #16
 s
 reg
