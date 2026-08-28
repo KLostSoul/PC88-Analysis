@@ -1,0 +1,24 @@
+name: Fix course 04 emulator lab wording
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-course04-emulator-lab.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update course 04 wording
+        run: python3 .github/scripts/fix_course04_emulator_lab.py
+      - name: Commit change
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add course/04.html
+          git commit -m 'Refocus course 04 section 4 on emulator-based practice'
+          git push
