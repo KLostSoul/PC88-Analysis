@@ -29,7 +29,7 @@ main{max-width:1080px;margin:0 auto;padding:26px 20px 80px}
 .progress-wrap{margin-top:20px}
 .progress-label{display:flex;justify-content:space-between;gap:12px;font-size:.9rem;font-weight:800;margin-bottom:7px}
 .progress{height:10px;background:#e6eaf2;border-radius:999px;overflow:hidden}
-.progress span{display:block;width:62.5%;height:100%;background:linear-gradient(90deg,#3157d5,#5877df)}
+.progress span{display:block;width:75%;height:100%;background:linear-gradient(90deg,#3157d5,#5877df)}
 .course-section{margin-top:32px}
 .section-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:14px}
 .section-head p{margin:0;color:var(--muted);font-size:.94rem}
@@ -87,7 +87,7 @@ footer a{color:var(--accent2);font-weight:800}
     <p>PC-88 게임을 처음 분석하는 사람도 순서대로 따라갈 수 있도록 구성한 기초 강좌입니다.</p>
     <p>앞부분에서 필요한 원리를 익힌 뒤, 뒤로 갈수록 실제 실행 중인 게임을 관찰하고 분석하는 방법으로 이어집니다.</p>
     <div class="progress-wrap" aria-label="강좌 진행률">
-      <div class="progress-label"><span>현재 진행</span><span>5 / 8개 강좌 완료</span></div>
+      <div class="progress-label"><span>현재 진행</span><span>6 / 8개 강좌 완료</span></div>
       <div class="progress"><span></span></div>
     </div>
   </section>
@@ -134,11 +134,12 @@ footer a{color:var(--accent2);font-weight:800}
         <span class="open">강좌 열기</span>
       </a>
 
-      <article class="card disabled">
-        <div class="card-top"><span class="part">FOUNDATION 05</span><span class="status soon">예정</span></div>
-        <h3>5부 — 게임 데이터와 코드의 흐름을 추적하는 방법</h3>
-        <p>화면에서 발견한 현상에서 출발해 관련 메모리와 코드, 로더, 디스크 데이터의 연결 관계를 추적하는 분석 절차를 다룹니다.</p>
-      </article>
+      <a class="card" href="./course/05.html">
+        <div class="card-top"><span class="part">FOUNDATION 05</span><span class="status done">완료</span></div>
+        <h3>5부 — 실제 게임에서 Data와 Code의 흐름 추적하기</h3>
+        <p>《몽환전사 바리스》 타이틀 CG를 예시로, 화면 관찰에서 시작해 실행 중인 코드, 실제 메모리 WRITE, 호출자, 입력·출력 후보까지 근거를 따라 좁혀 갑니다.</p>
+        <span class="open">강좌 열기</span>
+      </a>
 
       <article class="card disabled">
         <div class="card-top"><span class="part">FOUNDATION 06</span><span class="status soon">예정</span></div>
