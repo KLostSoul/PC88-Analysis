@@ -128,7 +128,7 @@ PC-88 에뮬레이터마다 debugger 기능과 조작법은 다를 수 있으므
 
 - [6부 강좌](course/06.html)
 - [6부 QUASI88 실제 로그 원문 전체](course/06-logs.md)
-- [6부 실측 근거와 미확보 목록](course/06-evidence.md)
+- [6부 분석 근거 및 실습 자료](course/06-evidence.md)
 - [6부 이미지 수집·배치 목록](images/course06/README.md)
 
 ## 5부 이후의 방향
