@@ -237,7 +237,9 @@ QUASI88&gt;</div>
 
 <section class="section" id="script">
  <div class="num">04 · SCRIPT READER</div>
- <h2>반환 경로에서 실제 Script consumer를 발견한다</h2>
+ <h2>대기 루프를 빠져나와 다음 문자 데이터를 읽는 곳을 찾는다</h2>
+ <p>앞 단계에서 찾은 <code>044F JP 02E4h</code>는 대기가 끝난 다음 이동할 주소입니다. 어떤 게임이든 문자를 한 번 출력하고 끝나는 것이 아니라, 이어지는 글자를 읽어 출력하는 과정을 반복해야 대사 한 문장이 완성됩니다. 따라서 <code>02E4h</code> 주변에 <strong>다음 글자의 데이터를 가져오는 Code</strong>가 있는지 조사합니다.</p>
+ <p>실제 <code>disasm</code>에 등장하는 <code>HL</code>은 이번 실행에서 Script가 저장된 RAM을 가리킵니다. <code>LD E,(HL)</code>은 그 주소의 바이트를 E에 읽어 오고, 곧이어 <code>INC HL</code>은 읽기 위치를 다음 바이트로 한 칸 옮깁니다. 이 두 명령을 발견하면 게임이 Script를 한 바이트씩 소비한다는 사실을 알 수 있습니다.</p>
  <div class="terminal" aria-label="QUASI88 원문 04">QUASI88&gt; disasm 0x02E4 #48
 02E4 3ACC02    LD    A,(02CCH)
 02E7 CB7F      BIT   7,A
@@ -309,18 +311,22 @@ QUASI88&gt; disasm 0x04AE #20
 04D0 3ACD02    LD    A,(02CDH)
 04D3 CB7F      BIT   7,A
 QUASI88&gt;</div>
- <p>현재 <code>HL=96A3h</code>이고 <code>0C84h=C8h</code>입니다. 이번 장면에서 이미 처리한 두 Token의 시작 위치를 확인할 수 있습니다. <code>02EDh</code>는 Script의 첫 바이트를 <code>E</code>로 읽고, <code>0C84h</code>에 저장한 뒤 하위 4비트로 분기합니다.</p>
+ <p>현재 <code>HL=96A3h</code>이고 <code>0C84h=C8h</code>입니다. 이 값이 무엇을 뜻하는지 실제 RAM 덤프와 비교해 봅시다. <code>969Fh</code>부터는 <code>B8 62 C8 18 48 38 ...</code>이 놓여 있습니다. 화면에는 이미 「雨が」가 보이므로 처음 네 바이트 <code>B8 62 / C8 18</code>이 각각 앞의 두 글자에 대응하는지 확인할 수 있습니다. 두 글자를 처리한 뒤의 주소는 <code>969Fh+4=96A3h</code>이며, 실제 HL과 일치합니다.</p>
+ <p>또한 <code>LD (0C84H),A</code>는 읽어 온 첫 바이트를 별도로 보관합니다. 다음의 <code>AND 0FH</code>는 그 바이트의 하위 네 비트만 남기고, 뒤따르는 <code>CP</code>와 <code>JP</code>는 이 값에 따라 서로 다른 처리 위치를 선택합니다. 이렇게 <strong>Script 바이트를 읽고 종류에 따라 처리 위치를 고르는 Code</strong>를 이번 실습에서는 Script 처리기라고 부르겠습니다.</p>
  <div class="table-wrap"><table><thead><tr><th>주소</th><th>실제 Byte</th><th>장면의 문자</th><th>다음 HL</th></tr></thead><tbody>
  <tr><td><code>969Fh</code></td><td><code>B8 62</code></td><td>雨</td><td><code>96A1h</code></td></tr>
  <tr><td><code>96A1h</code></td><td><code>C8 18</code></td><td>が</td><td><code>96A3h</code></td></tr>
  <tr><td><code>96A3h</code></td><td><code>48 38</code></td><td>や — 다음 출력 대상</td><td><code>96A5h</code></td></tr>
  </tbody></table></div>
- <div class="callout warn"><h3>Token과 JIS를 같은 것으로 취급하지 않는다</h3><p><code>B8 62</code>는 이 게임에서 확인한 Script Byte입니다. <code>0B8Fh</code>에 전달되는 Kanji 접근 주소는 별도 명령으로 구성됩니다. 또한 이번 분기가 모든 제어 Token의 길이·의미까지 설명하는 것은 아닙니다.</p></div>
+ <div class="callout warn"><h3>Script의 문자값과 ROM의 주소는 다른 값이다</h3><p>여기서 본 <code>B8 62</code>는 <strong>바리스 1의 Script 안에서 「雨」를 나타낸 실제 두 바이트</strong>입니다. 이를 일본어 표준 문자 코드인 JIS나 ROM 파일의 위치라고 바로 해석하면 안 됩니다. 다음 단계에서 <code>B8 62</code>가 실제로 어떤 값으로 바뀌어 Kanji ROM에 전달되는지 Code를 읽어 확인합니다. 이번 장면의 문자 처리 경로를 찾았다고 해서 아직 전체 제어 Token의 길이와 의미까지 알아낸 것은 아닙니다.</p></div>
 </section>
 
 <section class="section" id="token">
  <div class="num">05 · TRACE TOKEN BRANCH</div>
- <h2>상위 비트와 두 번째 바이트에서 Glyph 주소를 구성한다</h2>
+ <h2>두 바이트가 어떻게 글리프를 읽는 주소로 바뀌는지 따라간다</h2>
+ <p>Script에서 <code>B8</code>을 읽은 뒤 하위 네 비트를 검사하면 <code>08h</code>가 남습니다. 실제 분기표의 <code>031B CP 08H</code>와 <code>031D JP Z,03B8H</code>에 따라 <code>03B8h</code>로 이동합니다. 이제 이 주소부터 무엇을 하는지 읽어 보면, 앞 단계에서 발견한 Script 값이 문자 출력 루틴에 전달되기까지의 과정을 알 수 있습니다.</p>
+ <p><code>AND F0H</code>는 E에 남아 있는 첫 바이트의 하위 네 비트를 지웁니다. 이어 <code>LD D,(HL)</code>은 Script의 두 번째 바이트를 D에 읽고 <code>INC HL</code>로 다음 Script 위치로 이동합니다. Z80의 <code>DE</code>는 D가 상위 바이트, E가 하위 바이트인 16비트 Register이므로, 「雨」의 <code>B8 62</code>는 이 처리 뒤에 <code>DE=62B0h</code>가 됩니다.</p>
+ <div class="state"><b>첫 바이트 읽기</b><span><code>B8</code> → <code>B8 AND F0h = B0h</code> → <code>E=B0h</code></span><b>두 번째 바이트 읽기</b><span><code>62h</code> → <code>D=62h</code>; HL은 다음 문자 위치로 이동</span><b>두 Register의 조합</b><span><code>D=62h</code>, <code>E=B0h</code>이므로 <code>DE=62B0h</code></span></div>
  <div class="terminal" aria-label="QUASI88 원문 05">QUASI88&gt; disasm 0x03B8 #80
 03B8 7B        LD    A,E
 03B9 E6F0      AND   F0H
@@ -483,7 +489,7 @@ QUASI88&gt;</div>
  <tr><td><code>C8 18</code> (が)</td><td><code>C8 &amp; 0F = 08</code>, <code>E=C0</code>, <code>D=18</code></td><td><code>18C0h</code></td></tr>
  <tr><td><code>48 38</code> (や)</td><td><code>48 &amp; 0F = 08</code>, <code>E=40</code>, <code>D=38</code></td><td><code>3840h</code></td></tr>
  </tbody></table></div>
- <p><code>03BE~03C3</code>은 저장해 둔 Token 첫 바이트의 <code>08h</code> 비트를 다시 검사합니다. 이번 세 Token에서는 <code>043Fh</code>를 거쳐 같은 출력 루틴을 호출하지만, 다른 조건의 처리는 구분해 두어야 합니다.</p>
+ <p>표에서 「が」와 「や」도 같은 방식으로 계산하면 <code>18C0h</code>, <code>3840h</code>가 됩니다. 이제 <code>03BE~03C3</code>에서 보관했던 첫 바이트의 <code>08h</code> 비트를 검사합니다. 이번 세 문자는 모두 <code>043Fh</code>로 분기하고, 그곳의 <code>0443 CALL 0B8FH</code>에서 같은 출력 루틴을 호출합니다. 즉 <strong>문자마다 다른 DE를 준비하되 출력에 사용하는 Code는 공통</strong>이라는 사실을 알 수 있습니다. 다른 종류의 Token이 어떤 분기로 이동하는지는 이 사례만으로 일반화하지 않습니다.</p>
  
 <div class="diagram"><h3>이번 장면에서 실제로 연결한 경로</h3>
 <p>번호는 수강생에게 처음부터 주는 정답이 아니라, 각 관찰이 끝난 뒤 기록한 결과입니다.</p>
@@ -501,8 +507,10 @@ QUASI88&gt;</div>
 
 <section class="section" id="kanji">
  <div class="num">06 · KANJI ROM I/O</div>
- <h2>실제로 다음 글자 「や」를 읽기 직전의 레지스터를 잡는다</h2>
- <p>앞선 호출 관계에서 찾은 <code>0B8Fh</code>는 출력의 시작 주소를 준비하고 <code>0BE1h</code>를 16번 호출합니다. 이미 「雨が」가 출력된 현재 상태에서 다음 글자를 확인하기 위해 실측된 breakpoint를 사용합니다.</p>
+ <h2>Kanji ROM에 글자 모양을 요청하는 순간을 확인한다</h2>
+ <p>앞 단계에서는 Script의 두 바이트가 <code>DE</code>라는 값으로 바뀌고 <code>0B8Fh</code>에 전달되는 것까지 확인했습니다. 그런데 <strong>DE가 실제로 Kanji ROM의 주소인지</strong>는 아직 Code와 실행 결과로 확인해야 합니다. 따라서 <code>0B8Fh</code> 안에서 반복 호출되는 <code>0BE1h</code>를 살펴봅니다.</p>
+ <p>3부에서 다룬 16×16 글리프는 세로로 16행이고 각 행에 가로 16개의 점이 있습니다. 한 점을 한 비트로 표현하면 한 행은 2바이트, 16행 전체는 32바이트가 됩니다. 이번 출력 Code가 <code>0BE1h</code>를 16번 호출하는 이유도 <strong>한 번 호출할 때마다 글리프의 한 행을 읽는 구조</strong>와 연결해서 이해할 수 있습니다.</p>
+ <p>현재 화면에는 「雨が」가 출력돼 있으므로 다음에 처리할 글자는 「や」입니다. 앞 단계에서 「や」의 Token <code>48 38</code>을 <code>DE=3840h</code>으로 변환한다는 것을 확인했습니다. 이 값을 실제로 사용하고 있는지 보기 위해 <code>0BE1h</code>에 Breakpoint를 걸고 실행한 기록을 살펴봅시다.</p>
  <div class="terminal" aria-label="QUASI88 원문 07">QUASI88&gt; break 0x0BE1 #1
 set break point MAIN - #1 [ PC : 0BE1H ]
 QUASI88&gt; go
@@ -539,8 +547,9 @@ QUASI88&gt; disasm #24
 0C02 AF        XOR   A
 0C03 D335      OUT   (35H),A
 QUASI88&gt;</div>
- <p><code>DE=3840h</code>은 현재 「や」 Token <code>48 38</code>에서 구성한 값과 일치합니다. <code>E8h/E9h</code>에 위치를 설정한 뒤 같은 포트에서 두 바이트를 읽고, 읽을 때마다 <code>DE</code>를 증가시키는 구조를 확인합니다.</p>
- <div class="question">여기서 출력 Code만 보는 것으로 충분할까요? 실제 <strong>IN 결과와 쓰기 직전의 BC</strong>를 확인해야 합니다.</div>
+ <p>Breakpoint가 걸린 순간 실제 <code>DE=3840h</code>이므로, 앞 단계에서 Script로부터 계산한 값과 일치합니다. <code>OUT (E8H),A</code>와 <code>OUT (E9H),A</code>로 읽을 글리프의 접근 위치를 지정하고, <code>IN A,(E8H)</code>와 <code>IN A,(E9H)</code>로 2바이트를 읽습니다. 읽은 값은 차례로 C와 B에 저장되고, <code>INC DE</code>가 다음 행의 접근값을 준비합니다.</p>
+ <p>여기서 <code>OUT</code>은 주소를 알려 주는 동작이고 <code>IN</code>은 실제 데이터를 가져오는 동작입니다. 명령을 읽었다는 사실만으로 어느 모양의 바이트를 얻었는지까지 알 수는 없습니다. 다음 단계에서는 <code>IN</code> 두 명령이 실행된 뒤, <strong>메모리에 기록하기 직전의 BC</strong>를 실제 레지스터로 확인합니다.</p>
+ <div class="question">다음 질문: <strong>Kanji ROM에서 읽은 글리프 두 바이트는 어떤 값이고, 그 값이 화면 쪽에 어떻게 전달되는가?</strong></div>
 </section>
 
 <section class="section" id="write">
