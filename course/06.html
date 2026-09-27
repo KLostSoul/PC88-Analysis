@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="PC-88 게임 분석 기초 강좌 6부 초안: 실제 QUASI88 로그로 Script Token, Kanji ROM glyph와 화면 출력 경로를 추적하는 실습">
+<title>6부 — 문자·Font·화면 출력 경로를 분석하는 방법 | PC-88 게임 분석 기초 강좌</title>
+<style>
+:root{--bg:#f5f7fb;--paper:#fff;--ink:#172033;--muted:#5b6578;--line:#d8deea;--accent:#3157d5;--accent2:#2342a3;--soft:#eef3ff;--dark:#101622;--ok:#13795b;--warn:#a85b08;--shadow:0 8px 24px rgba(23,32,51,.06)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans KR","Malgun Gothic",sans-serif;line-height:1.78}a{color:var(--accent2)}
+header{background:linear-gradient(135deg,#172554,#2746b8);color:#fff;padding:54px 20px 46px}.header-inner,.wrap,main{max-width:1080px;margin:auto}.crumb{font-size:.9rem;font-weight:800;opacity:.85;margin-bottom:12px}.crumb a{color:inherit;text-decoration:none}.crumb a:hover{text-decoration:underline}.eyebrow{font-size:.9rem;letter-spacing:.08em;font-weight:800;opacity:.82}h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.13;margin:.35rem 0 .8rem}.lead{max-width:930px;font-size:1.08rem;color:#e3e9ff;margin:0}
+main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}.intro{padding:28px 30px;margin-top:-22px;position:relative}.intro p{margin:.45rem 0;color:var(--muted)}.intro strong,.section strong{color:#183c98}.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.badge{font-size:.84rem;font-weight:900;color:#183c98;background:var(--soft);border:1px solid #cad5f7;border-radius:999px;padding:5px 10px}.toc{margin-top:24px;padding-top:17px;border-top:1px solid var(--line)}.toc h3{margin:0 0 5px;font-size:1rem}.toc ol{columns:2;margin:.3rem 0;padding-left:1.3rem}.toc a{text-decoration:none;font-weight:750}
+.section{margin-top:28px;padding:29px 30px}.num{font-size:.84rem;letter-spacing:.08em;font-weight:900;color:var(--accent)}h2{font-size:clamp(1.45rem,3vw,2rem);line-height:1.3;margin:.2rem 0 .8rem}h3{font-size:1.17rem;line-height:1.45;margin:1.7rem 0 .55rem}.section p{margin:.62rem 0}.muted,.small{color:var(--muted)}.small{font-size:.92rem}.flow{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0}.flow span{background:var(--soft);border:1px solid #cad5f7;border-radius:10px;padding:8px 11px;font-weight:850;font-size:.9rem}.flow span+span:before{content:"→";color:var(--accent);margin-right:12px}
+.shots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:18px}.shot{margin:0;border:1px solid var(--line);border-radius:13px;overflow:hidden;background:#101010}.shot img{display:block;width:100%;height:auto}.shot figcaption{padding:10px 12px;background:#fff;color:var(--muted);font-size:.9rem}.shot strong{color:var(--ink)}
+.terminal{background:var(--dark);color:#e7edf9;border:1px solid #27344d;border-radius:13px;padding:17px 18px;overflow:auto;margin:15px 0;font:13px/1.58 ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;white-space:pre}.terminal .focus{color:#8db2ff}.terminal .mark{color:#80e7bd}.terminal .warn{color:#ffd18b}
+.callout{margin:17px 0;padding:18px 20px;background:#f7f9ff;border-color:#cbd6f5}.callout.warn{background:#fff8ed;border-color:#f0d39e}.callout.ok{background:#f0fbf7;border-color:#bfe6d8}.callout h3{margin:0 0 6px}.callout p{margin:.25rem 0}.question{border-left:4px solid var(--accent);padding:10px 15px;background:#f4f7ff;margin:16px 0;font-weight:750}.answer{border-left:4px solid var(--ok);padding:10px 15px;background:#f0fbf7;margin:16px 0}.answer strong{color:var(--ok)}
+.diagram{margin:20px 0;padding:18px 16px;background:#f8faff;border:1px solid #cad5f7;border-radius:13px}.diagram h3{margin:0 0 5px;color:#183c98}.diagram p{margin:.15rem 0 .8rem;font-size:.93rem;color:var(--muted)}.diagram .mermaid{margin:0;overflow:auto;text-align:center}
+.state{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;background:#f1f4fb;border:1px solid var(--line);border-radius:11px;padding:13px 15px;margin:15px 0}.state b{color:#183c98}.steps{padding-left:1.3rem}.steps li{margin:.7rem 0}.section code{font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;background:#edf1f8;border-radius:4px;padding:1px 4px;font-size:.93em}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;margin-top:13px;font-size:.94rem}th,td{padding:11px 12px;border:1px solid var(--line);vertical-align:top;text-align:left}th{background:#f1f4fb}td:first-child{font-weight:800}.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.grid2 article{background:#f8faff;border:1px solid #d7dff3;border-radius:12px;padding:14px 15px}.grid2 h4{margin:0 0 3px;color:#183c98}.grid2 p{margin:.2rem 0;font-size:.94rem}.record{background:#f3f6fb;border:1px dashed #b9c6de;border-radius:10px;padding:14px 16px;font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;white-space:pre-wrap;color:#30405e}.checks{display:grid;gap:10px;margin-top:16px}.check{background:#fff;border:1px solid var(--line);border-radius:11px;padding:12px 15px}.check summary{cursor:pointer;font-weight:800;color:#183c98}.check-answer{margin:.7rem 0 .15rem;padding:10px 12px;border-left:3px solid var(--ok);background:#f0fbf7}.next{margin-top:28px;background:linear-gradient(135deg,#172554,#2746b8);color:#fff;border-radius:18px;padding:26px 30px}.next h2{margin:0 0 7px}.next p{margin:.3rem 0;color:#e4eaff}.nav{display:flex;justify-content:space-between;gap:12px;margin-top:32px;font-weight:900}.nav a{text-decoration:none}
+@media(max-width:720px){header{padding:36px 16px}.intro,.section{padding:23px 18px}.shots,.grid2{grid-template-columns:1fr}.toc ol{columns:1}.terminal{font-size:12px}.flow span+span:before{margin-right:8px}.state{grid-template-columns:1fr;gap:0}.state b{margin-top:5px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+.course-nav{max-width:1080px;margin:18px auto 0;padding:0 20px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;font-weight:800}.course-nav-bottom{margin-top:28px;margin-bottom:24px}.course-nav a{padding:9px 13px;border:1px solid #d8deea;border-radius:10px;background:#fff;color:#2342a3;text-decoration:none;line-height:1.35}.course-nav a:hover{background:#eef3ff}.course-nav .course-prev{justify-self:start}.course-nav .course-index{justify-self:center}.course-nav .course-next{justify-self:end}.course-nav .nav-empty{visibility:hidden}@media(max-width:800px){.course-nav{padding:0 16px;gap:6px}.course-nav a{padding:8px 9px;font-size:.9rem}}
+
+/* Foundation 06 draft additions */
+.draft-label{display:inline-block;border-radius:999px;padding:5px 11px;background:#fff7e6;color:#83510e;border:1px solid #efcf8c;font-weight:900;font-size:.85rem}
+.shot-pending{background:#edf2fc;border:2px dashed #aec0e6;border-radius:13px;display:grid;place-items:center;min-height:200px;padding:22px;color:#334f85;text-align:center;line-height:1.5}
+.shot-pending strong{font-size:1.25rem;color:#183c98}.shot-pending small{color:#61708b}
+.status-table td:first-child{font-weight:650}.status-table td{vertical-align:middle}
+.pill-ok{color:#13795b;font-weight:900}.pill-wait{color:#a85b08;font-weight:900}
+.compact-code{font-size:12px;line-height:1.6}
+@media(max-width:720px){.shot-pending{min-height:140px}}
+</style>
+</head>
+<body>
+<header><div class="header-inner">
+ <div class="crumb"><a href="../index.html">PC-88 게임 분석 기초 강좌</a> / 6부</div>
+ <div class="eyebrow">PC-88 GAME ANALYSIS · FOUNDATION 06</div>
+ <h1>문자·Font·화면 출력 경로를 분석하는 방법</h1>
+ <p class="lead">《몽환전사 바리스》의 첫 이벤트에서 한 글자를 따라 Script Token → 문자 출력 Code → Kanji ROM → 화면까지 실제 실행 근거로 연결합니다.</p>
+</div></header>
+<nav class="course-nav course-nav-top" aria-label="강좌 이동">
+ <a class="course-prev" href="05.html">← 5부</a>
+ <a class="course-index" href="../index.html">강좌 목록</a>
+ <span class="nav-empty" aria-hidden="true"></span>
+</nav>
+<main>
+<section class="intro">
+ <span class="draft-label">제작 중 · 강좌 뼈대</span>
+ <h2>화면의 글자에서 Script까지 거슬러 올라간다</h2>
+ <p>5부에서 배운 것은 주소를 미리 아는 것이 아니라, 화면 관찰로 질문을 정하고 현재 실행값에서 다음 조사 위치를 찾는 방법이었습니다. 6부에서는 타이틀 로고가 아닌 <strong>실제 일본어 대사 한 줄</strong>에 같은 절차를 적용합니다.</p>
+ <p>먼저 Kanji ROM을 사용하는 장면인지 비교하고, 강제 Monitor 진입 뒤 Stack의 반환 주소·Script 처리기·문자 렌더러를 연결합니다. 마지막에는 <strong>Script Token 변경</strong>과 <strong>Font bitmap 변경</strong>을 서로 다른 실험으로 검증합니다.</p>
+ <div class="badges"><span class="badge">QUASI88 0.7.4</span><span class="badge">이벤트 1: 雨がやんでる・・・</span><span class="badge">실측 로그 1~8 확보</span><span class="badge">치환 실험 9~13 대기</span></div>
+ <div class="flow"><span>화면 비교</span><span>강제 Break</span><span>Stack</span><span>Script</span><span>Token 분기</span><span>Kanji I/O</span><span>Glyph 기록</span><span>두 가지 치환 검증</span></div>
+ <nav class="toc" aria-label="목차"><h3>분석 순서</h3><ol>
+ <li><a href="#classify">ROM을 쓰는 화면인지 확인한다</a></li>
+ <li><a href="#stop">「雨が」 표시 시점에서 강제 Monitor 진입</a></li>
+ <li><a href="#stack">Stack에서 대기 루프 호출자로 돌아간다</a></li>
+ <li><a href="#script">Script consumer와 첫 두 Token 발견</a></li>
+ <li><a href="#token">문자 Token의 분기를 실제 Code로 읽는다</a></li>
+ <li><a href="#kanji">Kanji ROM I/O를 따라 Glyph를 읽는다</a></li>
+ <li><a href="#write">두 Glyph 행과 GVRAM 접근 관찰</a></li>
+ <li><a href="#ram-test">Script 첫 Token을 「あ」로 바꾸는 실험</a></li>
+ <li><a href="#rom-test">HxD에서 「雨」 Glyph만 「가」로 바꾸는 실험</a></li>
+ <li><a href="#finish">확정 내용과 남겨 둔 분석 과제</a></li>
+ </ol></nav>
+</section>
+
+<section class="section" id="classify">
+ <div class="num">01 · CLASSIFY</div>
+ <h2>문자처럼 보인다고 모두 같은 Font를 쓰는 것은 아니다</h2>
+ <p>이번 장면은 <strong>이벤트 1의 첫 문장</strong>입니다. 정상 상태와 <code>KANJI1.ROM</code>을 제거한 뒤 재시작한 상태를 비교하고, 실제 일본어 문자가 나타나기 시작할 때 강제로 멈춥니다. ROM 제거 실험에서는 원본을 반드시 백업하고, 에뮬레이터의 대체 ROM 경로나 이미 로드된 캐시 가능성에 주의합니다.</p>
+ 
+<div class="shots">
+<figure class="shot"><div class="shot-pending"><div><strong>01.PNG</strong><br>원본 KANJI1.ROM<br><small>정상 이벤트 화면 · 이미지 등록 대기</small></div></div><figcaption>실제 캡처 확보. 첫 문장 「雨がやんでる・・・いつの間に・・・？」의 정상 표시.</figcaption></figure>
+<figure class="shot"><div class="shot-pending"><div><strong>02.PNG</strong><br>KANJI1.ROM 제거 후 재시작<br><small>문자 영역 이상 · 이미지 등록 대기</small></div></div><figcaption>같은 장면에서 배경은 남지만 문자 영역은 정상 표시되지 않는다. ROM 의존성의 실험 단서.</figcaption></figure>
+<figure class="shot"><div class="shot-pending"><div><strong>03.PNG</strong><br>처음 두 문자 「雨が」 표시<br><small>출력 중 정지 화면 · 이미지 등록 대기</small></div></div><figcaption>첫 글자만이 아니라 「雨が」까지 표시된 시점. 이때 강제 Monitor에 진입했다.</figcaption></figure>
+</div><p class="muted small">세 PNG는 이번 실습에서 제공받았지만 아직 GitHub의 <code>images/course06/</code>에 등록하지 않았다. 실제 파일을 등록하면 이 자리의 캡처 박스를 <code>&lt;img&gt;</code>로 교체한다.</p>
+ <div class="grid2"><article><h4>이번 화면에서 관찰</h4><p>ROM을 제거한 비교 화면에서는 배경·인물은 보이지만 문자 영역이 정상 표시되지 않습니다.</p></article><article><h4>다음에 확인할 것</h4><p>이 차이는 Kanji ROM 의존성의 단서입니다. 실제로 어떤 I/O 명령이 실행되는지는 디버거에서 별도로 확인해야 합니다.</p></article></div>
+</section>
+
+<section class="section" id="stop">
+ <div class="num">02 · BREAK AND OBSERVE</div>
+ <h2>강제로 멈춘 PC를 문자 출력 코드라고 가정하지 않는다</h2>
+ <p><code>03.PNG</code>에서 「雨が」까지 화면에 보였을 때 강제로 Monitor에 진입했습니다. <code>PC=04BD</code>는 <code>0292h</code>를 읽어 <code>D</code>와 비교하는 <strong>대기 루프</strong>였습니다. 첫 문자를 막 그리기 시작하는 지점과 혼동하지 않습니다.</p>
+ <div class="terminal">QUASI88&gt; reg
+[MAIN]
+ AF:0993[S..H..NC] BC:0000  DE:0AD0  HL:96A3  IX:0000  PC:04BD
+ IY:E55C  SP:00FA
+            04C1 38FA      JR    C,04BDH
+    ------&gt; 04BD 3A9202    LD    A,(0292H)
+            04C0 BA        CP    D
+
+04BD LD A,(0292H)
+04C0 CP D
+04C1 JR C,04BDH
+04C3 XOR A
+04C4 LD (0292H),A
+04C7 POP DE
+04C8 RET</div>
+ <div class="question">현재 PC가 대기 처리 안이라면, 그 대기를 <strong>누가 호출했는지</strong> 어디서 확인할 수 있을까요?</div>
+ <p>5부에서 사용한 Stack 확인을 그대로 적용합니다. 지금 실행을 재개하지 않고 반환 주소 후보부터 조사합니다.</p>
+</section>
+
+<section class="section" id="stack">
+ <div class="num">03 · FIND THE CALLER</div>
+ <h2>Stack의 <code>4F 04</code>에서 반환 주소 <code>044Fh</code>를 찾는다</h2>
+ <div class="terminal">QUASI88&gt; dump 0x00FA #16
+00FA : D0 18 4F 04 CB 01 31 00 01 CD E4 01 3E 48 D3 32
+
+QUASI88&gt; disasm 0x0443 #32
+0443 CD8F0B    CALL 0B8FH
+0446 3E08      LD A,08H
+0448 D332      OUT (32H),A
+044A 3E0A      LD A,0AH
+044C CDAE04    CALL 04AEH
+044F C3E402    JP 02E4H</div>
+ <p><code>04AEh</code>에서는 <code>PUSH DE</code>로 기존 DE를 보관한 상태이므로, SP가 가리키는 <code>D0 18</code>은 저장된 DE입니다. 바로 다음 <code>4F 04</code>를 little-endian으로 읽으면 반환 주소 <code>044Fh</code>가 됩니다.</p>
+ <div class="state"><b>실측 값</b><span>SP=<code>00FAh</code>, 다음 반환 주소 <code>044Fh</code></span><b>호출 관계</b><span><code>0443 CALL 0B8F</code> → <code>044C CALL 04AE</code> → <code>044F JP 02E4</code></span><b>다음 질문</b><span><code>02E4h</code>로 돌아온 뒤, 다음 대사 Byte를 어디서 읽는가?</span></div>
+ <div class="callout"><h3>왜 저장된 DE가 <code>18D0h</code>인가?</h3><p>뒤의 출력 루틴에서 행 하나를 읽을 때마다 <code>INC DE</code>가 실행되는 것을 확인합니다. 두 번째 문자 「が」의 시작값 <code>18C0h</code>에 16행을 더하면 <code>18D0h</code>입니다. 값의 차이를 Script 불일치로 단정하지 않습니다.</p></div>
+</section>
+
+<section class="section" id="script">
+ <div class="num">04 · SCRIPT READER</div>
+ <h2>반환 경로에서 실제 Script consumer를 발견한다</h2>
+ <div class="terminal">QUASI88&gt; disasm 0x02E4 #48
+02E4 LD A,(02CCH)
+02E7 BIT 7,A
+02E9 RET Z
+02EA XOR A
+02EB OUT (35H),A
+02ED LD E,(HL)
+02EE INC HL
+02EF LD A,E
+02F0 LD (0C84H),A
+02F3 AND 0FH
+02F5 JP Z,03B8H
+...
+031B CP 08H
+031D JP Z,03B8H
+
+QUASI88&gt; dump 0x969F #16
+969F : B8 62 C8 18 48 38 38 39 78 28 B8 38 60 12 60 12
+
+QUASI88&gt; dump 0x0C84 #1
+0C84 : C8 18 03 02 00 D4 EB D0 EB 00 00 00 00 00 00 00</div>
+ <p>현재 <code>HL=96A3h</code>이고 <code>0C84h=C8h</code>입니다. 이번 장면에서 이미 처리한 두 Token의 시작 위치를 확인할 수 있습니다. <code>02EDh</code>는 Script의 첫 바이트를 <code>E</code>로 읽고, <code>0C84h</code>에 저장한 뒤 하위 4비트로 분기합니다.</p>
+ <div class="table-wrap"><table><thead><tr><th>주소</th><th>실제 Byte</th><th>장면의 문자</th><th>다음 HL</th></tr></thead><tbody>
+ <tr><td><code>969Fh</code></td><td><code>B8 62</code></td><td>雨</td><td><code>96A1h</code></td></tr>
+ <tr><td><code>96A1h</code></td><td><code>C8 18</code></td><td>が</td><td><code>96A3h</code></td></tr>
+ <tr><td><code>96A3h</code></td><td><code>48 38</code></td><td>や — 다음 출력 대상</td><td><code>96A5h</code></td></tr>
+ </tbody></table></div>
+ <div class="callout warn"><h3>Token과 JIS를 같은 것으로 취급하지 않는다</h3><p><code>B8 62</code>는 이 게임에서 확인한 Script Byte입니다. <code>0B8Fh</code>에 전달되는 Kanji 접근 주소는 별도 명령으로 구성됩니다. 또한 이번 분기가 모든 제어 Token의 길이·의미까지 설명하는 것은 아닙니다.</p></div>
+</section>
+
+<section class="section" id="token">
+ <div class="num">05 · TRACE TOKEN BRANCH</div>
+ <h2>상위 비트와 두 번째 바이트에서 Glyph 주소를 구성한다</h2>
+ <div class="terminal">QUASI88&gt; disasm 0x03B8 #80
+03B8 LD A,E
+03B9 AND F0H
+03BB LD E,A
+03BC LD D,(HL)
+03BD INC HL
+03BE LD A,(0C84H)
+03C1 AND 08H
+03C3 JP NZ,043FH
+...
+043F LD A,48H
+0441 OUT (32H),A
+0443 CALL 0B8FH
+0446 LD A,08H
+0448 OUT (32H),A
+044A LD A,0AH
+044C CALL 04AEH
+044F JP 02E4H</div>
+ <div class="table-wrap"><table><thead><tr><th>입력 Token</th><th>분기와 변환</th><th>출력 시작 시 DE</th></tr></thead><tbody>
+ <tr><td><code>B8 62</code> (雨)</td><td><code>B8 &amp; 0F = 08</code>, <code>E=B0</code>, <code>D=62</code></td><td><code>62B0h</code></td></tr>
+ <tr><td><code>C8 18</code> (が)</td><td><code>C8 &amp; 0F = 08</code>, <code>E=C0</code>, <code>D=18</code></td><td><code>18C0h</code></td></tr>
+ <tr><td><code>48 38</code> (や)</td><td><code>48 &amp; 0F = 08</code>, <code>E=40</code>, <code>D=38</code></td><td><code>3840h</code></td></tr>
+ </tbody></table></div>
+ <p><code>03BE~03C3</code>은 저장해 둔 Token 첫 바이트의 <code>08h</code> 비트를 다시 검사합니다. 이번 세 Token에서는 <code>043Fh</code>를 거쳐 같은 출력 루틴을 호출하지만, 다른 조건의 처리는 구분해 두어야 합니다.</p>
+ 
+<div class="diagram"><h3>이번 장면에서 실제로 연결한 경로</h3>
+<p>번호는 수강생에게 처음부터 주는 정답이 아니라, 각 관찰이 끝난 뒤 기록한 결과입니다.</p>
+<pre class="mermaid">flowchart TD
+  A["화면에 雨が 표시 / 강제 Monitor"] --> B["04BD 대기 루프 / HL 96A3"]
+  B --> C["stack 4F 04 → 반환 주소 044F"]
+  C --> D["0443 CALL 0B8F / 044C CALL 04AE"]
+  D --> E["044F JP 02E4 / Script consumer 02ED"]
+  E --> F["하위 nibble 08 / 03B8 분기"]
+  F --> G["043F → 0443 / 문자 출력 0B8F"]
+  G --> H["0BE1 / OUT E8·E9 / IN E8·E9"]
+  H --> I["BC Glyph → 0BFE·0C00 → 화면 접근 메모리"]
+</pre></div>
+</section>
+
+<section class="section" id="kanji">
+ <div class="num">06 · KANJI ROM I/O</div>
+ <h2>실제로 다음 글자 「や」를 읽기 직전의 레지스터를 잡는다</h2>
+ <p>앞선 호출 관계에서 찾은 <code>0B8Fh</code>는 출력의 시작 주소를 준비하고 <code>0BE1h</code>를 16번 호출합니다. 이미 「雨が」가 출력된 현재 상태에서 다음 글자를 확인하기 위해 실측된 breakpoint를 사용합니다.</p>
+ <div class="terminal">QUASI88&gt; break 0x0BE1 #1
+set break point MAIN - #1 [ PC : 0BE1H ]
+QUASI88&gt; go
+*** Break at 0BE1H *** ( MAIN[#1] : PC )
+[MAIN]
+ AF:3800[........] BC:0000 DE:3840 HL:EBD4 PC:0BE1 SP:004E
+            0B9E CDE10B    CALL 0BE1H
+    ------&gt; 0BE1 D3EB      OUT (EBH),A
+
+QUASI88&gt; disasm #24
+0BE1 OUT (EBH),A
+0BE3 LD A,E
+0BE4 OUT (E8H),A
+0BE6 LD A,D
+0BE7 OUT (E9H),A
+0BE9 OUT (EAH),A
+0BEB NOP
+0BEC NOP
+0BED IN A,(E8H)
+0BEF LD C,A
+0BF0 IN A,(E9H)
+0BF2 LD B,A
+0BF3 OUT (EBH),A
+0BF5 INC DE
+...
+0BFE LD (HL),B
+0BFF INC HL
+0C00 LD (HL),C</div>
+ <p><code>DE=3840h</code>은 현재 「や」 Token <code>48 38</code>에서 구성한 값과 일치합니다. <code>E8h/E9h</code>에 위치를 설정한 뒤 같은 포트에서 두 바이트를 읽고, 읽을 때마다 <code>DE</code>를 증가시키는 구조를 확인합니다.</p>
+ <div class="question">여기서 출력 Code만 보는 것으로 충분할까요? 실제 <strong>IN 결과와 쓰기 직전의 BC</strong>를 확인해야 합니다.</div>
+</section>
+
+<section class="section" id="write">
+ <div class="num">07 · VERIFY GLYPH DATA</div>
+ <h2>첫 두 행의 실제 Glyph 바이트와 출력 위치를 비교한다</h2>
+ <div class="terminal">QUASI88&gt; break 0x0BFE #2
+QUASI88&gt; g
+*** Break at 0BFEH *** ( MAIN[#2] : PC )
+[MAIN] BC:0000 DE:3841 HL:EBD4 PC:0BFE
+
+QUASI88&gt; dump 0xEBD4 #4
+EBD4 : FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+QUASI88&gt; step
+[MAIN] PC:0BFF HL:EBD4
+QUASI88&gt; step
+[MAIN] PC:0C00 HL:EBD5
+QUASI88&gt; step
+[MAIN] PC:0C01 HL:EBD5
+
+QUASI88&gt; dump 0xEBD4 #4
+EBD4 : FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+QUASI88&gt; g
+*** Break at 0BE1H *** ( MAIN[#1] : PC )
+[MAIN] BC:0000 DE:3841 HL:EC24 PC:0BE1
+QUASI88&gt; g
+*** Break at 0BFEH *** ( MAIN[#2] : PC )
+[MAIN] BC:0180 DE:3842 HL:EC24 PC:0BFE</div>
+ <div class="table-wrap"><table><thead><tr><th>행</th><th>읽기 시작 DE</th><th>읽기 후 BC</th><th>기록 직전 HL</th></tr></thead><tbody>
+ <tr><td>1행</td><td><code>3840h</code></td><td><code>0000h</code></td><td><code>EBD4h</code></td></tr>
+ <tr><td>2행</td><td><code>3841h</code></td><td><code>0180h</code></td><td><code>EC24h</code></td></tr>
+ </tbody></table></div>
+ <p>1행에서는 <code>B=00h</code>, <code>C=00h</code>입니다. 2행에서는 <code>B=01h</code>, <code>C=80h</code>이므로 <code>0BFE / 0C00</code>의 기록값도 두 행이 다릅니다. 두 행의 시작 주소 차이 <code>EC24h−EBD4h=50h</code>는 다음 화면 행으로 이동했다는 근거가 됩니다.</p>
+ <div class="callout warn"><h3>Monitor dump의 <code>FF</code>를 그대로 둔다</h3><p>첫 행에서 <code>LD (HL),B</code>와 <code>LD (HL),C</code>를 실제로 step한 뒤에도 일반 <code>dump</code>는 <code>FF</code>를 표시했습니다. 이 출력 Code는 <code>OUT (34H),07H</code>, <code>OUT (35H),80H</code>를 이용한 그래픽 접근을 사용합니다. <strong>일반 RAM dump와 GVRAM 기록이 동일하게 보인다고 단정하지 않습니다.</strong> 별도의 화면·GVRAM 검증은 후속 조사 항목입니다.</p></div>
+</section>
+
+<section class="section" id="ram-test">
+ <div class="num">08 · VERIFY SCRIPT · 실험 대기</div>
+ <h2>Script 첫 두 바이트만 바꿔 출력 문자가 변하는지 확인한다</h2>
+ <p>이미 실제로 확인한 원본 Script는 <code>969Fh : B8 62</code>입니다. 기존 바리스 분석에서 <code>20 18</code>이 <code>あ</code>를 출력하는 Token으로 기록돼 있으므로, <strong>이번 첫 이벤트 주소에서 실제로 RAM을 변경하는 시험</strong>을 별도로 수행합니다.</p>
+ <div class="grid2"><article><h4>기존 확정값</h4><p>원본 첫 Token: <code>B8 62</code> → 「雨」<br>기존 분석의 Token: <code>20 18</code> → 「あ」</p></article><article><h4>아직 필요한 증거</h4><p>원본 dump → 정확한 QUASI88 write 명령과 실행 로그 → 첫 글자가 「あ」로 바뀐 실제 화면 → 원본 복원.</p></article></div>
+ <div class="record">실습 기록 자리 — 아직 실행하지 않은 절차
+1. 원본 게임 상태로 재시작하여 969Fh의 원본 B8 62 확인
+2. QUASI88 write 명령의 실제 문법을 검증한 뒤 RAM 두 바이트만 수정
+3. 재개 후 첫 글자와 나머지 문장 비교
+4. 결과 화면 및 원본 복원 기록 보관</div>
+ <div class="callout warn"><h3>아직 성공 화면을 만들지 않는다</h3><p>이 첫 이벤트 주소에서의 실제 RAM 변경·재개·출력 로그는 아직 확보되지 않았습니다. 강좌 완성 시 실측값으로만 이 단계를 채웁니다.</p></div>
+</section>
+
+<section class="section" id="rom-test">
+ <div class="num">09 · VERIFY FONT · 실험 대기</div>
+ <h2>Script는 그대로 두고 HxD로 「雨」의 Glyph 32바이트만 바꾼다</h2>
+ <p>이벤트 첫 글자에서 <code>B8 62 → DE=62B0h</code>으로 Kanji ROM에 접근합니다. 재현 빌드의 <code>KANJI1.ROM</code> 레이아웃을 기준으로 한 32바이트 Glyph 슬롯 시작 후보는 <code>62B0h × 2 = C560h</code>입니다. 이 주소는 기존 별도 ROM 치환 실험에서도 사용됐지만, <strong>이번 강좌의 HxD 수동 교체는 아직 미실시</strong>입니다.</p>
+ <div class="table-wrap"><table><thead><tr><th>항목</th><th>값</th></tr></thead><tbody>
+ <tr><td>원본 첫 문자 Token</td><td><code>B8 62</code> — 수정하지 않음</td></tr>
+ <tr><td>첫 문자 Kanji 접근</td><td><code>62B0h</code></td></tr>
+ <tr><td>교체할 파일 범위</td><td><code>0xC560~0xC57F</code> (32 bytes)</td></tr>
+ <tr><td>「가」 bitmap 원천</td><td><a href="https://github.com/KLostSoul/PC88-Valis1-Localization-Build/blob/main/source/accepted/kanji/glyphs/glyph_0001_U%2BAC00_slot0378_tokA017_off02F40.txt">재현 빌드의 16×16 가 글리프</a></td></tr>
+ </tbody></table></div>
+ <p>다음은 재현 빌드의 확정 글리프 TXT를 각 행의 상위·하위 바이트로 직렬화한 <strong>H﻿xD 교체용 32바이트 후보</strong>입니다. 실제 바리스 첫 이벤트에서의 HxD 치환 결과는 별도로 검증합니다.</p>
+ <div class="terminal">00 08 1F C8 00 48 00 48
+00 48 00 48 00 48 00 4E
+00 88 01 08 01 08 02 08
+04 08 04 08 18 08 00 08</div>
+ <div class="callout warn"><h3>원본 보호와 실험 구분</h3><p>원본 <code>KANJI1.ROM</code>은 별도로 보관하고 복사본에서 <strong>Overwrite</strong>만 사용합니다. 파일 길이와 인접 Glyph가 변하지 않았는지 비교합니다. 재현 빌드에서 「가」의 정식 배치 주소 <code>0x02F40</code>은 이번 「雨」 슬롯의 임시 치환 주소 <code>0xC560</code>과 다릅니다. 동일 「雨」 Glyph를 사용하는 다른 출력도 함께 바뀔 수 있습니다.</p></div>
+ <div class="record">실습 기록 자리 — 아직 확보하지 않은 증거
+11. HxD 원본 0xC560~0xC57F 화면
+12. 32바이트 Overwrite 후 같은 범위와 ROM 파일 길이 비교
+13. 수정 ROM으로 완전 재시작 후 「가」 출력 화면</div>
+</section>
+
+<section class="section" id="finish">
+ <div class="num">10 · FINISH AND RECORD</div>
+ <h2>실측으로 확정된 사실과 예정 실험을 구분한다</h2>
+ <div class="table-wrap"><table class="status-table"><thead><tr><th>증거</th><th>상태</th><th>강좌에서의 역할</th></tr></thead><tbody>
+ <tr><td>01~03 정상·ROM 제거·문자 출력 화면</td><td class="pill-ok">자료 확보 / PNG 배치 대기</td><td>조사 대상과 실험 조건 비교</td></tr>
+ <tr><td>04 강제 Monitor / Stack</td><td class="pill-ok">로그 확보</td><td>대기 루프에서 호출자 발견</td></tr>
+ <tr><td>05~07 Script → 문자 출력 → Kanji I/O</td><td class="pill-ok">로그 확보</td><td>실측 Code와 Register 연결</td></tr>
+ <tr><td>08 원본 Script Byte</td><td class="pill-ok">로그 확보</td><td>토큰과 다음 HL 확인</td></tr>
+ <tr><td>09~10 RAM 변경 → 「あ」</td><td class="pill-wait">이번 장면 실험 대기</td><td>Script 변경의 인과관계 검증</td></tr>
+ <tr><td>11~13 HxD 32바이트 → 「가」</td><td class="pill-wait">수동 실험 대기</td><td>Glyph 변경의 인과관계 검증</td></tr>
+ </tbody></table></div>
+ <div class="checks">
+ <details class="check"><summary>왜 강제 Monitor에 들어갔을 때 PC=04BDh를 바로 출력 루틴으로 보지 않는가?</summary><div class="check-answer">현재 PC는 단지 그 순간 실행 중인 위치입니다. 이번에는 0292h의 대기 루프였으며 Stack과 반환 주소를 통해 호출 관계를 찾아야 했습니다.</div></details>
+ <details class="check"><summary>왜 「が」의 Token C8 18과 Stack의 저장된 DE=18D0h가 다른가?</summary><div class="check-answer">Token에서 구성한 시작값은 18C0h입니다. 16개 Glyph 행을 읽으며 INC DE가 16번 실행돼 18D0h가 됩니다.</div></details>
+ <details class="check"><summary>BC=0180h가 어떤 명령을 통해 쓰이는가?</summary><div class="check-answer">0BFE LD (HL),B, 0BFF INC HL, 0C00 LD (HL),C입니다. 단, 일반 RAM dump가 동일한 값을 표시한다는 뜻은 아닙니다.</div></details>
+ <details class="check"><summary>Script Token 변경과 ROM Glyph 변경은 무엇이 다른가?</summary><div class="check-answer">전자는 선택되는 문자 코드 자체를 바꾸고, 후자는 기존 Token을 유지한 채 그 코드가 가리키는 bitmap만 변경하는 실험입니다.</div></details>
+ </div>
+ 
+<div class="diagram"><h3>이번 장면에서 실제로 연결한 경로</h3>
+<p>번호는 수강생에게 처음부터 주는 정답이 아니라, 각 관찰이 끝난 뒤 기록한 결과입니다.</p>
+<pre class="mermaid">flowchart TD
+  A["화면에 雨が 표시 / 강제 Monitor"] --> B["04BD 대기 루프 / HL 96A3"]
+  B --> C["stack 4F 04 → 반환 주소 044F"]
+  C --> D["0443 CALL 0B8F / 044C CALL 04AE"]
+  D --> E["044F JP 02E4 / Script consumer 02ED"]
+  E --> F["하위 nibble 08 / 03B8 분기"]
+  F --> G["043F → 0443 / 문자 출력 0B8F"]
+  G --> H["0BE1 / OUT E8·E9 / IN E8·E9"]
+  H --> I["BC Glyph → 0BFE·0C00 → 화면 접근 메모리"]
+</pre></div>
+ <div class="callout"><h3>남겨 둘 범위</h3><p>모든 제어 Token의 규격, 전체 Script 추출, 게임 전반의 Font 매핑과 한글 인코딩 엔진 제작은 이번 한 글자 실습의 완료 조건이 아닙니다. 실험으로 확인한 사실을 다른 장면으로 확장하는 분석은 <strong>수강생의 몫으로 남겨 둡니다.</strong></p></div>
+ <div class="next"><h2>6부 강좌 뼈대</h2><p>현재 실측으로 확보한 1~8번은 실제 로그를 배치했습니다. 9~13번은 검증 전인 상태를 숨기지 않고 빈 실습 구간으로 남겨 두었습니다.</p></div>
+ <p class="muted small">자료 연계: <a href="06-evidence.md">6부 증거 기록</a> · <a href="../images/course06/README.md">캡처 및 추가 자료 목록</a> · <a href="https://github.com/KLostSoul/PC88-Valis1-Localization-Build">바리스 1 재현 빌드</a></p>
+</section>
+<nav class="course-nav course-nav-bottom" aria-label="강좌 이동">
+ <a class="course-prev" href="05.html">← 5부</a>
+ <a class="course-index" href="../index.html">강좌 목록</a>
+ <span class="nav-empty" aria-hidden="true"></span>
+</nav>
+</main>
+<script type="module">
+ import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+ mermaid.initialize({startOnLoad:true,theme:'base',themeVariables:{primaryColor:'#eef3ff',primaryTextColor:'#172033',primaryBorderColor:'#3157d5',lineColor:'#3157d5',secondaryColor:'#f0fbf7',tertiaryColor:'#fff8ed'}});
+</script>
+</body>
+</html>

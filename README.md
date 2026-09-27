@@ -22,7 +22,7 @@ GitHub Pages에서 바로 볼 수 있습니다.
 | 3부 | 플로피·μPD765·D88·Kanji ROM | 완료 | [`course/03.html`](course/03.html) |
 | 4부 | 에뮬레이터 디버거로 실행 흐름 추적하기 | 완료 | [`course/04.html`](course/04.html) |
 | 5부 | 실제 게임에서 Data와 Code의 흐름 추적하기 | 완료 | [`course/05.html`](course/05.html) |
-| 6부 | 문자·Font·화면 출력 경로를 분석하는 방법 | 예정 | — |
+| 6부 | 문자·Font·화면 출력 경로를 분석하는 방법 | 초안 (실측 1~8 확보, 9~13 보강 예정) | [`course/06.html`](course/06.html) |
 | 7부 | 처음 보는 PC-88 게임을 역분석하는 사고법 | 예정 | — |
 
 ## 각 부에서 배우는 내용
@@ -120,6 +120,16 @@ PC-88 에뮬레이터마다 debugger 기능과 조작법은 다를 수 있으므
 
 5부의 예시는 실제 QUASI88 Monitor 로그와 `images/course05/`의 실행 화면을 사용합니다. 화면에 나타난 요소 하나를 출발점으로 삼아, 확인한 근거에서 다음 조사 질문을 정하는 흐름을 보여 줍니다.
 
+### 6부 — 문자·Font·화면 출력 경로를 분석하는 방법 (초안)
+
+《몽환전사 바리스》 첫 이벤트의 한 글자를 조사 대상으로 정해 KANJI1.ROM 제거 전후 화면, 강제 Monitor 진입, Stack 반환 주소, Script Token dispatcher, 출력 Code와 Kanji ROM I/O를 연결합니다.
+
+실제 QUASI88 로그와 첫 이벤트 Script `969F: B8 62 C8 18 ...`을 확보했으며, 「や」의 Glyph 두 행 `0000h / 0180h`까지 실측했습니다. RAM에서 첫 글자를 「あ」로 바꾸는 실험과 HxD에서 「雨」 Glyph 32바이트를 「가」로 교체하는 실험은 실행 후 검증 자료를 추가할 예정입니다.
+
+- [6부 강좌 뼈대](course/06.html)
+- [6부 실측 근거와 미확보 목록](course/06-evidence.md)
+- [6부 이미지 수집·배치 목록](images/course06/README.md)
+
 ## 5부 이후의 방향
 
 5부에서 실제 게임 화면의 변화에서 조사 대상을 고르고, 실행 중인 PC·register·Memory와 CALL/RET·READ/WRITE의 관계를 확인해 Data와 Code의 흐름을 연결했습니다. 이후에는 이 흐름을 문자·Font·화면 출력 경로로 확장합니다.
@@ -142,7 +152,7 @@ PC-88 에뮬레이터마다 debugger 기능과 조작법은 다를 수 있으므
 2. 또는 저장소를 내려받아 `course` 폴더의 HTML 파일을 웹 브라우저로 엽니다.
 3. 가능하면 `00.html`부터 순서대로 보는 것을 권장합니다.
 
-별도의 웹 서버는 필요하지 않습니다. 4부와 5부의 실제 실행 화면은 각각 `images/course04/`와 `images/course05/`의 이미지 파일을 해당 HTML에서 불러옵니다. 저장소 전체를 내려받으면 로컬에서도 그대로 볼 수 있습니다.
+별도의 웹 서버는 필요하지 않습니다. 4부와 5부의 실제 실행 화면은 각각 `images/course04/`와 `images/course05/`의 이미지 파일을 해당 HTML에서 불러옵니다. 6부의 PNG 01~03은 확보했으며 저장소에는 후속 등록할 예정입니다. 저장소 전체를 내려받으면 로컬에서도 그대로 볼 수 있습니다.
 
 ## 저장소 구조
 
@@ -156,18 +166,22 @@ PC88-Analysis/
 │  ├─ 02.html
 │  ├─ 03.html
 │  ├─ 04.html
-│  └─ 05.html
+│  ├─ 05.html
+│  ├─ 06.html
+│  └─ 06-evidence.md
 └─ images/
    ├─ course04/
    │  ├─ 01.png
    │  ├─ 02.PNG
    │  ├─ ...
    │  └─ 14.PNG
-   └─ course05/
-      ├─ 01.PNG
-      ├─ 02.png
-      ├─ 06.PNG
-      └─ 09.PNG
+   ├─ course05/
+   │  ├─ 01.PNG
+   │  ├─ 02.png
+   │  ├─ 06.PNG
+   │  └─ 09.PNG
+   └─ course06/
+      └─ README.md  (01~03 PNG 등록 예정)
 ```
 
 강좌가 추가되면 `course` 폴더에 순서대로 이어집니다.

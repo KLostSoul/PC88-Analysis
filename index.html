@@ -40,6 +40,7 @@ a.card:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(23,32,51,.09
 .part{font-size:.83rem;letter-spacing:.07em;font-weight:900;color:var(--accent)}
 .status{font-size:.78rem;font-weight:900;border-radius:999px;padding:5px 9px}
 .status.done{background:#e9f8f2;color:var(--ok);border:1px solid #b9e7d5}
+.status.draft{background:#fff7e6;color:#83510e;border:1px solid #efcf8c}
 .status.soon{background:#f1f5f9;color:var(--soon);border:1px solid #d9e0e8}
 .card h3{font-size:1.28rem;line-height:1.38;margin:0 0 10px}
 .card p{margin:0 0 16px;color:var(--muted);font-size:.95rem;flex:1}
@@ -141,11 +142,12 @@ footer a{color:var(--accent2);font-weight:800}
         <span class="open">강좌 열기</span>
       </a>
 
-      <article class="card disabled">
-        <div class="card-top"><span class="part">FOUNDATION 06</span><span class="status soon">예정</span></div>
+      <a class="card" href="./course/06.html">
+        <div class="card-top"><span class="part">FOUNDATION 06</span><span class="status draft">초안</span></div>
         <h3>6부 — 문자·Font·화면 출력 경로를 분석하는 방법</h3>
-        <p>문자 데이터와 glyph가 어떤 코드와 메모리 경로를 거쳐 실제 화면에 나타나는지 분석하는 방법을 다룹니다.</p>
-      </article>
+        <p>《몽환전사 바리스》 첫 이벤트의 실제 QUASI88 로그로 Script Token, Kanji ROM과 Glyph 기록을 추적합니다. RAM·HxD 치환 실험은 후속 보강 예정입니다.</p>
+        <span class="open">강좌 뼈대 열기</span>
+      </a>
 
       <article class="card disabled">
         <div class="card-top"><span class="part">FOUNDATION 07</span><span class="status soon">예정</span></div>
