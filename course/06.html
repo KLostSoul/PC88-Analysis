@@ -675,9 +675,9 @@ addr : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F
 QUASI88&gt; break clearall #0
 clear break point MAIN - all
 QUASI88&gt; g</div>
- <div class="grid2"><article><h4>검증한 RAM 변화</h4><p><code>969F~96A0: B8 62 → C8 18</code>입니다. 이어지는 두 번째 Token <code>C8 18</code>과 다음 Token들은 유지됐습니다.</p></article><article><h4>실제 실행 화면</h4><p>제공받은 <code>04.PNG</code>에서 문장의 시작이 <strong>「ががやん」</strong>으로 표시됐습니다. 따라서 원본 첫 글자 「雨」가 「が」로 바뀐 출력까지 확인했습니다. 캡처 시점에서 전체 문장은 아직 완성되지 않았습니다.</p></article></div>
- <figure class="shot"><img src="../images/course06/04.PNG" alt="첫 문자 Token을 C8 18로 수정한 뒤 ががやん이 표시된 화면" loading="lazy" decoding="async"><figcaption><strong>04.PNG — 변경 결과.</strong> 첫 두 바이트를 <code>C8 18</code>로 덮어쓴 뒤 원래 「雨」였던 자리에 「が」가 표시됐습니다. 화면에 보이는 문장 시작은 「ががやん」이며, 이 장면은 전체 문장이 끝나기 전에 촬영됐습니다.</figcaption></figure>
- <div class="callout ok"><h3>이 실험에서 확정한 것</h3><p>동일한 게임·동일한 장면에서 <strong>Script의 첫 두 바이트만 수정했을 때 첫 글자가 바뀌었다</strong>는 실행 근거를 얻었습니다. ROM Glyph는 수정하지 않았으므로 Script Token과 글리프 선택의 연결을 검증한 것입니다.</p></div>
+ <div class="grid2"><article><h4>검증한 RAM 변화</h4><p><code>969F~96A0: B8 62 → C8 18</code>입니다. 이어지는 두 번째 Token <code>C8 18</code>과 다음 Token들은 유지됐습니다.</p></article><article><h4>실제 실행 화면</h4><p>오른쪽 화면을 보면 첫 글자 「雨」가 「が」로 바뀌어 문장이 <strong>「ががやん」</strong>으로 시작합니다. Script의 첫 두 바이트만 바꿨을 때 출력 문자가 실제로 달라지는 모습을 확인해 보세요.</p></article></div>
+ <figure class="shot"><img src="../images/course06/04.PNG" alt="첫 문자 Token을 C8 18로 수정한 뒤 ががやん이 표시된 화면" loading="lazy" decoding="async"><figcaption><strong>04.PNG — 문자 교체 실습 결과.</strong> <code>969Fh</code>의 <code>B8 62</code>를 <code>C8 18</code>로 바꾸자 「雨」 대신 「が」가 출력됐습니다. 화면에 표시된 「ががやん」을 원본 화면과 비교해 보세요.</figcaption></figure>
+ <div class="callout ok"><h3>이 실습에서 배운 것</h3><p>ROM이나 출력 Code를 바꾸지 않고 Script의 두 바이트만 수정해도 화면에 나타나는 글자를 바꿀 수 있습니다. 즉, 게임의 Script는 출력할 글자를 지정하고, 출력 루틴은 지정된 글자의 모양을 가져와 화면에 그립니다.</p></div>
  <div class="callout warn"><h3>Font 실험 전 원상복구</h3><p>다음 HxD 실험에서는 원본 Script <code>B8 62</code>가 필요합니다. 현재 RAM 실험을 끝낸 뒤 원본 디스크로 완전히 재시작하거나, 실행 상태에 맞춰 첫 두 바이트를 원래 값으로 돌리고 <code>dump</code>로 확인합니다. RAM에 <code>C8 18</code>이 남아 있다면 「雨」 글리프를 바꿔도 그 자리를 선택하지 않으므로 실험 조건이 달라집니다.</p></div>
 </section>
 
