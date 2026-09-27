@@ -22,7 +22,7 @@ GitHub Pages에서 바로 볼 수 있습니다.
 | 3부 | 플로피·μPD765·D88·Kanji ROM | 완료 | [`course/03.html`](course/03.html) |
 | 4부 | 에뮬레이터 디버거로 실행 흐름 추적하기 | 완료 | [`course/04.html`](course/04.html) |
 | 5부 | 실제 게임에서 Data와 Code의 흐름 추적하기 | 완료 | [`course/05.html`](course/05.html) |
-| 6부 | 문자·Font·화면 출력 경로를 분석하는 방법 | 실습 1~13 반영 · 검수 중 | [`course/06.html`](course/06.html) |
+| 6부 | 문자·Font·화면 출력 경로를 분석하는 방법 | 완료 | [`course/06.html`](course/06.html) |
 | 7부 | 처음 보는 PC-88 게임을 역분석하는 사고법 | 예정 | — |
 
 ## 각 부에서 배우는 내용
@@ -120,7 +120,7 @@ PC-88 에뮬레이터마다 debugger 기능과 조작법은 다를 수 있으므
 
 5부의 예시는 실제 QUASI88 Monitor 로그와 `images/course05/`의 실행 화면을 사용합니다. 화면에 나타난 요소 하나를 출발점으로 삼아, 확인한 근거에서 다음 조사 질문을 정하는 흐름을 보여 줍니다.
 
-### 6부 — 문자·Font·화면 출력 경로를 분석하는 방법 (검수 중)
+### 6부 — 문자·Font·화면 출력 경로를 분석하는 방법
 
 《몽환전사 바리스》 첫 이벤트의 한 글자를 조사 대상으로 정해 KANJI1.ROM 제거 전후 화면, 강제 Monitor 진입, Stack 반환 주소, Script Token dispatcher, 출력 Code와 Kanji ROM I/O를 연결합니다.
 
