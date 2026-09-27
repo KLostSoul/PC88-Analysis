@@ -54,8 +54,9 @@ footer{max-width:1080px;margin:0 auto 60px;padding:0 20px;color:var(--muted);fon
 @media print{body{background:#fff}header{background:#fff;color:#000;padding:20px 0}.lead{color:#333}.wrap{padding:0}.toc,section{box-shadow:none;break-inside:avoid}button{display:none}.no-print{display:none}}
 .course-nav{max-width:1080px;margin:18px auto 0;padding:0 20px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;font-weight:800}.course-nav-bottom{margin-top:28px;margin-bottom:24px}.course-nav a{padding:9px 13px;border:1px solid #d8deea;border-radius:10px;background:#fff;color:#2342a3;text-decoration:none;line-height:1.35}.course-nav a:hover{background:#eef3ff}.course-nav .course-prev{justify-self:start}.course-nav .course-index{justify-self:center}.course-nav .course-next{justify-self:end}.course-nav .nav-empty{visibility:hidden}@media(max-width:800px){.course-nav{padding:0 16px;gap:6px}.course-nav a{padding:8px 9px;font-size:.9rem}}
 </style>
+<link rel="stylesheet" href="../assets/course-responsive.css">
 </head>
-<body>
+<body class="pc88-responsive">
 <header>
 <div class="header-inner">
 <div class="crumb"><a href="../index.html">PC-88 게임 분석 기초 강좌</a> / 2부</div>
@@ -159,7 +160,7 @@ LD HL,9000h        ; 9000h → HL</pre>
 </div>
 
 <h4>먼저 자주 만나는 기본 기호</h4>
-<table><thead><tr><th>표기</th><th class="left">Zilog 설명서에서의 뜻</th><th class="left">실제 예</th></tr></thead><tbody>
+<div class="course-table-scroll"><table><thead><tr><th>표기</th><th class="left">Zilog 설명서에서의 뜻</th><th class="left">실제 예</th></tr></thead><tbody>
 <tr><td><code>r</code></td><td class="left">8bit register A, B, C, D, E, H, L 중 하나</td><td class="left"><code>LD r,n → LD B,3Ch</code></td></tr>
 <tr><td><code>n</code></td><td class="left">0~255 범위의 1byte unsigned 값</td><td class="left"><code>n=3Ch</code></td></tr>
 <tr><td><code>nn</code></td><td class="left">0~65535 범위의 2byte unsigned 값</td><td class="left"><code>nn=9000h</code></td></tr>
@@ -167,7 +168,7 @@ LD HL,9000h        ; 9000h → HL</pre>
 <tr><td><code>b</code></td><td class="left">bit 번호 0~7</td><td class="left"><code>BIT b,r → BIT 7,A</code></td></tr>
 <tr><td><code>e</code></td><td class="left">Zilog 표에서 <b>현재 instruction 위치</b>를 기준으로 표시하는 JR 목적지의 상대 offset. 범위 -126~+129</td><td class="left"><code>JR e</code></td></tr>
 <tr><td><code>cc</code></td><td class="left">조건 코드: NZ, Z, NC, C, PO, PE, P, M 중 하나</td><td class="left"><code>JP cc,nn → JP Z,9000h</code></td></tr>
-</tbody></table>
+</tbody></table></div>
 <div class="note"><b><code>e</code>와 실제 JR operand의 차이</b><br/><code>e</code>를 “기계어에 그대로 저장되는 signed 8bit displacement”라고 이해하면 정확하지 않습니다. Zilog의 notation table에서 <code>e</code>는 <b>현재 instruction 위치 기준</b> 상대 offset이라 -126~+129로 적혀 있습니다. 반면 JR 기계어의 실제 operand byte는 <b>JR 다음 PC 기준</b> signed 8bit displacement이며 -128~+127입니다. 아래에서 숫자로 직접 비교합니다.</div>
 
 <h4>n — 1byte 값 하나가 들어가는 자리</h4>
@@ -239,10 +240,10 @@ INC C              ; r=C</pre>
 </div>
 <div class="formula">Zilog 표의 e = +8 / 실제 encoded displacement = +6</div>
 <p>최대·최소 범위도 이 2byte 차이 때문에 다릅니다.</p>
-<table><thead><tr><th>구분</th><th>기준점</th><th>범위</th></tr></thead><tbody>
+<div class="course-table-scroll"><table><thead><tr><th>구분</th><th>기준점</th><th>범위</th></tr></thead><tbody>
 <tr><td>Zilog notation의 <code>e</code></td><td>현재 JR instruction 시작 위치</td><td>-126 ~ +129</td></tr>
 <tr><td>기계어 displacement byte</td><td>JR 2byte를 읽고 난 뒤의 PC</td><td>-128 ~ +127</td></tr>
-</tbody></table>
+</tbody></table></div>
 <div class="beginner"><b>실제 source에서는 보통 직접 +6을 적을 필요가 없습니다.</b> <code>JR SKIP</code>처럼 label을 쓰면 assembler가 목적지와 현재 주소를 계산해 실제 displacement byte를 만들어 줍니다. 역분석할 때는 반대로 machine byte를 보고 목적지를 계산하게 됩니다.</div>
 
 <h4>b — BIT/SET/RES에서 어느 bit를 말하는가</h4>
@@ -258,7 +259,7 @@ RES 0,C            ; b=0, r=C → C의 bit 0을 0으로</pre>
 
 <h4>cc — 조건 자체가 들어가는 자리</h4>
 <p><code>cc</code>는 조건부 JP/CALL/RET 등에 들어가는 <b>condition code</b>입니다.</p>
-<table><thead><tr><th>cc</th><th class="left">검사하는 상태</th></tr></thead><tbody>
+<div class="course-table-scroll"><table><thead><tr><th>cc</th><th class="left">검사하는 상태</th></tr></thead><tbody>
 <tr><td><code>NZ</code></td><td class="left">Z=0</td></tr>
 <tr><td><code>Z</code></td><td class="left">Z=1</td></tr>
 <tr><td><code>NC</code></td><td class="left">C=0</td></tr>
@@ -267,7 +268,7 @@ RES 0,C            ; b=0, r=C → C의 bit 0을 0으로</pre>
 <tr><td><code>PE</code></td><td class="left">P/V=1</td></tr>
 <tr><td><code>P</code></td><td class="left">S=0</td></tr>
 <tr><td><code>M</code></td><td class="left">S=1</td></tr>
-</tbody></table>
+</tbody></table></div>
 <pre>JP cc,nn           ; 설명서의 일반형
 JP Z,9000h         ; cc=Z, nn=9000h
 JP NZ,8000h        ; cc=NZ, nn=8000h</pre>
@@ -275,13 +276,13 @@ JP NZ,8000h        ; cc=NZ, nn=8000h</pre>
 
 <h4>register pair 기호는 하나가 아니다</h4>
 <p>16bit register를 나타내는 설명서 기호를 전부 <code>rr</code>이라고 뭉뚱그리면 실제 Zilog manual을 읽을 때 틀리게 됩니다. <b>instruction마다 허용되는 register pair 집합이 달라서 서로 다른 기호를 사용합니다.</b></p>
-<table><thead><tr><th>기호</th><th class="left">들어갈 수 있는 register pair</th><th class="left">실제 manual 예</th></tr></thead><tbody>
+<div class="course-table-scroll"><table><thead><tr><th>기호</th><th class="left">들어갈 수 있는 register pair</th><th class="left">실제 manual 예</th></tr></thead><tbody>
 <tr><td><code>qq</code></td><td class="left">BC, DE, HL, AF</td><td class="left"><code>PUSH qq</code>, <code>POP qq</code></td></tr>
 <tr><td><code>ss</code></td><td class="left">BC, DE, HL, SP</td><td class="left"><code>ADD HL,ss</code>, <code>INC ss</code></td></tr>
 <tr><td><code>pp</code></td><td class="left">BC, DE, IX, SP</td><td class="left"><code>ADD IX,pp</code></td></tr>
 <tr><td><code>rr</code></td><td class="left">BC, DE, IY, SP</td><td class="left"><code>ADD IY,rr</code></td></tr>
 <tr><td><code>dd</code></td><td class="left">BC, DE, HL, SP</td><td class="left"><code>LD dd,nn</code> — Zilog의 상세 16bit LD 설명에서 사용</td></tr>
-</tbody></table>
+</tbody></table></div>
 <div class="note"><b>왜 qq/ss/pp/rr가 따로 있는가?</b> 예를 들어 <code>PUSH qq</code>에서는 AF가 가능한 반면 SP는 그 자리에 들어가지 않습니다. 반대로 <code>ADD HL,ss</code>에서는 SP가 가능하지만 AF는 들어가지 않습니다. 따라서 “16bit register 아무거나”라고 한 기호로 쓰면 허용 operand를 표현할 수 없습니다.</div>
 <pre>PUSH qq            ; qq = BC, DE, HL, AF
 PUSH AF            ; 가능
@@ -297,10 +298,10 @@ ADD IY,IY          ; 가능</pre>
 <div class="warning"><b>Zilog manual을 읽을 때 주의:</b> 공식 2016 Instruction Notation Summary에는 <code>qq/ss/pp/rr</code>가 정리되어 있고, 상세 16bit Load instruction 페이지에서는 <code>dd</code>라는 표기도 추가로 사용됩니다. 따라서 기호 하나만 외우지 말고 <b>그 instruction에서 그 기호가 어떤 register 집합을 뜻하는지</b> 확인해야 합니다.</div>
 
 <h4>s와 m도 instruction table에서 만날 수 있다</h4>
-<table><thead><tr><th>기호</th><th class="left">정확한 의미</th></tr></thead><tbody>
+<div class="course-table-scroll"><table><thead><tr><th>기호</th><th class="left">정확한 의미</th></tr></thead><tbody>
 <tr><td><code>s</code></td><td class="left"><code>r</code>, <code>n</code>, <code>(HL)</code>, <code>(IX+d)</code>, <code>(IY+d)</code> 중 하나</td></tr>
 <tr><td><code>m</code></td><td class="left"><code>r</code>, <code>(HL)</code>, <code>(IX+d)</code>, <code>(IY+d)</code> 중 하나. <code>n</code>은 포함하지 않음</td></tr>
-</tbody></table>
+</tbody></table></div>
 <p>여기서도 핵심은 문자를 외우는 것이 아니라 <b>그 기호가 실제로 어떤 operand 후보를 대표하는지 펼쳐 볼 수 있는 것</b>입니다.</p>
 
 <div class="pc88-note"><b>설명서 한 줄을 실제 코드로 바꾸는 사고 순서</b><br/><br/>
@@ -339,14 +340,14 @@ RET                ; 실제 Z80 instruction</pre>
 <h2>2. 값·주소·메모리와 Program Counter</h2>
 <h3>2-1. 괄호가 있느냐 없느냐는 완전히 다른 뜻이다</h3>
 <p>Z80 코드를 읽을 때 가장 중요한 구분 중 하나가 <b>값 자체</b>와 <b>그 값이 가리키는 메모리의 내용</b>입니다.</p>
-<table><thead><tr><th>표현</th><th class="left">읽는 방법</th></tr></thead><tbody>
+<div class="course-table-scroll"><table><thead><tr><th>표현</th><th class="left">읽는 방법</th></tr></thead><tbody>
 <tr><td><code>05h</code></td><td class="left">숫자 05h 자체</td></tr>
 <tr><td><code>B</code></td><td class="left">B register 안의 값</td></tr>
 <tr><td><code>HL</code></td><td class="left">HL register 안의 16bit 값</td></tr>
 <tr><td><code>(HL)</code></td><td class="left">HL의 값이 가리키는 memory address의 내용</td></tr>
 <tr><td><code>9000h</code></td><td class="left">숫자 9000h 자체</td></tr>
 <tr><td><code>(9000h)</code></td><td class="left">memory address 9000h에 있는 내용</td></tr>
-</tbody></table>
+</tbody></table></div>
 <div class="misconception"><b>핵심:</b> 괄호는 “이 숫자를 한 번 더 계산한다”는 장식이 아닙니다. Z80 assembly에서 괄호는 해당 operand가 <b>메모리 접근</b>임을 나타내는 데 사용됩니다.</div>
 
 <h3>2-2. LD HL,9000h와 LD HL,(9000h)는 무엇이 다른가</h3>
@@ -398,7 +399,7 @@ INC HL             ; FFFFh + 1 → 0000h</pre>
 <div class="kicker">데이터 이동</div>
 <h2>3. LD와 pointer — 가장 먼저 익혀야 할 코드</h2>
 <h3>3-1. LD는 ‘어디에서 어디로’가 핵심이다</h3>
-<table><thead><tr><th>instruction</th><th class="left">의미</th></tr></thead><tbody>
+<div class="course-table-scroll"><table><thead><tr><th>instruction</th><th class="left">의미</th></tr></thead><tbody>
 <tr><td><code>LD A,B</code></td><td class="left">B의 8bit 값을 A로 복사</td></tr>
 <tr><td><code>LD A,05h</code></td><td class="left">즉시값 05h를 A에 넣음</td></tr>
 <tr><td><code>LD HL,9000h</code></td><td class="left">16bit 값 9000h를 HL에 넣음</td></tr>
@@ -406,15 +407,15 @@ INC HL             ; FFFFh + 1 → 0000h</pre>
 <tr><td><code>LD (HL),A</code></td><td class="left">A의 1byte를 HL이 가리키는 메모리에 기록</td></tr>
 <tr><td><code>LD A,(9000h)</code></td><td class="left">memory 9000h의 1byte를 A로 읽음</td></tr>
 <tr><td><code>LD (9000h),A</code></td><td class="left">A를 memory 9000h에 기록</td></tr>
-</tbody></table>
+</tbody></table></div>
 
 <h3>3-2. LD A,(HL)을 실행 전과 실행 후로 본다</h3>
 <pre>LD A,(HL)          ; HL이 가리키는 메모리의 1byte를 A로 읽음</pre>
-<table class="state-table"><thead><tr><th>항목</th><th>실행 전</th><th>실행 후</th></tr></thead><tbody>
+<div class="course-table-scroll"><table class="state-table"><thead><tr><th>항목</th><th>실행 전</th><th>실행 후</th></tr></thead><tbody>
 <tr><td>A</td><td>00h</td><td class="changed">41h</td></tr>
 <tr><td>HL</td><td>9000h</td><td class="unchanged">9000h</td></tr>
 <tr><td>RAM[9000h]</td><td>41h</td><td class="unchanged">41h</td></tr>
-</tbody></table>
+</tbody></table></div>
 <div class="flow"><div class="box">HL = 9000h</div><div class="arrow">→</div><div class="box">RAM[9000h] = 41h</div><div class="arrow">→</div><div class="box">A = 41h</div></div>
 <p>이 instruction은 HL을 증가시키지도 않고 RAM을 지우지도 않습니다. <b>A만 바뀝니다.</b> 이런 식으로 매번 “무엇이 바뀌었는가?”를 확인하는 습관이 중요합니다.</p>
 
@@ -449,7 +450,7 @@ LD C,(HL)          ; 9002h의 세 번째 byte를 C로 읽음</pre>
 <div class="misconception"><b>하지만:</b> “HL은 pointer register다”라고 고정해서 외우면 안 됩니다. HL은 16bit register pair이고, 이 코드에서 주소처럼 사용되고 있기 때문에 pointer 역할을 하는 것입니다. 다른 루틴에서는 계산값이나 길이를 담을 수도 있습니다.</div>
 
 <h3>3-5. 실행 추적표로 여러 줄을 읽는다</h3>
-<div class="trace"><table><thead><tr><th>단계</th><th>실행 instruction</th><th>A</th><th>B</th><th>C</th><th>HL</th></tr></thead><tbody>
+<div class="trace"><div class="course-table-scroll"><table><thead><tr><th>단계</th><th>실행 instruction</th><th>A</th><th>B</th><th>C</th><th>HL</th></tr></thead><tbody>
 <tr><td>시작</td><td>-</td><td>00h</td><td>00h</td><td>00h</td><td>0000h</td></tr>
 <tr><td>1</td><td><code>LD HL,9000h</code></td><td>00h</td><td>00h</td><td>00h</td><td class="changed">9000h</td></tr>
 <tr><td>2</td><td><code>LD A,(HL)</code></td><td class="changed">41h</td><td>00h</td><td>00h</td><td>9000h</td></tr>
@@ -457,7 +458,7 @@ LD C,(HL)          ; 9002h의 세 번째 byte를 C로 읽음</pre>
 <tr><td>4</td><td><code>LD B,(HL)</code></td><td>41h</td><td class="changed">52h</td><td>00h</td><td>9001h</td></tr>
 <tr><td>5</td><td><code>INC HL</code></td><td>41h</td><td>52h</td><td>00h</td><td class="changed">9002h</td></tr>
 <tr><td>6</td><td><code>LD C,(HL)</code></td><td>41h</td><td>52h</td><td class="changed">63h</td><td>9002h</td></tr>
-</tbody></table></div>
+</tbody></table></div></div>
 <div class="pc88-note"><b>실행 추적표와 debugger:</b> debugger에서 한 instruction씩 step하면서 register를 확인하는 작업도 본질적으로 이 표와 같습니다. 화면에 많은 register가 보여도 지금 실행되는 code가 사용하는 register부터 보면 됩니다.</div>
 </section>
 
@@ -540,14 +541,14 @@ operand=0Fh = 0000 1111</div>
 <div class="flag-bit"><b>N</b><small>bit 1<br/>Add/Subtract</small></div>
 <div class="flag-bit"><b>C</b><small>bit 0<br/>Carry</small></div>
 </div>
-<table><thead><tr><th>flag</th><th class="left">무엇을 나타내는가</th><th class="left">초보자가 주의할 점</th></tr></thead><tbody>
+<div class="course-table-scroll"><table><thead><tr><th>flag</th><th class="left">무엇을 나타내는가</th><th class="left">초보자가 주의할 점</th></tr></thead><tbody>
 <tr><td><code>S</code></td><td class="left">관련 연산 결과의 최상위 bit가 1인지 나타내는 Sign flag</td><td class="left">모든 instruction이 S를 갱신하는 것은 아님</td></tr>
 <tr><td><code>Z</code></td><td class="left">관련 연산 결과가 0이면 1</td><td class="left">조건 분기에서 매우 자주 사용</td></tr>
 <tr><td><code>H</code></td><td class="left">8bit 산술에서 bit 3↔4 사이의 half carry/borrow 상태</td><td class="left">공식 flag이며 DAA/BCD 처리에 사용</td></tr>
 <tr><td><code>P/V</code></td><td class="left">instruction에 따라 parity 또는 signed overflow, 때로는 block count/IFF2 같은 다른 정의된 상태를 나타냄</td><td class="left">항상 “parity” 하나의 뜻으로 읽으면 틀림</td></tr>
 <tr><td><code>N</code></td><td class="left">ADD 계열인지 SUBTRACT 계열인지 나타내는 상태</td><td class="left">공식 flag이며 DAA가 사용</td></tr>
 <tr><td><code>C</code></td><td class="left">산술 carry/borrow, shift/rotate로 밀려난 bit 등 instruction이 정의한 carry 상태</td><td class="left">unsigned 대소 비교와 다중정밀도 계산에서 중요</td></tr>
-</tbody></table>
+</tbody></table></div>
 <div class="beginner"><b>핵심:</b> F의 각 bit는 “항상 같은 방식으로 자동 재계산되는 8개의 독립 flag”가 아닙니다. <b>instruction마다 어떤 flag를 바꾸고, 보존하고, 0/1로 고정하는지가 정해져 있습니다.</b> 따라서 조건 분기를 읽을 때는 해당 flag를 마지막으로 변경한 instruction을 찾아야 합니다.</div>
 <div class="note"><b>조건 분기에서 직접 검사할 수 있는 공식 flag:</b> 표준 조건 코드 <code>NZ/Z</code>는 Z, <code>NC/C</code>는 C, <code>PO/PE</code>는 P/V, <code>P/M</code>은 S를 검사합니다. <b>H와 N에는 전용 JP/JR/CALL/RET 조건이 없고, F5/F3도 표준 조건 분기로 직접 검사하지 않습니다.</b></div>
 
@@ -808,13 +809,13 @@ LD DE,9000h        ; destination
 LD BC,0003h        ; 처리할 byte 수
 LDI                ; (HL)→(DE), HL++, DE++, BC--</pre>
 <p>실행 전 상태를 다음처럼 가정합니다.</p>
-<table class="state-table"><thead><tr><th>항목</th><th>실행 전</th><th>LDI 1회 실행 후</th></tr></thead><tbody>
+<div class="course-table-scroll"><table class="state-table"><thead><tr><th>항목</th><th>실행 전</th><th>LDI 1회 실행 후</th></tr></thead><tbody>
 <tr><td>HL</td><td>8000h</td><td class="changed">8001h</td></tr>
 <tr><td>DE</td><td>9000h</td><td class="changed">9001h</td></tr>
 <tr><td>BC</td><td>0003h</td><td class="changed">0002h</td></tr>
 <tr><td>RAM[8000h]</td><td>41h</td><td>41h</td></tr>
 <tr><td>RAM[9000h]</td><td>00h</td><td class="changed">41h</td></tr>
-</tbody></table>
+</tbody></table></div>
 <div class="flow"><div class="box">(HL) 41h</div><div class="arrow">→</div><div class="box">(DE) 41h</div><div class="arrow">·</div><div class="box">HL++, DE++, BC--</div></div>
 <p>즉 LDI는 “블록 전체를 한 번에 복사”하는 마법 instruction이 아닙니다. <b>한 byte를 복사하고 세 register를 갱신하는 동작을 한 번 수행</b>합니다.</p>
 
@@ -847,13 +848,13 @@ CPIR               ; A와 (HL)을 비교하며 앞으로 진행</pre>
 <div class="why"><b>역분석에서의 단서:</b> 종료 byte 00h를 찾거나 특정 marker를 검색하는 code에서 CPIR 같은 instruction이 보이면 “연속 메모리 검색” 가능성을 생각할 수 있습니다.</div>
 
 <h3>7-6. Shift와 Rotate는 bit를 옆으로 이동시킨다</h3>
-<table><thead><tr><th>instruction</th><th class="left">입문 수준에서 기억할 동작</th></tr></thead><tbody>
+<div class="course-table-scroll"><table><thead><tr><th>instruction</th><th class="left">입문 수준에서 기억할 동작</th></tr></thead><tbody>
 <tr><td><code>SLA r</code></td><td class="left">왼쪽으로 shift, bit 7은 Carry로 나감, bit 0에는 0</td></tr>
 <tr><td><code>SRA r</code></td><td class="left">오른쪽 산술 shift, 최상위 sign bit를 유지</td></tr>
 <tr><td><code>SRL r</code></td><td class="left">오른쪽 논리 shift, bit 7에 0</td></tr>
 <tr><td><code>RL / RR</code></td><td class="left">Carry를 거쳐 rotate</td></tr>
 <tr><td><code>RLC / RRC</code></td><td class="left">끝 bit를 반대쪽 끝과 Carry로 보내며 rotate</td></tr>
-</tbody></table>
+</tbody></table></div>
 <p>그래픽 bit pattern, 압축 데이터, flag field, 2배/2로 나누는 계산 등에서 만날 수 있습니다. 지금 모든 timing과 flag 조합을 암기할 필요는 없지만, bit가 어느 방향으로 움직이고 Carry가 어디에 관여하는지는 그림으로 읽을 수 있어야 합니다.</p>
 </section>
 
@@ -915,12 +916,12 @@ RST 38h            ; 복귀 주소를 stack에 저장하고 0038h로 이동</pre
 
 <h3>8-7. CB / ED / DD / FD는 ‘앞에 붙는 확장 opcode’일 수 있다</h3>
 <p>Z80 instruction set은 1byte opcode만으로 끝나지 않습니다. 다음과 같은 prefix byte 뒤에 추가 opcode와 operand가 붙는 instruction이 있습니다.</p>
-<table><thead><tr><th>prefix</th><th class="left">주로 연결되는 계열</th><th>예</th></tr></thead><tbody>
+<div class="course-table-scroll"><table><thead><tr><th>prefix</th><th class="left">주로 연결되는 계열</th><th>예</th></tr></thead><tbody>
 <tr><td><code>CB</code></td><td class="left">BIT, SET, RES, rotate/shift 계열</td><td><code>CB 7F</code></td></tr>
 <tr><td><code>ED</code></td><td class="left">block transfer/I/O, interrupt 관련 등 확장 명령</td><td><code>ED B0 = LDIR</code></td></tr>
 <tr><td><code>DD</code></td><td class="left">IX 관련 instruction</td><td><code>DD 7E 05</code></td></tr>
 <tr><td><code>FD</code></td><td class="left">IY 관련 instruction</td><td><code>FD 7E 05</code></td></tr>
-</tbody></table>
+</tbody></table></div>
 <div class="byte-row"><span class="byte prefix">DD</span><span class="byte opcode">7E</span><span class="byte operand">05</span><span class="arrow">→</span><code>LD A,(IX+05h)</code></div>
 <p>이 예는 세 byte가 <b>하나의 instruction</b>입니다. 따라서 hex dump에서 DD를 하나의 독립 instruction, 7E를 다음 instruction으로 끊어 읽으면 완전히 잘못된 disassembly가 됩니다.</p>
 </section>
@@ -980,14 +981,14 @@ CP 00h             ; 읽은 byte가 00h인지 검사</pre>
 <div class="pc88-note"><b>역분석의 목표:</b> 최종적으로는 <span class="inline-code">LD</span>, <span class="inline-code">CP</span>, <span class="inline-code">JR</span>을 한글 단어로 번역하는 것이 아니라 <b>그 조합이 어떤 데이터 구조와 실행 규칙을 구현하는지</b> 알아내는 것입니다.</div>
 
 <h3>9-6. 잘못 읽기 쉬운 코드 모음</h3>
-<table><thead><tr><th>code</th><th class="left">잘못된 해석</th><th class="left">올바른 해석</th></tr></thead><tbody>
+<div class="course-table-scroll"><table><thead><tr><th>code</th><th class="left">잘못된 해석</th><th class="left">올바른 해석</th></tr></thead><tbody>
 <tr><td><code>LD HL,(9000h)</code></td><td class="left">HL=9000h</td><td class="left">9000h~9001h 메모리의 16bit 값을 HL로 읽음</td></tr>
 <tr><td><code>INC HL</code></td><td class="left">RAM[HL] 증가</td><td class="left">HL register 자체 증가</td></tr>
 <tr><td><code>JP Z,9000h</code></td><td class="left">9000h의 값이 0이면 jump</td><td class="left">Z flag가 1이면 9000h로 jump</td></tr>
 <tr><td><code>OUT (5Ch),A</code></td><td class="left">RAM 005Ch에 A 저장</td><td class="left">I/O access. PC-88 hardware의 해당 port를 제어</td></tr>
 <tr><td><code>JR NZ,LOOP</code></td><td class="left">LOOP 값이 0이 아니면 이동</td><td class="left">Z flag가 0이면 상대 분기</td></tr>
 <tr><td><code>CALL 9000h</code></td><td class="left">그냥 9000h로 jump</td><td class="left">복귀 주소를 stack에 저장한 뒤 9000h로 이동</td></tr>
-</tbody></table>
+</tbody></table></div>
 </section>
 
 <section id="practice">

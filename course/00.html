@@ -47,8 +47,9 @@ footer{max-width:1080px;margin:0 auto 60px;padding:0 20px;color:var(--muted);fon
 @media print{body{background:#fff}header{background:#fff;color:#000;padding:20px 0}.lead{color:#333}.wrap{padding:0}.toc,section{box-shadow:none;break-inside:avoid}button{display:none}.no-print{display:none}}
 .course-nav{max-width:1080px;margin:18px auto 0;padding:0 20px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;font-weight:800}.course-nav-bottom{margin-top:28px;margin-bottom:24px}.course-nav a{padding:9px 13px;border:1px solid #d8deea;border-radius:10px;background:#fff;color:#2342a3;text-decoration:none;line-height:1.35}.course-nav a:hover{background:#eef3ff}.course-nav .course-prev{justify-self:start}.course-nav .course-index{justify-self:center}.course-nav .course-next{justify-self:end}.course-nav .nav-empty{visibility:hidden}@media(max-width:800px){.course-nav{padding:0 16px;gap:6px}.course-nav a{padding:8px 9px;font-size:.9rem}}
 </style>
+<link rel="stylesheet" href="../assets/course-responsive.css">
 </head>
-<body>
+<body class="pc88-responsive">
 <header>
   <div class="header-inner">
     <div class="crumb"><a href="../index.html">PC-88 게임 분석 기초 강좌</a> / 0부</div>
@@ -105,7 +106,7 @@ footer{max-width:1080px;margin:0 auto 60px;padding:0 20px;color:var(--muted);fon
   <div class="warning"><b>주의:</b> bit는 정보의 단위입니다. “트랜지스터 하나가 bit 하나다”처럼 물리 부품 수와 1:1로 외우면 실제 회로 구조와 맞지 않습니다.</div>
 
   <h3>1-2. bit가 늘어나면 가능한 조합이 두 배씩 늘어난다</h3>
-  <table>
+  <div class="course-table-scroll"><table>
     <thead><tr><th>bit 수</th><th>가능한 패턴 수</th><th>부호 없는 정수로 해석할 때</th></tr></thead>
     <tbody>
       <tr><td>1 bit</td><td>2¹ = 2</td><td>0 ~ 1</td></tr>
@@ -114,7 +115,7 @@ footer{max-width:1080px;margin:0 auto 60px;padding:0 20px;color:var(--muted);fon
       <tr><td><b>8 bit</b></td><td><b>2⁸ = 256</b></td><td><b>0 ~ 255</b></td></tr>
       <tr><td>16 bit</td><td>2¹⁶ = 65,536</td><td>0 ~ 65,535</td></tr>
     </tbody>
-  </table>
+  </table></div>
   <p><b>8 bit = 1 byte</b>입니다. 그래서 1byte는 256개의 서로 다른 bit 패턴을 가질 수 있습니다. 그 패턴을 숫자로 해석할지, 문자 코드로 해석할지, 명령어로 해석할지는 <b>그 데이터를 사용하는 방식</b>에 따라 달라집니다.</p>
 
   <h3>1-3. 2진수와 16진수는 같은 값을 다르게 적는 방법이다</h3>
@@ -124,14 +125,14 @@ CPU가 16진수로 계산하기 때문은 아닙니다. 컴퓨터 내부에서�
 예를 들어 8bit 한 byte는 2진수로 <span class="inline-code">0000 0000 ~ 1111 1111</span>처럼 8자리를 써야 하지만, 16진수로는 <span class="inline-code">00h ~ FFh</span>처럼 항상 두 자리면 됩니다. 16bit 값도 2진수로는 16자리가 필요하지만 16진수로는 <span class="inline-code">0000h ~ FFFFh</span>처럼 네 자리로 표현할 수 있습니다.<br><br>
 더 중요한 것은 <b>자리의 경계가 byte와 정확히 맞는다는 점</b>입니다. 16진수 한 자리 = 4bit, 두 자리 = 8bit = 1byte이므로 <span class="inline-code">A5h</span>를 보면 바로 <span class="inline-code">1010 0101₂</span>로 나눠 볼 수 있습니다. 반대로 2진수 <span class="inline-code">1111 1111₂</span>도 4bit씩 <span class="inline-code">1111 / 1111</span>로 끊으면 곧바로 <span class="inline-code">F / F</span>, 즉 <span class="inline-code">FFh</span>가 됩니다.<br><br>
 10진수도 같은 값을 표현할 수 있지만 bit 경계와 자릿수가 직접 대응하지 않습니다. 예를 들어 <span class="inline-code">255</span>만 보고는 각 bit가 어떻게 켜져 있는지 바로 알기 어렵지만, <span class="inline-code">FFh</span>는 두 자리 모두 <span class="inline-code">1111</span>이라는 것을 바로 알 수 있습니다. 그래서 <b>메모리 주소, opcode, byte 데이터, bit mask를 읽고 비교하는 역분석에서는 16진수가 훨씬 다루기 쉽습니다.</b></div>
-  <table>
+  <div class="course-table-scroll"><table>
     <thead><tr><th>2진수</th><th>16진수</th><th>10진수</th></tr></thead>
     <tbody>
       <tr><td>0000</td><td>0</td><td>0</td></tr><tr><td>0001</td><td>1</td><td>1</td></tr>
       <tr><td>1001</td><td>9</td><td>9</td></tr><tr><td>1010</td><td>A</td><td>10</td></tr>
       <tr><td>1111</td><td>F</td><td>15</td></tr><tr><td>1111 1111</td><td>FF</td><td>255</td></tr>
     </tbody>
-  </table>
+  </table></div>
   <div class="note"><b>예:</b> <span class="inline-code">1010 0101₂</span> = <span class="inline-code">A5h</span> = <span class="inline-code">165</span>입니다. 값은 하나이고 표기법만 다릅니다.</div>
 
   <h3>1-4. 직접 눌러 보는 8bit</h3>
@@ -141,7 +142,7 @@ CPU가 16진수로 계산하기 때문은 아닙니다. 컴퓨터 내부에서�
   <div id="bitReadout" class="readout">2진수: 00000000 · 10진수: 0 · 16진수: 00h</div>
 
   <h3>1-5. byte와 용량 단위</h3>
-  <table>
+  <div class="course-table-scroll"><table>
     <thead><tr><th>단위</th><th>정의</th><th class="left">설명</th></tr></thead>
     <tbody>
       <tr><td>1 byte (B)</td><td>8 bit</td><td class="left">PC-88 게임 데이터를 볼 때 가장 자주 만나는 기본 단위</td></tr>
@@ -149,18 +150,18 @@ CPU가 16진수로 계산하기 때문은 아닙니다. 컴퓨터 내부에서�
       <tr><td>1 KiB</td><td>1,024 B</td><td class="left">2¹⁰ byte</td></tr>
       <tr><td>1 MiB</td><td>1,024 KiB</td><td class="left">2²⁰ byte</td></tr>
     </tbody>
-  </table>
+  </table></div>
   <div class="pc88-note"><b>레트로 문서 읽기:</b> 오래된 컴퓨터 문서에서 <b>KB</b>라고 적고 실제로는 1,024 byte 단위를 뜻하는 경우가 많습니다. 따라서 당시 문서의 <span class="inline-code">64KB</span>는 보통 65,536 byte를 뜻하는 문맥으로 읽게 됩니다.</div>
 
   <h3>1-6. 논리 연산 — 0과 1에 적용하는 규칙</h3>
   <p>논리 연산은 입력 bit를 규칙에 따라 다른 bit로 바꿉니다. CPU의 ALU와 각종 상태 판정, bit mask 처리의 기초가 됩니다.</p>
   <div class="grid2">
-    <div class="card"><h4>NOT</h4><p>입력을 반대로 바꿉니다.</p><table><tr><th>A</th><th>NOT A</th></tr><tr><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td></tr></table></div>
-    <div class="card"><h4>AND</h4><p>둘 다 1일 때만 1입니다.</p><table><tr><th>A</th><th>B</th><th>A AND B</th></tr><tr><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>1</td></tr></table></div>
-    <div class="card"><h4>OR</h4><p>둘 중 하나라도 1이면 1입니다.</p><table><tr><th>A</th><th>B</th><th>A OR B</th></tr><tr><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td></tr></table></div>
-    <div class="card"><h4>XOR</h4><p>둘이 서로 다를 때 1입니다.</p><table><tr><th>A</th><th>B</th><th>A XOR B</th></tr><tr><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td></tr></table></div>
+    <div class="card"><h4>NOT</h4><p>입력을 반대로 바꿉니다.</p><div class="course-table-scroll"><table><tr><th>A</th><th>NOT A</th></tr><tr><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td></tr></table></div></div>
+    <div class="card"><h4>AND</h4><p>둘 다 1일 때만 1입니다.</p><div class="course-table-scroll"><table><tr><th>A</th><th>B</th><th>A AND B</th></tr><tr><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>1</td></tr></table></div></div>
+    <div class="card"><h4>OR</h4><p>둘 중 하나라도 1이면 1입니다.</p><div class="course-table-scroll"><table><tr><th>A</th><th>B</th><th>A OR B</th></tr><tr><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td></tr></table></div></div>
+    <div class="card"><h4>XOR</h4><p>둘이 서로 다를 때 1입니다.</p><div class="course-table-scroll"><table><tr><th>A</th><th>B</th><th>A XOR B</th></tr><tr><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td></tr></table></div></div>
   </div>
-  <div class="card"><h4>NAND</h4><p><span class="inline-code">NOT (A AND B)</span>입니다. 둘 다 1인 경우만 0이고 나머지는 1입니다.</p><table><tr><th>A</th><th>B</th><th>A NAND B</th></tr><tr><td>0</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td></tr></table></div>
+  <div class="card"><h4>NAND</h4><p><span class="inline-code">NOT (A AND B)</span>입니다. 둘 다 1인 경우만 0이고 나머지는 1입니다.</p><div class="course-table-scroll"><table><tr><th>A</th><th>B</th><th>A NAND B</th></tr><tr><td>0</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td></tr></table></div></div>
 
   <h3>1-7. 논리 연산 체험</h3>
   <div class="controls no-print"><button id="toggleA" class="btn">A = 0</button><button id="toggleB" class="btn">B = 0</button></div>
@@ -240,7 +241,7 @@ CP 08h        ; A와 08h를 비교하고 결과 상태는 F에 기록</pre>
 
   <h3>2-5. B, C, D, E, H, L — 자유롭게 쓰되 명령어마다 자주 맡는 일이 있다</h3>
   <p>이 여섯 개는 Z80의 <b>general-purpose register(범용 register)</b>입니다. 즉 “B에는 반드시 반복 횟수만 넣어야 한다”처럼 고정된 용도가 있는 것은 아닙니다. 필요하면 각각 독립적인 8bit 값 하나를 저장할 수 있습니다. 다만 Z80 명령어 자체가 특정 register를 특별하게 사용하는 경우가 있어 실제 프로그램에서는 자연스럽게 자주 맡는 역할이 생깁니다.</p>
-  <table class="role-table">
+  <div class="course-table-scroll"><table class="role-table">
     <thead><tr><th>register</th><th>크기</th><th class="left">초보자가 이해할 역할</th><th class="left">Z80에서 특히 자주 보이는 사용</th></tr></thead>
     <tbody>
       <tr><td>B</td><td>8 bit</td><td class="left">일반적인 8bit 값 보관</td><td class="left"><span class="inline-code">DJNZ</span> 명령이 B를 1 감소시키고 0이 아니면 반복하므로 <b>반복 횟수(counter)</b>로 자주 보입니다. BC의 상위 byte이기도 합니다.</td></tr>
@@ -250,7 +251,7 @@ CP 08h        ; A와 08h를 비교하고 결과 상태는 F에 기록</pre>
       <tr><td>H</td><td>8 bit</td><td class="left">일반적인 8bit 값 보관</td><td class="left">HL의 상위 byte입니다. <span class="inline-code">HL=9000h</span>이라면 H에는 90h가 들어갑니다.</td></tr>
       <tr><td>L</td><td>8 bit</td><td class="left">일반적인 8bit 값 보관</td><td class="left">HL의 하위 byte입니다. <span class="inline-code">HL=9000h</span>이라면 L에는 00h가 들어갑니다.</td></tr>
     </tbody>
-  </table>
+  </table></div>
 
   <h3>2-6. BC, DE, HL — 8bit 두 개를 묶어서 16bit로 사용한다</h3>
   <p>B와 C, D와 E, H와 L은 각각 두 개를 묶어 16bit register pair로 사용할 수 있습니다. 왼쪽 register가 상위 byte, 오른쪽 register가 하위 byte입니다.</p>
@@ -259,14 +260,14 @@ CP 08h        ; A와 08h를 비교하고 결과 상태는 F에 기록</pre>
     <div class="pair-half"><b>L = 00h</b><br><small>하위 8bit</small></div>
     <div class="pair-eq">→ HL = 9000h</div>
   </div>
-  <table class="role-table">
+  <div class="course-table-scroll"><table class="role-table">
     <thead><tr><th>pair</th><th class="left">실제 코드에서 자주 맡는 역할</th><th class="left">대표 예</th></tr></thead>
     <tbody>
       <tr><td>BC</td><td class="left"><b>개수·반복 횟수</b> 또는 16bit 일반 값으로 자주 쓰입니다. Z80의 block transfer/search 명령에서는 남은 byte 수를 BC가 관리합니다.</td><td class="left"><span class="inline-code">LDIR</span>에서 BC가 0이 될 때까지 복사를 반복합니다.</td></tr>
       <tr><td>DE</td><td class="left"><b>목적지(destination) 주소</b>로 자주 쓰입니다. 특히 block transfer 명령이 HL에서 읽은 데이터를 DE가 가리키는 곳에 씁니다.</td><td class="left"><span class="inline-code">LDIR</span>: (HL) → (DE)</td></tr>
       <tr><td>HL</td><td class="left"><b>메모리 주소(pointer)</b>로 매우 자주 쓰입니다. Z80 명령어에는 <span class="inline-code">(HL)</span> 형태의 메모리 간접 접근이 풍부합니다.</td><td class="left"><span class="inline-code">LD A,(HL)</span>은 HL이 가리키는 RAM의 byte를 A로 읽습니다.</td></tr>
     </tbody>
-  </table>
+  </table></div>
   <pre>; 메모리 8000h~80FFh의 256byte를 9000h~90FFh로 복사하는 전형적인 형태
 LD HL,8000h    ; source 주소
 LD DE,9000h    ; destination 주소
@@ -322,7 +323,7 @@ LD A,(IX+05h)  ; 9005h의 byte를 A에 읽음</pre>
   <p>보조 register는 평소에 <span class="inline-code">LD B′,10h</span>처럼 직접 이름을 지정해 접근하는 방식이 아닙니다. <b>주 세트와 교환해서 현재 세트로 만든 뒤 사용</b>한다는 점이 핵심입니다.</p>
 
   <h3>2-13. 한눈에 보는 Z80 register 역할</h3>
-  <table class="role-table">
+  <div class="course-table-scroll"><table class="role-table">
     <thead><tr><th>register</th><th>크기</th><th class="left">핵심 역할</th></tr></thead>
     <tbody>
       <tr><td>A</td><td>8 bit</td><td class="left">산술·논리·비교·I/O에서 가장 자주 쓰이는 누산기</td></tr>
@@ -344,7 +345,7 @@ LD A,(IX+05h)  ; 9005h의 byte를 A에 읽음</pre>
       <tr><td>R</td><td>8 bit</td><td class="left">DRAM memory refresh 주소 생성 지원</td></tr>
       <tr><td>보조 세트</td><td>8/16 bit</td><td class="left">A′F′, BC′, DE′, HL′. EX/EXX로 주 세트와 빠르게 교환</td></tr>
     </tbody>
-  </table>
+  </table></div>
 
   <div class="pc88-note"><b>PC-88 역분석에서 처음 자주 보는 것:</b> <span class="inline-code">PC</span>는 “지금 어느 코드인가”, <span class="inline-code">HL/DE</span>는 “어느 RAM 위치를 가리키는가”, <span class="inline-code">BC</span>는 “몇 byte를 처리하는가”, <span class="inline-code">A</span>는 “지금 어떤 8bit 값을 처리하는가”, <span class="inline-code">F</span>는 “직전 계산 결과가 어떤 상태인가”, <span class="inline-code">SP</span>는 “함수 호출과 임시 저장이 어느 stack에 쌓였는가”를 추적할 때 특히 중요합니다.</div>
 </section>
@@ -395,7 +396,7 @@ HL      = 9003h
   <div class="pc88-note"><b>PC-88에서 중요한 예고:</b> CPU의 주소가 16bit라는 사실과 컴퓨터에 존재하는 모든 RAM·ROM·VRAM의 물리적 총량은 같은 말이 아닙니다. PC-88에서는 메모리 선택과 뱅크 전환, VRAM 접근 같은 구조를 따로 배우게 됩니다.</div>
 
   <h3>3-4. RAM과 ROM의 차이</h3>
-  <table>
+  <div class="course-table-scroll"><table>
     <thead><tr><th></th><th>RAM</th><th>ROM</th></tr></thead>
     <tbody>
       <tr><th>일반적인 역할</th><td>실행 중 바뀌는 작업 데이터와 프로그램 영역</td><td>기본적으로 고정된 프로그램·테이블·폰트 등의 저장</td></tr>
@@ -403,12 +404,12 @@ HL      = 9003h
       <tr><th>일반적인 쓰기</th><td>가능</td><td>읽기 전용 성격</td></tr>
       <tr><th>PC-88에서 만나는 예</th><td>Main RAM 등</td><td>시스템 ROM, KANJI ROM 등</td></tr>
     </tbody>
-  </table>
+  </table></div>
   <p>“ROM은 절대로 어떤 방식으로도 변경할 수 없다”는 의미로 받아들이면 안 됩니다. ROM은 저장 기술과 시스템 구성에 따라 종류가 다양합니다. 여기서는 CPU가 실행 중 일반 RAM처럼 자유롭게 쓰는 작업 공간과 구분하기 위한 기본 개념으로 이해합니다.</p>
 
   <h3>3-5. little-endian — 16bit 값을 byte 두 개로 놓는 순서</h3>
   <p>Z80 코드와 메모리를 읽다 보면 16bit 값의 <b>낮은 byte가 낮은 주소 쪽에 놓이는</b> 형태를 자주 보게 됩니다. 예를 들어 16bit 값 <span class="inline-code">9000h</span>은 low byte <span class="inline-code">00h</span>, high byte <span class="inline-code">90h</span>으로 나뉩니다.</p>
-  <table><thead><tr><th>16bit 값</th><th>high byte</th><th>low byte</th><th>기계어 operand에서 보이는 순서</th></tr></thead><tbody><tr><td>9000h</td><td>90h</td><td>00h</td><td><b>00 90</b></td></tr><tr><td>1234h</td><td>12h</td><td>34h</td><td><b>34 12</b></td></tr></tbody></table>
+  <div class="course-table-scroll"><table><thead><tr><th>16bit 값</th><th>high byte</th><th>low byte</th><th>기계어 operand에서 보이는 순서</th></tr></thead><tbody><tr><td>9000h</td><td>90h</td><td>00h</td><td><b>00 90</b></td></tr><tr><td>1234h</td><td>12h</td><td>34h</td><td><b>34 12</b></td></tr></tbody></table></div>
   <p>이 순서는 뒤의 machine language와 stack 예제에서 다시 사용합니다.</p>
 </section>
 
@@ -461,16 +462,16 @@ HL      = 9003h
   <h3>5-1. opcode와 operand</h3>
   <p>CPU마다 어떤 byte 패턴을 어떤 명령으로 해석할지가 정해져 있습니다. 명령의 종류를 나타내는 부분을 <span class="term">opcode</span>, 명령이 사용할 값이나 주소 같은 추가 정보를 <span class="term">operand</span>라고 부릅니다.</p>
   <div class="byte-row"><span class="byte op">3E</span><span class="byte operand">05</span><span class="arrow">→</span><code>LD A,05h</code></div>
-  <table><thead><tr><th>byte</th><th>역할</th></tr></thead><tbody><tr><td>3Eh</td><td>opcode — Z80의 <span class="inline-code">LD A,n</span></td></tr><tr><td>05h</td><td>operand — A에 넣을 즉시값</td></tr></tbody></table>
+  <div class="course-table-scroll"><table><thead><tr><th>byte</th><th>역할</th></tr></thead><tbody><tr><td>3Eh</td><td>opcode — Z80의 <span class="inline-code">LD A,n</span></td></tr><tr><td>05h</td><td>operand — A에 넣을 즉시값</td></tr></tbody></table></div>
   <p>이 명령을 실행하면 A register에는 <span class="inline-code">05h</span>가 들어갑니다.</p>
 
   <h3>5-2. 명령은 길이가 모두 같지 않다</h3>
   <p>Z80 명령은 1byte짜리도 있고, operand나 prefix가 붙어 여러 byte가 되는 명령도 있습니다. 따라서 역어셈블할 때는 “한 byte = 한 명령”이라고 생각하면 안 됩니다.</p>
-  <table><thead><tr><th>주소</th><th>기계어</th><th>assembly 표현</th><th>길이</th></tr></thead><tbody><tr><td>8000h</td><td>21 00 90</td><td><code>LD HL,9000h</code></td><td>3 bytes</td></tr><tr><td>8003h</td><td>3E 05</td><td><code>LD A,05h</code></td><td>2 bytes</td></tr><tr><td>8005h</td><td>77</td><td><code>LD (HL),A</code></td><td>1 byte</td></tr></tbody></table>
+  <div class="course-table-scroll"><table><thead><tr><th>주소</th><th>기계어</th><th>assembly 표현</th><th>길이</th></tr></thead><tbody><tr><td>8000h</td><td>21 00 90</td><td><code>LD HL,9000h</code></td><td>3 bytes</td></tr><tr><td>8003h</td><td>3E 05</td><td><code>LD A,05h</code></td><td>2 bytes</td></tr><tr><td>8005h</td><td>77</td><td><code>LD (HL),A</code></td><td>1 byte</td></tr></tbody></table></div>
 
   <h3>5-3. 실제 Z80 예제 — 16bit 즉시값과 little-endian</h3>
   <div class="byte-row"><span class="byte op">21</span><span class="byte operand">00</span><span class="byte operand">90</span><span class="arrow">→</span><code>LD HL,9000h</code></div>
-  <table><thead><tr><th>위치</th><th>값</th><th>역할</th></tr></thead><tbody><tr><td>1</td><td>21h</td><td>opcode: <span class="inline-code">LD HL,nn</span></td></tr><tr><td>2</td><td>00h</td><td>nn의 low byte</td></tr><tr><td>3</td><td>90h</td><td>nn의 high byte</td></tr></tbody></table>
+  <div class="course-table-scroll"><table><thead><tr><th>위치</th><th>값</th><th>역할</th></tr></thead><tbody><tr><td>1</td><td>21h</td><td>opcode: <span class="inline-code">LD HL,nn</span></td></tr><tr><td>2</td><td>00h</td><td>nn의 low byte</td></tr><tr><td>3</td><td>90h</td><td>nn의 high byte</td></tr></tbody></table></div>
   <p>즉 사람이 보는 16bit 값은 <span class="inline-code">9000h</span>이지만 명령 byte 안에서는 <span class="inline-code">00 90</span> 순서로 나타납니다.</p>
 
   <h3>5-4. 같은 byte도 문맥에 따라 코드일 수도 데이터일 수도 있다</h3>
@@ -482,7 +483,7 @@ HL      = 9003h
 <h2>assembler — 사람이 읽는 assembly를 machine code로 바꾸는 프로그램</h2>
 
   <h3>6-1. assembly language와 assembler는 다른 말이다</h3>
-  <table><thead><tr><th>용어</th><th class="left">뜻</th></tr></thead><tbody><tr><td><b>assembly language</b></td><td class="left">CPU 명령을 mnemonic과 symbol로 표현하는 저수준 언어. 예: <code>LD HL,9000h</code></td></tr><tr><td><b>assembler</b></td><td class="left">assembly source를 machine code 또는 object code로 번역하는 프로그램</td></tr></tbody></table>
+  <div class="course-table-scroll"><table><thead><tr><th>용어</th><th class="left">뜻</th></tr></thead><tbody><tr><td><b>assembly language</b></td><td class="left">CPU 명령을 mnemonic과 symbol로 표현하는 저수준 언어. 예: <code>LD HL,9000h</code></td></tr><tr><td><b>assembler</b></td><td class="left">assembly source를 machine code 또는 object code로 번역하는 프로그램</td></tr></tbody></table></div>
 
   <h3>6-2. assembler가 하는 일</h3>
   <div class="translate" aria-label="어셈블 과정">
@@ -554,13 +555,13 @@ PUSH 후 : SP = EFFEh
 
   <h4>실제 주소로 추적</h4>
   <p>주소 <span class="inline-code">1234h</span>에 3byte짜리 <span class="inline-code">CALL 4000h</span>가 있고 CALL 직전 SP가 <span class="inline-code">F000h</span>이라고 가정합니다.</p>
-  <table><thead><tr><th>단계</th><th>PC</th><th>SP</th><th class="left">동작</th></tr></thead><tbody>
+  <div class="course-table-scroll"><table><thead><tr><th>단계</th><th>PC</th><th>SP</th><th class="left">동작</th></tr></thead><tbody>
     <tr><td>CALL 시작</td><td>1234h</td><td>F000h</td><td class="left">CALL opcode와 16bit 대상 주소를 읽음</td></tr>
     <tr><td>다음 주소 계산</td><td>1237h</td><td>F000h</td><td class="left">3byte 명령 다음 주소 1237h가 return address</td></tr>
     <tr><td>return address 저장</td><td>1237h</td><td>EFFEh</td><td class="left">1237h를 stack에 PUSH</td></tr>
     <tr><td>subroutine 진입</td><td>4000h</td><td>EFFEh</td><td class="left">PC가 호출 대상 4000h로 변경</td></tr>
     <tr><td>RET</td><td>1237h</td><td>F000h</td><td class="left">stack에서 1237h를 꺼내 PC로 복원</td></tr>
-  </tbody></table>
+  </tbody></table></div>
   <div class="pc88-note"><b>디버거에서의 의미:</b> CALL 대상만 따라가는 것이 아니라 CALL 직전과 직후의 PC·SP를 함께 보면 “어디서 호출했고 어디로 돌아가는가”를 추적할 수 있습니다.</div>
 </section>
 
@@ -568,11 +569,11 @@ PUSH 후 : SP = EFFEh
   <div class="kicker">통합</div>
   <h2>실제 Z80 코드 한 조각으로 전부 연결하기</h2>
   <p>아래 세 명령만으로도 앞의 개념이 거의 모두 연결됩니다.</p>
-  <table><thead><tr><th>주소</th><th>machine code</th><th>assembly 표현</th><th class="left">동작</th></tr></thead><tbody>
+  <div class="course-table-scroll"><table><thead><tr><th>주소</th><th>machine code</th><th>assembly 표현</th><th class="left">동작</th></tr></thead><tbody>
     <tr><td>8000h</td><td>21 00 90</td><td><code>LD HL,9000h</code></td><td class="left">HL에 9000h를 넣음</td></tr>
     <tr><td>8003h</td><td>3E 05</td><td><code>LD A,05h</code></td><td class="left">A에 05h를 넣음</td></tr>
     <tr><td>8005h</td><td>77</td><td><code>LD (HL),A</code></td><td class="left">HL이 가리키는 RAM 위치에 A를 기록</td></tr>
-  </tbody></table>
+  </tbody></table></div>
   <pre>PC = 8000h
 
 8000h  21 00 90    LD HL,9000h   → HL = 9000h

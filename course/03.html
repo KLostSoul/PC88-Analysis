@@ -58,8 +58,9 @@ table{width:100%;border-collapse:collapse;margin:14px 0 20px;font-size:.96rem}th
 .course-nav{max-width:1080px;margin:18px auto 0;padding:0 20px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;font-weight:800}.course-nav-bottom{margin-top:28px;margin-bottom:24px}.course-nav a{padding:9px 13px;border:1px solid #d8deea;border-radius:10px;background:#fff;color:#2342a3;text-decoration:none;line-height:1.35}.course-nav a:hover{background:#eef3ff}.course-nav .course-prev{justify-self:start}.course-nav .course-index{justify-self:center}.course-nav .course-next{justify-self:end}.course-nav .nav-empty{visibility:hidden}@media(max-width:800px){.course-nav{padding:0 16px;gap:6px}.course-nav a{padding:8px 9px;font-size:.9rem}}
 .crumb{font-size:.9rem;font-weight:800;opacity:.85;margin-bottom:12px}.crumb a{color:inherit;text-decoration:none}.crumb a:hover{text-decoration:underline}
 </style>
+<link rel="stylesheet" href="../assets/course-responsive.css">
 </head>
-<body>
+<body class="pc88-responsive">
 <header><div class="header-inner"><div class="crumb"><a href="../index.html">PC-88 게임 분석 기초 강좌</a> / 3부</div><div class="eyebrow">PC-88 GAME ANALYSIS · FOUNDATION 03</div><h1>PC-88 게임 분석을 위한 기초 강좌 3부</h1><p class="lead">플로피 안에서 데이터가 어떻게 지나가고 읽히는지부터 시작해, 그 데이터가 디스크 이미지 파일과 메모리에서 어떻게 다른 위치값으로 보이는지, 그리고 글자 모양 데이터를 어떻게 찾아 화면에 그리는지 순서대로 배웁니다. 전문용어는 동작을 먼저 이해한 뒤 하나씩 붙입니다.</p><div class="hero-badges"><span class="hero-badge">플로피가 읽히는 원리</span><span class="hero-badge">디스크 데이터를 찾는 과정</span><span class="hero-badge">D88 파일 구조</span><span class="hero-badge">글자 모양 데이터</span><span class="hero-badge">필요한 실습만</span></div></div></header>
 <nav class="course-nav course-nav-top" aria-label="강좌 이동">
 <a class="course-prev" href="02.html">← 2부</a>
@@ -192,7 +193,7 @@ table{width:100%;border-collapse:collapse;margin:14px 0 20px;font-size:.96rem}th
 <div class="kicker">원하는 구간 찾기</div>
 <h2>5. 원하는 데이터 구간을 찾으려면 그 구간에 적힌 네 가지 번호를 하나씩 대조한다</h2>
 <p class="plain-intro">디스크를 읽는 제어 장치는 “지금 지나가는 구간이 내가 찾는 구간인가?”를 확인해야 합니다. 그래서 요청할 때 네 가지 값을 함께 주고, 원판이 돌면서 발견되는 각 구간의 네 값을 하나씩 비교합니다. 하나라도 다르면 그 구간은 지나치고 다음 구간을 기다립니다.</p><div class="term-intro"><b>이제 이름을 붙이면:</b> 이 네 값을 <b>C/H/R/N</b>이라고 씁니다. C는 어느 원통 위치인지, H는 어느 면인지, R은 그 Track 안에서 어떤 Sector인지, N은 데이터 크기를 나타내는 코드입니다. 이 비교를 실제로 수행하는 디스크 제어 장치를 <b>FDC</b>라고 부릅니다.</div>
-<table><thead><tr><th>기호</th><th>뜻</th><th class="left">이 Lab에서 보는 역할</th></tr></thead><tbody><tr><td>C</td><td>Cylinder ID</td><td class="left">요청값과 읽힌 ID의 C가 같은지 확인</td></tr><tr><td>H</td><td>Head ID</td><td class="left">요청값과 읽힌 ID의 H가 같은지 확인</td></tr><tr><td>R</td><td>Record ID</td><td class="left">같은 Track 안에서 어느 Sector를 원하는지 구분</td></tr><tr><td>N</td><td>Size Code</td><td class="left">요청한 Sector 크기 code와 ID의 N을 비교</td></tr></tbody></table>
+<div class="course-table-scroll"><table><thead><tr><th>기호</th><th>뜻</th><th class="left">이 Lab에서 보는 역할</th></tr></thead><tbody><tr><td>C</td><td>Cylinder ID</td><td class="left">요청값과 읽힌 ID의 C가 같은지 확인</td></tr><tr><td>H</td><td>Head ID</td><td class="left">요청값과 읽힌 ID의 H가 같은지 확인</td></tr><tr><td>R</td><td>Record ID</td><td class="left">같은 Track 안에서 어느 Sector를 원하는지 구분</td></tr><tr><td>N</td><td>Size Code</td><td class="left">요청한 Sector 크기 code와 ID의 N을 비교</td></tr></tbody></table></div>
 <div class="lab"><h4>Lab 4 — 원하는 구간을 찾을 때 네 값을 하나씩 대조해 보기</h4>
 <p>이 예제에서는 FDC가 <b>C=02, H=01, R=07, N=01</b>인 Sector를 찾고 있습니다. 같은 Track의 정상적인 예를 단순화했기 때문에 C/H/N은 같고, 회전하면서 <b>R=05 → 06 → 07 → 08 → 09</b>가 차례로 Head 아래에 들어옵니다.</p><div class="note"><b>PC-88와 μPD765 연결:</b> PC-88에서 만나는 μPD765/μPD765A 계열 FDC의 대표적인 Sector 읽기 명령 가운데 하나가 <code>READ DATA</code>입니다. 이 Lab은 특정 명령어 이름을 외우는 것이 아니라, FDC가 요청한 ID와 회전 중 발견한 ID를 비교하는 원리를 먼저 보여 줍니다.</div>
 <div class="chrn-request"><div class="chrn-request-title">① FDC가 찾고 있는 목표 ID — 이 네 값이 모두 같아야 한다</div><div class="chrn-four"><div><b>C</b><span>02</span></div><div><b>H</b><span>01</span></div><div><b>R</b><span>07</span></div><div><b>N</b><span>01</span></div></div></div>
@@ -200,7 +201,7 @@ table{width:100%;border-collapse:collapse;margin:14px 0 20px;font-size:.96rem}th
 <div class="chrn-track-label">② 회전 순서</div><div class="chrn-track" id="chrnStrip"></div>
 <div class="chrn-now"><div class="chrn-now-title">③ 지금 Head 아래에서 읽은 ID</div><div class="chrn-four" id="chrnCurrent"></div></div>
 <div class="chrn-track-label">④ 요청 ID와 현재 ID를 한 항목씩 비교</div>
-<table class="chrn-compare-table"><thead><tr><th>필드</th><th>요청값</th><th>현재 읽은 값</th><th>판정</th></tr></thead><tbody id="chrnCompareRows"></tbody></table>
+<div class="course-table-scroll"><table class="chrn-compare-table"><thead><tr><th>필드</th><th>요청값</th><th>현재 읽은 값</th><th>판정</th></tr></thead><tbody id="chrnCompareRows"></tbody></table></div>
 <div class="chrn-status search" id="chrnStatus"></div>
 <div class="controls"><button class="btn" id="chrnNext">다음 Sector ID 보기</button><button class="btn" id="chrnReset">처음부터</button></div>
 </div>
@@ -211,7 +212,7 @@ table{width:100%;border-collapse:collapse;margin:14px 0 20px;font-size:.96rem}th
 <div class="kicker">데이터 길이</div><h2>6. 네 가지 번호 중 하나는 “데이터가 몇 바이트인지”를 직접 쓰지 않고 코드로 나타낸다</h2>
 <p class="plain-intro">Sector마다 저장되는 데이터 양이 다를 수 있습니다. 그런데 식별 정보에는 256, 512 같은 바이트 수를 그대로 적는 대신 작은 숫자 하나를 넣고, 그 숫자로 실제 크기를 계산하는 방식을 씁니다.</p><div class="term-intro"><b>이제 이름을 붙이면:</b> C/H/R/N 가운데 마지막 값 <b>N</b>이 바로 <b>Size Code</b>입니다. 기본 해석은 <code>128 × 2^N</code>이며, 예를 들어 N=1이면 256byte입니다.</div>
 <div class="formula">nominal sector size = 128 × 2<sup>N</sup> = 128 &lt;&lt; N</div>
-<table><thead><tr><th>N</th><th>계산</th><th>표준 Sector Data 크기</th></tr></thead><tbody><tr><td>0</td><td><code>128 × 1</code></td><td>128 bytes</td></tr><tr><td>1</td><td><code>128 × 2</code></td><td>256 bytes</td></tr><tr><td>2</td><td><code>128 × 4</code></td><td>512 bytes</td></tr><tr><td>3</td><td><code>128 × 8</code></td><td>1024 bytes</td></tr></tbody></table>
+<div class="course-table-scroll"><table><thead><tr><th>N</th><th>계산</th><th>표준 Sector Data 크기</th></tr></thead><tbody><tr><td>0</td><td><code>128 × 1</code></td><td>128 bytes</td></tr><tr><td>1</td><td><code>128 × 2</code></td><td>256 bytes</td></tr><tr><td>2</td><td><code>128 × 4</code></td><td>512 bytes</td></tr><tr><td>3</td><td><code>128 × 8</code></td><td>1024 bytes</td></tr></tbody></table></div>
 <div class="beginner"><b>예:</b> ID Field가 <code>N=1</code>이라면 nominal Sector Data 크기는 <code>128 &lt;&lt; 1 = 256 bytes</code>입니다. N 자체가 256을 뜻하는 것은 아닙니다.</div>
 <details><summary><b>고급 참고 — μPD765 계열에서 N=0과 DTL</b></summary><p>Sector ID의 기본 크기 해석은 <code>128 × 2^N</code>입니다. 다만 μPD765 계열의 일부 READ/WRITE 명령에서는 <code>N=0</code>일 때 명령 parameter인 <b>DTL(Data Length)</b>이 실제 전송 길이에 관여할 수 있습니다. 따라서 기본식과 특정 FDC 명령의 전송 규칙을 같은 것으로 확대하지 않습니다.</p></details>
 </section>
@@ -255,14 +256,14 @@ table{width:100%;border-collapse:collapse;margin:14px 0 20px;font-size:.96rem}th
 <div class="term-intro"><b>이제 이름을 붙이면:</b> 이 위치표를 <b>Track Offset Table</b>이라고 합니다. 각 entry는 D88 파일 시작을 기준으로 해당 <b>Track Block</b>이 시작되는 <b>file offset</b>을 나타냅니다.</div>
 <h3>D88 파일 맨 앞의 기본 구조</h3>
 <p>Track 위치표를 읽기 전에 파일 맨 앞에 무엇이 놓이는지만 확인합니다. 아래 값은 D88에서 흔히 사용하는 기본 Header 배치입니다.</p>
-<table><thead><tr><th>File offset</th><th>내용</th><th class="left">뜻</th></tr></thead><tbody>
+<div class="course-table-scroll"><table><thead><tr><th>File offset</th><th>내용</th><th class="left">뜻</th></tr></thead><tbody>
 <tr><td><code>00h~10h</code></td><td>Disk name</td><td class="left">디스크 이름 영역</td></tr>
 <tr><td><code>11h~19h</code></td><td>Reserved</td><td class="left">예약 영역</td></tr>
 <tr><td><code>1Ah</code></td><td>Write protect</td><td class="left">쓰기 보호 상태</td></tr>
 <tr><td><code>1Bh</code></td><td>Media type</td><td class="left">2D/2DD/2HD 등의 media 식별값</td></tr>
 <tr><td><code>1Ch~1Fh</code></td><td>Disk size</td><td class="left">D88 파일 전체 크기 값</td></tr>
 <tr><td><code>20h~</code></td><td>Track Offset Table</td><td class="left">각 Track block의 시작 file offset</td></tr>
-</tbody></table>
+</tbody></table></div>
 <h3>4바이트 값을 실제 파일 위치로 읽는 예</h3><pre>파일에 보이는 4byte
 B0 02 00 00
 
@@ -277,7 +278,7 @@ D88 파일 offset 000002B0h에서 해당 Track Block 시작</pre>
 <section id="sector-header">
 <div class="kicker">데이터 앞의 설명 정보</div><h2>13. D88 안에서는 실제 데이터 조각 앞에 “이 조각이 무엇인지” 설명하는 16바이트 정보가 붙는다</h2>
 <p class="plain-intro">D88 파일에서 Sector 하나를 저장할 때는 실제 게임 데이터만 덩그러니 놓지 않습니다. 바로 앞에 이 데이터가 어느 위치의 몇 번째 구간인지, 크기와 상태가 무엇인지 설명하는 작은 정보 블록을 붙입니다.</p><div class="term-intro"><b>이제 이름을 붙이면:</b> 앞의 16byte 정보 블록을 <b>Sector Header</b>, 그 뒤의 실제 Sector Data를 <b>Payload</b>라고 부릅니다. Header 안에는 C/H/R/N, 상태, 실제 data size 같은 값이 들어갑니다.</div>
-<table><thead><tr><th>Sector 시작 기준</th><th>Field</th><th class="left">뜻</th></tr></thead><tbody><tr><td>+00</td><td>C</td><td class="left">Cylinder ID</td></tr><tr><td>+01</td><td>H</td><td class="left">Head ID</td></tr><tr><td>+02</td><td>R</td><td class="left">Record/Sector ID</td></tr><tr><td>+03</td><td>N</td><td class="left">Size Code</td></tr><tr><td>+04~05</td><td>Sectors in Track</td><td class="left">Track 내 Sector 수 관련 값</td></tr><tr><td>+06</td><td>Density</td><td class="left">Density 관련 flag</td></tr><tr><td>+07</td><td>Deleted mark</td><td class="left">Deleted-data 상태</td></tr><tr><td>+08</td><td>Status</td><td class="left">FDC status 표현</td></tr><tr><td>+09~0D</td><td>Reserved</td><td class="left">예약 영역</td></tr><tr><td>+0E~0F</td><td>Data size</td><td class="left">뒤따르는 Sector Data 길이를 나타내는 별도 값</td></tr><tr><td>+10~</td><td>Payload</td><td class="left">실제 Sector Data</td></tr></tbody></table>
+<div class="course-table-scroll"><table><thead><tr><th>Sector 시작 기준</th><th>Field</th><th class="left">뜻</th></tr></thead><tbody><tr><td>+00</td><td>C</td><td class="left">Cylinder ID</td></tr><tr><td>+01</td><td>H</td><td class="left">Head ID</td></tr><tr><td>+02</td><td>R</td><td class="left">Record/Sector ID</td></tr><tr><td>+03</td><td>N</td><td class="left">Size Code</td></tr><tr><td>+04~05</td><td>Sectors in Track</td><td class="left">Track 내 Sector 수 관련 값</td></tr><tr><td>+06</td><td>Density</td><td class="left">Density 관련 flag</td></tr><tr><td>+07</td><td>Deleted mark</td><td class="left">Deleted-data 상태</td></tr><tr><td>+08</td><td>Status</td><td class="left">FDC status 표현</td></tr><tr><td>+09~0D</td><td>Reserved</td><td class="left">예약 영역</td></tr><tr><td>+0E~0F</td><td>Data size</td><td class="left">뒤따르는 Sector Data 길이를 나타내는 별도 값</td></tr><tr><td>+10~</td><td>Payload</td><td class="left">실제 Sector Data</td></tr></tbody></table></div>
 <div class="warning"><b>N과 Data Size는 다른 필드:</b> <code>N</code>은 Sector ID의 표준 size code이고, D88의 <code>+0E~+0F</code>는 뒤따르는 Data 길이를 나타내는 별도 값입니다.</div>
 <details><summary><b>고급 확인 — 실제 D88에서는 왜 경계를 함께 검증하는가?</b></summary><p>D88 사양대로 정상 작성된 학습용 이미지에서는 field를 그대로 따라갈 수 있습니다. 실제 이미지 분석에서는 size 정보와 다음 Sector/Track 경계가 서로 일관적인지도 함께 확인하는 습관이 필요합니다.</p></details>
 </section>
@@ -349,7 +350,7 @@ D88 파일 offset 000002B0h에서 해당 Track Block 시작</pre>
 <div class="kicker">계산한 위치값으로 실제 글자 모양 읽기</div><h2>21. KANJI access를 아래쪽·위쪽 바이트로 나눠 지정한 뒤 한 줄의 왼쪽 8점과 오른쪽 8점을 읽는다</h2>
 <p class="plain-intro">앞 장에서 JIS를 계산해 <b>KANJI access</b>를 얻었습니다. 이제 CPU는 그 위치값을 Kanji ROM 회로에 알려 준 뒤, 현재 줄의 왼쪽 8개 점과 오른쪽 8개 점을 각각 한 바이트씩 읽습니다. 한 줄을 읽고 위치값을 하나 증가시키면 다음 줄을 읽을 수 있습니다.</p>
 <div class="term-intro"><b>이제 I/O 이름을 붙이면:</b> PC-8801의 제1수준 Kanji ROM에서는 <b>E8h/E9h I/O port</b>로 위치값과 좌우 8dot 데이터를 주고받습니다. 전통적인 호환 절차에서는 <b>EAh</b>가 read start, <b>EBh</b>가 read end 역할을 합니다.</div>
-<table><thead><tr><th>Port</th><th>WRITE</th><th>READ</th></tr></thead><tbody><tr><td>E8h</td><td>access low 설정</td><td>오른쪽 8dot</td></tr><tr><td>E9h</td><td>access high 설정</td><td>왼쪽 8dot</td></tr><tr><td>EAh</td><td>전통적인 read start</td><td>-</td></tr><tr><td>EBh</td><td>전통적인 read end</td><td>-</td></tr></tbody></table>
+<div class="course-table-scroll"><table><thead><tr><th>Port</th><th>WRITE</th><th>READ</th></tr></thead><tbody><tr><td>E8h</td><td>access low 설정</td><td>오른쪽 8dot</td></tr><tr><td>E9h</td><td>access high 설정</td><td>왼쪽 8dot</td></tr><tr><td>EAh</td><td>전통적인 read start</td><td>-</td></tr><tr><td>EBh</td><td>전통적인 read end</td><td>-</td></tr></tbody></table></div>
 <div class="lab"><h4>Lab 9 — KANJI access 1810h로 글자 모양 한 줄을 읽는 순서 보기</h4><div class="io-diagram"><div class="io-side" id="ioCpu"><b>Z80</b><div>Access: <code id="ioAccessText">1810h</code></div></div><div class="io-arrow" id="ioArrow"><b>E8h WRITE</b><small>Z80 → Kanji ROM</small></div><div class="io-side" id="ioRom"><b>Kanji ROM</b><div class="io-register"><div id="ioLow">LOW: --</div><div id="ioHigh">HIGH: --</div><div id="ioLeft">LEFT: --</div><div id="ioRight">RIGHT: --</div></div></div></div><div id="ioStages"><div class="fdc-stage active">1. E8h WRITE — low byte 설정</div><div class="fdc-stage">2. E9h WRITE — high byte 설정</div><div class="fdc-stage">3. EAh — read start</div><div class="fdc-stage">4. 8 state 대기</div><div class="fdc-stage">5. E9h READ — 왼쪽 8dot 읽기</div><div class="fdc-stage">6. E8h READ — 오른쪽 8dot 읽기</div><div class="fdc-stage">7. EBh — read end</div><div class="fdc-stage">8. access + 1 → 다음 raster</div></div><div class="controls"><button class="btn" id="ioNext">다음</button><button class="btn" id="ioReset">처음</button></div><div class="readout" id="ioReadout"></div></div>
 <div class="note"><b>모델 차이:</b> 위 순서는 전통적인 제1수준 Kanji ROM 호환 절차입니다. <b>PC-8801mkIIFR 이후</b>에는 <code>EAh read start → 8 state 대기 → EBh read end</code> 절차를 생략해도 동작하는 구성이 있으므로, 모든 모델의 코드가 반드시 같은 형태로 보인다고 가정하지 않습니다.</div><details><summary><b>고급 참고 — 제2수준 Kanji ROM</b></summary><p>제2수준 Kanji ROM 접근에서는 <code>ECh/EDh</code> 계열 I/O를 사용합니다. 이 장의 Lab은 먼저 제1수준 Kanji ROM의 <code>E8h/E9h</code> 접근을 이해하는 데 집중합니다.</p></details>
 </section>
