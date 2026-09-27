@@ -267,8 +267,8 @@ QUASI88&gt; g
 <section class="section" id="ram-test">
  <div class="num">08 · VERIFY SCRIPT · 실험 대기</div>
  <h2>Script 첫 두 바이트만 바꿔 출력 문자가 변하는지 확인한다</h2>
- <p>이미 실제로 확인한 원본 Script는 <code>969Fh : B8 62</code>입니다. 기존 바리스 분석에서 <code>20 18</code>이 <code>あ</code>를 출력하는 Token으로 기록돼 있으므로, <strong>이번 첫 이벤트 주소에서 실제로 RAM을 변경하는 시험</strong>을 별도로 수행합니다.</p>
- <div class="grid2"><article><h4>기존 확정값</h4><p>원본 첫 Token: <code>B8 62</code> → 「雨」<br>기존 분석의 Token: <code>20 18</code> → 「あ」</p></article><article><h4>아직 필요한 증거</h4><p>원본 dump → 정확한 QUASI88 write 명령과 실행 로그 → 첫 글자가 「あ」로 바뀐 실제 화면 → 원본 복원.</p></article></div>
+ <p>이미 실제로 확인한 원본 Script는 <code>969Fh : B8 62</code>입니다. 기존 분석에서 <code>20 18</code>은 「あ」의 발화체 Token으로 확인됐지만, 이번 실험은 입 모양 변화가 필요 없는 <strong>일반 비발화 문자</strong>를 출력하는 것이 목적입니다. 따라서 첫 바이트의 <code>08h</code> 비트를 세운 <code>28 18</code>을 이번 RAM 수정값으로 사용합니다. 출력 결과는 아직 이 첫 이벤트에서 검증하지 않았습니다.</p>
+ <div class="grid2"><article><h4>기존 확정값</h4><p>원본 첫 Token: <code>B8 62</code> → 「雨」<br>기존 발화체 Token: <code>20 18</code> → 「あ」<br><strong>이번 실험용 비발화체: <code>28 18</code> → 「あ」(결과 검증 대기)</strong></p></article><article><h4>아직 필요한 증거</h4><p>원본 dump → 정확한 QUASI88 write 명령과 실행 로그 → 첫 글자가 비발화 「あ」로 바뀌고 불필요한 발화 동작이 없는 실제 화면 → 원본 복원.</p></article></div>
  <div class="record">실습 기록 자리 — 아직 실행하지 않은 절차
 1. 원본 게임 상태로 재시작하여 969Fh의 원본 B8 62 확인
 2. QUASI88 write 명령의 실제 문법을 검증한 뒤 RAM 두 바이트만 수정
