@@ -58,7 +58,7 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
  <li><a href="#token">문자 Token의 분기를 실제 Code로 읽는다</a></li>
  <li><a href="#kanji">Kanji ROM I/O를 따라 Glyph를 읽는다</a></li>
  <li><a href="#write">두 Glyph 행과 GVRAM 접근 관찰</a></li>
- <li><a href="#ram-test">Script 첫 Token을 「あ」로 바꾸는 실험</a></li>
+ <li><a href="#ram-test">Script 첫 Token을 「が」로 바꾸는 실험</a></li>
  <li><a href="#rom-test">HxD에서 「雨」 Glyph만 「가」로 바꾸는 실험</a></li>
  <li><a href="#finish">확정 내용과 남겨 둔 분석 과제</a></li>
  </ol></nav>
@@ -267,8 +267,8 @@ QUASI88&gt; g
 <section class="section" id="ram-test">
  <div class="num">08 · VERIFY SCRIPT · 실험 대기</div>
  <h2>Script 첫 두 바이트만 바꿔 출력 문자가 변하는지 확인한다</h2>
- <p>이미 실제로 확인한 원본 Script는 <code>969Fh : B8 62</code>입니다. 기존 분석에서 <code>20 18</code>은 「あ」의 발화체 Token으로 확인됐지만, 이번 실험은 입 모양 변화가 필요 없는 <strong>일반 비발화 문자</strong>를 출력하는 것이 목적입니다. 따라서 첫 바이트의 <code>08h</code> 비트를 세운 <code>28 18</code>을 이번 RAM 수정값으로 사용합니다. 출력 결과는 아직 이 첫 이벤트에서 검증하지 않았습니다.</p>
- <div class="grid2"><article><h4>기존 확정값</h4><p>원본 첫 Token: <code>B8 62</code> → 「雨」<br>기존 발화체 Token: <code>20 18</code> → 「あ」<br><strong>이번 실험용 비발화체: <code>28 18</code> → 「あ」(결과 검증 대기)</strong></p></article><article><h4>아직 필요한 증거</h4><p>원본 dump → 정확한 QUASI88 write 명령과 실행 로그 → 첫 글자가 비발화 「あ」로 바뀌고 불필요한 발화 동작이 없는 실제 화면 → 원본 복원.</p></article></div>
+ <p>이미 실제로 확인한 원본 Script는 <code>969Fh : B8 62</code>입니다. 이번에는 이미 같은 문장에서 실제로 출력된 두 번째 글자 「が」의 <code>C8 18</code>을 첫 글자 위치에 복사합니다. 새로운 Token을 추정할 필요가 없고, 원본 <code>B8 62</code>와 <code>C8 18</code> 모두 첫 바이트의 <code>08h</code> 비트가 설정돼 있으므로 같은 비발화 분기를 사용합니다. 첫 이벤트 첫 글자의 실제 변경 결과는 아직 검증하지 않았습니다.</p>
+ <div class="grid2"><article><h4>기존 확정값</h4><p>원본 첫 Token: <code>B8 62</code> → 「雨」<br>같은 문장의 둘째 Token: <code>C8 18</code> → 「が」<br><strong>첫 Token을 <code>C8 18</code>로 교체 → 「ががやんでる…」 예상 (실측 대기)</strong></p></article><article><h4>아직 필요한 증거</h4><p>원본 dump → 정확한 QUASI88 write 명령과 실행 로그 → 첫 글자가 「が」로 바뀐 「ががやんでる…」 화면 → 원본 복원.</p></article></div>
  <div class="record">실습 기록 자리 — 아직 실행하지 않은 절차
 1. 원본 게임 상태로 재시작하여 969Fh의 원본 B8 62 확인
 2. QUASI88 write 명령의 실제 문법을 검증한 뒤 RAM 두 바이트만 수정
@@ -307,7 +307,7 @@ QUASI88&gt; g
  <tr><td>04 강제 Monitor / Stack</td><td class="pill-ok">로그 확보</td><td>대기 루프에서 호출자 발견</td></tr>
  <tr><td>05~07 Script → 문자 출력 → Kanji I/O</td><td class="pill-ok">로그 확보</td><td>실측 Code와 Register 연결</td></tr>
  <tr><td>08 원본 Script Byte</td><td class="pill-ok">로그 확보</td><td>토큰과 다음 HL 확인</td></tr>
- <tr><td>09~10 RAM 변경 → 「あ」</td><td class="pill-wait">이번 장면 실험 대기</td><td>Script 변경의 인과관계 검증</td></tr>
+ <tr><td>09~10 RAM 변경 → 「が」</td><td class="pill-wait">이번 장면 실험 대기</td><td>Script 변경의 인과관계 검증</td></tr>
  <tr><td>11~13 HxD 32바이트 → 「가」</td><td class="pill-wait">수동 실험 대기</td><td>Glyph 변경의 인과관계 검증</td></tr>
  </tbody></table></div>
  <div class="checks">
