@@ -48,7 +48,7 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
  <h2>화면의 글자에서 Script까지 거슬러 올라간다</h2>
  <p>5부에서 배운 것은 주소를 미리 아는 것이 아니라, 화면 관찰로 질문을 정하고 현재 실행값에서 다음 조사 위치를 찾는 방법이었습니다. 6부에서는 타이틀 로고가 아닌 <strong>실제 일본어 대사 한 줄</strong>에 같은 절차를 적용합니다.</p>
  <p>먼저 Kanji ROM을 사용하는 장면인지 비교하고, 강제 Monitor 진입 뒤 Stack의 반환 주소·Script 처리기·문자 렌더러를 연결합니다. 마지막에는 <strong>Script Token 변경</strong>과 <strong>Font bitmap 변경</strong>을 서로 다른 실험으로 검증합니다.</p>
- <div class="badges"><span class="badge">QUASI88 0.7.4</span><span class="badge">이벤트 1: 雨がやんでる・・・</span><span class="badge">실측 로그 1~8 확보</span><span class="badge">치환 실험 9~13 대기</span></div>
+ <div class="badges"><span class="badge">QUASI88 0.7.4</span><span class="badge">이벤트 1: 雨がやんでる・・・</span><span class="badge">실측 로그 1~10 확보</span><span class="badge">Font 실험 11~13 대기</span></div>
  <div class="flow"><span>화면 비교</span><span>강제 Break</span><span>Stack</span><span>Script</span><span>Token 분기</span><span>Kanji I/O</span><span>Glyph 기록</span><span>두 가지 치환 검증</span></div>
  <nav class="toc" aria-label="목차"><h3>분석 순서</h3><ol>
  <li><a href="#classify">ROM을 쓰는 화면인지 확인한다</a></li>
@@ -265,16 +265,37 @@ QUASI88&gt; g
 </section>
 
 <section class="section" id="ram-test">
- <div class="num">08 · VERIFY SCRIPT · 실험 대기</div>
- <h2>Script 첫 두 바이트만 바꿔 출력 문자가 변하는지 확인한다</h2>
- <p>이미 실제로 확인한 원본 Script는 <code>969Fh : B8 62</code>입니다. 이번에는 이미 같은 문장에서 실제로 출력된 두 번째 글자 「が」의 <code>C8 18</code>을 첫 글자 위치에 복사합니다. 새로운 Token을 추정할 필요가 없고, 원본 <code>B8 62</code>와 <code>C8 18</code> 모두 첫 바이트의 <code>08h</code> 비트가 설정돼 있으므로 같은 비발화 분기를 사용합니다. 첫 이벤트 첫 글자의 실제 변경 결과는 아직 검증하지 않았습니다.</p>
- <div class="grid2"><article><h4>기존 확정값</h4><p>원본 첫 Token: <code>B8 62</code> → 「雨」<br>같은 문장의 둘째 Token: <code>C8 18</code> → 「が」<br><strong>첫 Token을 <code>C8 18</code>로 교체 → 「ががやんでる…」 예상 (실측 대기)</strong></p></article><article><h4>아직 필요한 증거</h4><p>원본 dump → 정확한 QUASI88 write 명령과 실행 로그 → 첫 글자가 「が」로 바뀐 「ががやんでる…」 화면 → 원본 복원.</p></article></div>
- <div class="record">실습 기록 자리 — 아직 실행하지 않은 절차
-1. 원본 게임 상태로 재시작하여 969Fh의 원본 B8 62 확인
-2. QUASI88 write 명령의 실제 문법을 검증한 뒤 RAM 두 바이트만 수정
-3. 재개 후 첫 글자와 나머지 문장 비교
-4. 결과 화면 및 원본 복원 기록 보관</div>
- <div class="callout warn"><h3>아직 성공 화면을 만들지 않는다</h3><p>이 첫 이벤트 주소에서의 실제 RAM 변경·재개·출력 로그는 아직 확보되지 않았습니다. 강좌 완성 시 실측값으로만 이 단계를 채웁니다.</p></div>
+ <div class="num">08 · VERIFY SCRIPT · 실제 RAM 변경 성공</div>
+ <h2>「雨」의 두 바이트를 기존 「が」 Token으로 바꾼다</h2>
+ <p>앞에서 확인한 첫 문장 원본은 <code>969Fh : B8 62 C8 18 ...</code>입니다. 둘째 글자 「が」의 <code>C8 18</code>을 첫 글자 주소에도 기록했습니다. 첫 바이트가 모두 <code>08h</code> 비트를 포함하므로 앞서 확인한 비발화 출력 경로를 유지한 채 Glyph만 달라지는지 시험할 수 있습니다.</p>
+ <p>이번 재실행에서는 <strong>처음 중단된 위치가 <code>HL=9680h</code>이었다</strong>는 점이 중요합니다. <code>02EDh</code>는 Script의 여러 위치에서 반복 실행됩니다. 화면에 바꿀 문자가 나타나기 전이고 <code>969Fh</code>에 원본 바이트가 이미 적재돼 있는 것을 확인했으므로, 이 시점에 수정한 뒤 재개했습니다. <code>HL=969Fh</code>에서 중단됐다고 기록하지 않습니다.</p>
+ <div class="terminal">QUASI88&gt; break clearall #0
+clear break point MAIN - all
+QUASI88&gt; break pc 0x02ED #1
+set break point MAIN - #1 [ PC : 02EDH ]
+QUASI88&gt; reset
+QUASI88&gt; g
+*** Break at 02EDH *** ( MAIN[#1] : PC )
+[MAIN] AF:0044 BC:005C DE:FE81 HL:9680 PC:02ED SP:00FE
+
+QUASI88&gt; dump 0x969F #16
+969F : B8 62 C8 18 48 38 38 39 78 28 B8 38 60 12 60 12
+
+QUASI88&gt; write MAIN 0x969F 0xC8
+WRITE memory MAIN[ 969FH ] &lt;- C8
+QUASI88&gt; write MAIN 0x96A0 0x18
+WRITE memory MAIN[ 96A0H ] &lt;- 18
+
+QUASI88&gt; dump 0x969F #16
+969F : C8 18 C8 18 48 38 38 39 78 28 B8 38 60 12 60 12
+
+QUASI88&gt; break clearall #0
+clear break point MAIN - all
+QUASI88&gt; g</div>
+ <div class="grid2"><article><h4>검증한 RAM 변화</h4><p><code>969F~96A0: B8 62 → C8 18</code>입니다. 이어지는 두 번째 Token <code>C8 18</code>과 다음 Token들은 유지됐습니다.</p></article><article><h4>실제 실행 화면</h4><p>제공받은 <code>04.PNG</code>에서 문장의 시작이 <strong>「ががやん」</strong>으로 표시됐습니다. 따라서 원본 첫 글자 「雨」가 「が」로 바뀐 출력까지 확인했습니다. 캡처 시점에서 전체 문장은 아직 완성되지 않았습니다.</p></article></div>
+ <figure class="shot"><div class="shot-pending"><div><strong>04.PNG · 실제 출력 성공</strong><br>「ががやん」 표시 확인<br><small>이번 대화에서 화면 확보 · GitHub 이미지 파일 등록 대기</small></div></div><figcaption>RAM 수정 후의 실제 화면. 완성된 전체 문장이나 추가 발화 상태는 이 캡처만으로 단정하지 않는다.</figcaption></figure>
+ <div class="callout ok"><h3>이 실험에서 확정한 것</h3><p>동일한 게임·동일한 장면에서 <strong>Script의 첫 두 바이트만 수정했을 때 첫 글자가 바뀌었다</strong>는 실행 근거를 얻었습니다. ROM Glyph는 수정하지 않았으므로 Script Token과 글리프 선택의 연결을 검증한 것입니다.</p></div>
+ <div class="callout warn"><h3>Font 실험 전 원상복구</h3><p>다음 HxD 실험에서는 원본 Script <code>B8 62</code>가 필요합니다. 현재 RAM 실험을 끝낸 뒤 원본 디스크로 완전히 재시작하거나, 실행 상태에 맞춰 첫 두 바이트를 원래 값으로 돌리고 <code>dump</code>로 확인합니다. RAM에 <code>C8 18</code>이 남아 있다면 「雨」 글리프를 바꿔도 그 자리를 선택하지 않으므로 실험 조건이 달라집니다.</p></div>
 </section>
 
 <section class="section" id="rom-test">
@@ -307,7 +328,7 @@ QUASI88&gt; g
  <tr><td>04 강제 Monitor / Stack</td><td class="pill-ok">로그 확보</td><td>대기 루프에서 호출자 발견</td></tr>
  <tr><td>05~07 Script → 문자 출력 → Kanji I/O</td><td class="pill-ok">로그 확보</td><td>실측 Code와 Register 연결</td></tr>
  <tr><td>08 원본 Script Byte</td><td class="pill-ok">로그 확보</td><td>토큰과 다음 HL 확인</td></tr>
- <tr><td>09~10 RAM 변경 → 「が」</td><td class="pill-wait">이번 장면 실험 대기</td><td>Script 변경의 인과관계 검증</td></tr>
+ <tr><td>09~10 RAM 변경 → 「が」</td><td class="pill-ok">원본·수정 dump 및 실제 첫 글자 화면 확보</td><td>Script 변경의 인과관계 검증</td></tr>
  <tr><td>11~13 HxD 32바이트 → 「가」</td><td class="pill-wait">수동 실험 대기</td><td>Glyph 변경의 인과관계 검증</td></tr>
  </tbody></table></div>
  <div class="checks">
@@ -330,7 +351,7 @@ QUASI88&gt; g
   H --> I["BC Glyph → 0BFE·0C00 → 화면 접근 메모리"]
 </pre></div>
  <div class="callout"><h3>남겨 둘 범위</h3><p>모든 제어 Token의 규격, 전체 Script 추출, 게임 전반의 Font 매핑과 한글 인코딩 엔진 제작은 이번 한 글자 실습의 완료 조건이 아닙니다. 실험으로 확인한 사실을 다른 장면으로 확장하는 분석은 <strong>수강생의 몫으로 남겨 둡니다.</strong></p></div>
- <div class="next"><h2>6부 강좌 뼈대</h2><p>현재 실측으로 확보한 1~8번은 실제 로그를 배치했습니다. 9~13번은 검증 전인 상태를 숨기지 않고 빈 실습 구간으로 남겨 두었습니다.</p></div>
+ <div class="next"><h2>6부 강좌 뼈대</h2><p>실측 자료 1~10번을 반영했습니다. RAM 변경 후 첫 글자가 「が」로 바뀌는 화면까지 확인했으며, HxD를 사용하는 11~13번은 별도의 Font 검증 실험으로 남겨 두었습니다.</p></div>
  <p class="muted small">자료 연계: <a href="https://github.com/KLostSoul/PC88-Analysis/blob/main/course/06-evidence.md">6부 증거 기록</a> · <a href="https://github.com/KLostSoul/PC88-Analysis/blob/main/images/course06/README.md">캡처 및 추가 자료 목록</a> · <a href="https://github.com/KLostSoul/PC88-Valis1-Localization-Build">바리스 1 재현 빌드</a></p>
 </section>
 <nav class="course-nav course-nav-bottom" aria-label="강좌 이동">
