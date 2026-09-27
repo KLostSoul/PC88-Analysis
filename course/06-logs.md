@@ -1,6 +1,6 @@
 # 6부 — QUASI88 실제 로그 원문
 
-아래 블록은 이 강좌 제작 과정에서 제공받은 Monitor 출력입니다. 명령어·레지스터·CPU 상태·덤프 헤더·디스어셈블리·step 결과를 생략하거나 축약하지 않고 기록합니다. 각 로그 사이의 해설은 강좌 HTML에서 확인합니다.
+QUASI88 0.7.4 Monitor에서 기록한 실제 명령과 출력입니다. 명령·레지스터·CPU 상태·덤프 헤더·disassembly·step 결과를 원문 그대로 기록했으며, 각 단계의 설명은 [6부 강좌](06.html)에서 볼 수 있습니다.
 
 ## 01 · 강제 Monitor 진입: reg와 disasm #80
 
@@ -553,14 +553,8 @@ clear break point MAIN - all
 QUASI88> g
 ```
 
-## 화면 증거
+## 대응 화면
 
-- `01.PNG` — 정상 ROM 첫 이벤트
-- `02.PNG` — ROM 제거 후 동일 장면
-- `03.PNG` — 「雨が」가 출력된 화면
-- `04.PNG` — `969F~96A0` 수정 뒤 「ががやん」이 표시된 실제 화면
-- `05.PNG` — HxD의 원본 「雨」 글리프 32바이트
-- `06.PNG` — HxD에서 「가」 글리프로 덮어쓴 32바이트
-- `07.PNG` — 수정 ROM을 적용한 QUASI88의 「가」 출력 화면
+[01.PNG](../images/course06/01.PNG) 정상 대사 · [02.PNG](../images/course06/02.PNG) ROM 제거 비교 · [03.PNG](../images/course06/03.PNG) 「雨が」 출력 · [04.PNG](../images/course06/04.PNG) RAM Token 수정 · [05.PNG](../images/course06/05.PNG) 원본 글리프 · [06.PNG](../images/course06/06.PNG) 수정 글리프 · [07.PNG](../images/course06/07.PNG) 수정 ROM 실행
 
-이미지의 원격 저장소 등록 여부는 `images/course06/README.md`를 확인합니다.
+이미지별 설명은 [6부 화면 자료](../images/course06/README.md)를 참조합니다.
