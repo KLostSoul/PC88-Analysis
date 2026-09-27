@@ -27,7 +27,7 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
 .status-table td:first-child{font-weight:650}.status-table td{vertical-align:middle}
 .pill-ok{color:#13795b;font-weight:900}.pill-wait{color:#a85b08;font-weight:900}
 .compact-code{font-size:12px;line-height:1.6}
-@media(max-width:720px){.shot-pending{min-height:140px}}
+
 </style>
 </head>
 <body>
@@ -70,10 +70,10 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
  <p>이번 장면은 <strong>이벤트 1의 첫 문장</strong>입니다. 정상 상태와 <code>KANJI1.ROM</code>을 제거한 뒤 재시작한 상태를 비교하고, 실제 일본어 문자가 나타나기 시작할 때 강제로 멈춥니다. ROM 제거 실험에서는 원본을 반드시 백업하고, 에뮬레이터의 대체 ROM 경로나 이미 로드된 캐시 가능성에 주의합니다.</p>
  
 <div class="shots">
-<figure class="shot"><div class="shot-pending"><div><strong>01.PNG</strong><br>원본 KANJI1.ROM<br><small>정상 이벤트 화면 · 이미지 등록 대기</small></div></div><figcaption>실제 캡처 확보. 첫 문장 「雨がやんでる・・・いつの間に・・・？」의 정상 표시.</figcaption></figure>
-<figure class="shot"><div class="shot-pending"><div><strong>02.PNG</strong><br>KANJI1.ROM 제거 후 재시작<br><small>문자 영역 이상 · 이미지 등록 대기</small></div></div><figcaption>같은 장면에서 배경은 남지만 문자 영역은 정상 표시되지 않는다. ROM 의존성의 실험 단서.</figcaption></figure>
-<figure class="shot"><div class="shot-pending"><div><strong>03.PNG</strong><br>처음 두 문자 「雨が」 표시<br><small>출력 중 정지 화면 · 이미지 등록 대기</small></div></div><figcaption>첫 글자만이 아니라 「雨が」까지 표시된 시점. 이때 강제 Monitor에 진입했다.</figcaption></figure>
-</div><p class="muted small">세 PNG는 이번 실습에서 제공받았지만 아직 GitHub의 <code>images/course06/</code>에 등록하지 않았다. 실제 파일을 등록하면 이 자리의 캡처 박스를 <code>&lt;img&gt;</code>로 교체한다.</p>
+<figure class="shot"><img src="../images/course06/01.PNG" alt="원본 KANJI1.ROM에서 첫 이벤트 문장이 정상적으로 표시된 화면" loading="lazy" decoding="async"><figcaption>실제 캡처 확보. 첫 문장 「雨がやんでる・・・いつの間に・・・？」의 정상 표시.</figcaption></figure>
+<figure class="shot"><img src="../images/course06/02.PNG" alt="KANJI1.ROM 제거 후 재시작하여 대사 영역이 정상 표시되지 않는 화면" loading="lazy" decoding="async"><figcaption>같은 장면에서 배경은 남지만 문자 영역은 정상 표시되지 않는다. ROM 의존성의 실험 단서.</figcaption></figure>
+<figure class="shot"><img src="../images/course06/03.PNG" alt="첫 두 글자 雨が가 표시된 시점의 화면" loading="lazy" decoding="async"><figcaption>첫 글자만이 아니라 「雨が」까지 표시된 시점. 이때 강제 Monitor에 진입했다.</figcaption></figure>
+</div><p class="muted small">실제 캡처 <code>01.PNG</code>~<code>03.PNG</code>은 <code>images/course06/</code>에 보관합니다.</p>
  <div class="grid2"><article><h4>이번 화면에서 관찰</h4><p>ROM을 제거한 비교 화면에서는 배경·인물은 보이지만 문자 영역이 정상 표시되지 않습니다.</p></article><article><h4>다음에 확인할 것</h4><p>이 차이는 Kanji ROM 의존성의 단서입니다. 실제로 어떤 I/O 명령이 실행되는지는 디버거에서 별도로 확인해야 합니다.</p></article></div>
 </section>
 
@@ -646,7 +646,7 @@ QUASI88&gt; break clearall #0
 clear break point MAIN - all
 QUASI88&gt; g</div>
  <div class="grid2"><article><h4>검증한 RAM 변화</h4><p><code>969F~96A0: B8 62 → C8 18</code>입니다. 이어지는 두 번째 Token <code>C8 18</code>과 다음 Token들은 유지됐습니다.</p></article><article><h4>실제 실행 화면</h4><p>제공받은 <code>04.PNG</code>에서 문장의 시작이 <strong>「ががやん」</strong>으로 표시됐습니다. 따라서 원본 첫 글자 「雨」가 「が」로 바뀐 출력까지 확인했습니다. 캡처 시점에서 전체 문장은 아직 완성되지 않았습니다.</p></article></div>
- <figure class="shot"><div class="shot-pending"><div><strong>04.PNG · 실제 출력 성공</strong><br>「ががやん」 표시 확인<br><small>이번 대화에서 화면 확보 · GitHub 이미지 파일 등록 대기</small></div></div><figcaption>RAM 수정 후의 실제 화면. 완성된 전체 문장은 이 캡처만으로 확인할 수 없습니다.</figcaption></figure>
+ <figure class="shot"><img src="../images/course06/04.PNG" alt="첫 문자 Token을 C8 18로 수정한 뒤 ががやん이 표시된 화면" loading="lazy" decoding="async"><figcaption><code>04.PNG</code> — RAM 수정 후의 실제 화면. 완성된 전체 문장은 이 캡처만으로 확인할 수 없습니다.</figcaption></figure>
  <div class="callout ok"><h3>이 실험에서 확정한 것</h3><p>동일한 게임·동일한 장면에서 <strong>Script의 첫 두 바이트만 수정했을 때 첫 글자가 바뀌었다</strong>는 실행 근거를 얻었습니다. ROM Glyph는 수정하지 않았으므로 Script Token과 글리프 선택의 연결을 검증한 것입니다.</p></div>
  <div class="callout warn"><h3>Font 실험 전 원상복구</h3><p>다음 HxD 실험에서는 원본 Script <code>B8 62</code>가 필요합니다. 현재 RAM 실험을 끝낸 뒤 원본 디스크로 완전히 재시작하거나, 실행 상태에 맞춰 첫 두 바이트를 원래 값으로 돌리고 <code>dump</code>로 확인합니다. RAM에 <code>C8 18</code>이 남아 있다면 「雨」 글리프를 바꿔도 그 자리를 선택하지 않으므로 실험 조건이 달라집니다.</p></div>
 </section>
@@ -677,7 +677,7 @@ QUASI88&gt; g</div>
  <div class="num">10 · FINISH AND RECORD</div>
  <h2>실측으로 확정된 사실과 예정 실험을 구분한다</h2>
  <div class="table-wrap"><table class="status-table"><thead><tr><th>증거</th><th>상태</th><th>강좌에서의 역할</th></tr></thead><tbody>
- <tr><td>01~03 정상·ROM 제거·문자 출력 화면</td><td class="pill-ok">자료 확보 / PNG 배치 대기</td><td>조사 대상과 실험 조건 비교</td></tr>
+ <tr><td>01~03 정상·ROM 제거·문자 출력 화면</td><td class="pill-ok">화면 등록 완료</td><td>조사 대상과 실험 조건 비교</td></tr>
  <tr><td>04 강제 Monitor / Stack</td><td class="pill-ok">로그 확보</td><td>대기 루프에서 호출자 발견</td></tr>
  <tr><td>05~07 Script → 문자 출력 → Kanji I/O</td><td class="pill-ok">로그 확보</td><td>실측 Code와 Register 연결</td></tr>
  <tr><td>08 원본 Script Byte</td><td class="pill-ok">로그 확보</td><td>토큰과 다음 HL 확인</td></tr>
