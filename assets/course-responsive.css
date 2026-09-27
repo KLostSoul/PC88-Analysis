@@ -56,7 +56,7 @@ body.pc88-responsive{width:100%;min-width:0;overflow-wrap:break-word}
  .pc88-responsive :is(.seek-track-row,.detail-track,.chrn-track,.walker-track){overflow-x:auto}
  .pc88-responsive .glyph-visual{gap:12px}
  .pc88-responsive .glyph-basics{padding:13px}
- .pc88-responsive .glyph-pixels{--pc88-pixel:clamp(9px,calc((100vw - 120px)/16 - 1px),15px);grid-template-columns:repeat(16,var(--pc88-pixel));grid-template-rows:repeat(16,var(--pc88-pixel));max-width:100%;width:max-content}
+ .pc88-responsive .glyph-pixels{--pc88-pixel:15px;grid-template-columns:repeat(16,var(--pc88-pixel));grid-template-rows:repeat(16,var(--pc88-pixel));max-width:100%;width:max-content}
  .pc88-responsive .glyph-pixel{width:var(--pc88-pixel);height:var(--pc88-pixel)}
  .pc88-responsive .glyph-values table{font-size:12px}
  .pc88-responsive :is(.card-top,.section-head,.progress-label){flex-wrap:wrap}
@@ -66,7 +66,7 @@ body.pc88-responsive{width:100%;min-width:0;overflow-wrap:break-word}
  .pc88-responsive .section{padding-left:12px;padding-right:12px}
  .pc88-responsive .course-nav{padding-left:7px;padding-right:7px;gap:4px}
  .pc88-responsive .course-nav a{font-size:.78rem;padding:7px 5px}
- .pc88-responsive .glyph-pixels{--pc88-pixel:clamp(9px,calc((100vw - 110px)/16 - 1px),15px)}
+ .pc88-responsive .glyph-pixels{--pc88-pixel:11px}
  .pc88-responsive :is(h1,h2,h3,h4){overflow-wrap:anywhere}
 }
 @media print{
