@@ -49,7 +49,7 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
  <p>5부에서 배운 것은 주소를 미리 아는 것이 아니라, 화면 관찰로 질문을 정하고 현재 실행값에서 다음 조사 위치를 찾는 방법이었습니다. 6부에서는 타이틀 로고가 아닌 <strong>실제 일본어 대사 한 줄</strong>에 같은 절차를 적용합니다.</p>
  <p>먼저 Kanji ROM을 사용하는 장면인지 비교하고, 강제 Monitor 진입 뒤 Stack의 반환 주소·Script 처리기·문자 렌더러를 연결합니다. 마지막에는 <strong>Script Token 변경</strong>과 <strong>Font bitmap 변경</strong>을 서로 다른 실험으로 검증합니다.</p>
  <div class="badges"><span class="badge">QUASI88 0.7.4</span><span class="badge">이벤트 1: 雨がやんでる・・・</span><span class="badge">실측 로그 1~10 확보</span><span class="badge">Font 실험 11~13 대기</span></div>
- <div class="flow"><span>화면 비교</span><span>강제 Break</span><span>Stack</span><span>Script</span><span>Token 분기</span><span>Kanji I/O</span><span>Glyph 기록</span><span>두 가지 치환 검증</span></div>
+ <p class="muted small">실제 Monitor 출력은 원문 그대로 기록합니다. <a href="https://github.com/KLostSoul/PC88-Analysis/blob/main/course/06-logs.md">전체 원문 로그</a>에서도 명령과 출력 순서를 확인할 수 있습니다.</p><div class="flow"><span>화면 비교</span><span>강제 Break</span><span>Stack</span><span>Script</span><span>Token 분기</span><span>Kanji I/O</span><span>Glyph 기록</span><span>두 가지 치환 검증</span></div>
  <nav class="toc" aria-label="목차"><h3>분석 순서</h3><ol>
  <li><a href="#classify">ROM을 쓰는 화면인지 확인한다</a></li>
  <li><a href="#stop">「雨が」 표시 시점에서 강제 Monitor 진입</a></li>
@@ -81,21 +81,95 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
  <div class="num">02 · BREAK AND OBSERVE</div>
  <h2>강제로 멈춘 PC를 문자 출력 코드라고 가정하지 않는다</h2>
  <p><code>03.PNG</code>에서 「雨が」까지 화면에 보였을 때 강제로 Monitor에 진입했습니다. <code>PC=04BD</code>는 <code>0292h</code>를 읽어 <code>D</code>와 비교하는 <strong>대기 루프</strong>였습니다. 첫 문자를 막 그리기 시작하는 지점과 혼동하지 않습니다.</p>
- <div class="terminal">QUASI88&gt; reg
+ <div class="terminal" aria-label="QUASI88 원문 01">QUASI88&gt; reg
 [MAIN]
- AF:0993[S..H..NC] BC:0000  DE:0AD0  HL:96A3  IX:0000  PC:04BD
- IY:E55C  SP:00FA
+ AF:0993[S..H..NC] BC:0000  DE:0AD0  HL:96A3  IX:0000  PC:04BD  I:00 IM:2 IFF:1
+ A':C47D[.Z.H.P.C] B':0000  D':0500  H':3E97  IY:E55C  SP:00FA  (ck=214400715)
             04C1 38FA      JR    C,04BDH
-    ------&gt; 04BD 3A9202    LD    A,(0292H)
+   \------&gt; 04BD 3A9202    LD    A,(0292H)
             04C0 BA        CP    D
-
-04BD LD A,(0292H)
-04C0 CP D
-04C1 JR C,04BDH
-04C3 XOR A
-04C4 LD (0292H),A
-04C7 POP DE
-04C8 RET</div>
+QUASI88&gt; disasm #80
+04BD 3A9202    LD    A,(0292H)
+04C0 BA        CP    D
+04C1 38FA      JR    C,04BDH
+04C3 AF        XOR   A
+04C4 329202    LD    (0292H),A
+04C7 D1        POP   DE
+04C8 C9        RET
+04C9 3ACD02    LD    A,(02CDH)
+04CC CB7F      BIT   7,A
+04CE 28F9      JR    Z,04C9H
+04D0 3ACD02    LD    A,(02CDH)
+04D3 CB7F      BIT   7,A
+04D5 20F9      JR    NZ,04D0H
+04D7 3ACD02    LD    A,(02CDH)
+04DA CB7F      BIT   7,A
+04DC 28F9      JR    Z,04D7H
+04DE D1        POP   DE
+04DF C9        RET
+04E0 E5        PUSH  HL
+04E1 C5        PUSH  BC
+04E2 47        LD    B,A
+04E3 210010    LD    HL,1000H
+04E6 2B        DEC   HL
+04E7 7D        LD    A,L
+04E8 B4        OR    H
+04E9 C2E604    JP    NZ,04E6H
+04EC 10F5      DJNZ  04E3H
+04EE C1        POP   BC
+04EF E1        POP   HL
+04F0 C9        RET
+04F1 C9        RET
+04F2 C9        RET
+04F3 D9        EXX
+04F4 210029    LD    HL,2900H
+04F7 D9        EXX
+04F8 23        INC   HL
+04F9 7E        LD    A,(HL)
+04FA 23        INC   HL
+04FB 46        LD    B,(HL)
+04FC FE01      CP    01H
+04FE CA1205    JP    Z,0512H
+0501 FE02      CP    02H
+0503 CA2305    JP    Z,0523H
+0506 FE03      CP    03H
+0508 CA3405    JP    Z,0534H
+050B FE04      CP    04H
+050D FE05      CP    05H
+050F C3A304    JP    04A3H
+0512 3E28      LD    A,28H
+0514 32F607    LD    (07F6H),A
+0517 E5        PUSH  HL
+0518 C5        PUSH  BC
+0519 CD4D08    CALL  084DH
+051C C1        POP   BC
+051D 10F9      DJNZ  0518H
+051F E1        POP   HL
+0520 C3A304    JP    04A3H
+0523 3E28      LD    A,28H
+0525 32F607    LD    (07F6H),A
+0528 E5        PUSH  HL
+0529 C5        PUSH  BC
+052A CDE808    CALL  08E8H
+052D C1        POP   BC
+052E 10F9      DJNZ  0529H
+0530 E1        POP   HL
+0531 C3A304    JP    04A3H
+0534 3E78      LD    A,78H
+0536 32A507    LD    (07A5H),A
+0539 E5        PUSH  HL
+053A C5        PUSH  BC
+053B CD9209    CALL  0992H
+053E C1        POP   BC
+053F 10F9      DJNZ  053AH
+0541 E1        POP   HL
+0542 C3A304    JP    04A3H
+0545 C9        RET
+0546 3E48      LD    A,48H
+0548 D332      OUT   (32H),A
+054A AF        XOR   A
+054B D335      OUT   (35H),A
+QUASI88&gt;</div>
  <div class="question">현재 PC가 대기 처리 안이라면, 그 대기를 <strong>누가 호출했는지</strong> 어디서 확인할 수 있을까요?</div>
  <p>5부에서 사용한 Stack 확인을 그대로 적용합니다. 지금 실행을 재개하지 않고 반환 주소 후보부터 조사합니다.</p>
 </section>
@@ -103,16 +177,43 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
 <section class="section" id="stack">
  <div class="num">03 · FIND THE CALLER</div>
  <h2>Stack의 <code>4F 04</code>에서 반환 주소 <code>044Fh</code>를 찾는다</h2>
- <div class="terminal">QUASI88&gt; dump 0x00FA #16
-00FA : D0 18 4F 04 CB 01 31 00 01 CD E4 01 3E 48 D3 32
-
-QUASI88&gt; disasm 0x0443 #32
-0443 CD8F0B    CALL 0B8FH
-0446 3E08      LD A,08H
-0448 D332      OUT (32H),A
-044A 3E0A      LD A,0AH
-044C CDAE04    CALL 04AEH
-044F C3E402    JP 02E4H</div>
+ <div class="terminal" aria-label="QUASI88 원문 02">QUASI88&gt; dump 0x00FA #16
+addr : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F
+---- : -----------------------------------------------
+00FA : D0 18 4F 04 CB 01 31 00 01 CD E4 01 3E 48 D3 32 |..O...1.....&gt;H.2|</div><h3>반환 주소 주변의 전체 출력</h3><div class="terminal" aria-label="QUASI88 원문 03">QUASI88&gt; disasm 0x0443 #32
+0443 CD8F0B    CALL  0B8FH
+0446 3E08      LD    A,08H
+0448 D332      OUT   (32H),A
+044A 3E0A      LD    A,0AH
+044C CDAE04    CALL  04AEH
+044F C3E402    JP    02E4H
+0452 7B        LD    A,E
+0453 E6F0      AND   F0H
+0455 5F        LD    E,A
+0456 56        LD    D,(HL)
+0457 7A        LD    A,D
+0458 23        INC   HL
+0459 FE12      CP    12H
+045B DA7804    JP    C,0478H
+045E F5        PUSH  AF
+045F 3E48      LD    A,48H
+0461 D332      OUT   (32H),A
+0463 CD8F0B    CALL  0B8FH
+0466 3E08      LD    A,08H
+0468 D332      OUT   (32H),A
+046A F1        POP   AF
+046B FE17      CP    17H
+046D DA7804    JP    C,0478H
+0470 E5        PUSH  HL
+0471 215906    LD    HL,0659H
+0474 CD1606    CALL  0616H
+0477 E1        POP   HL
+0478 3E04      LD    A,04H
+047A CDAE04    CALL  04AEH
+047D 7E        LD    A,(HL)
+047E CB3F      SRL   A
+0480 CB3F      SRL   A
+QUASI88&gt;</div>
  <p><code>04AEh</code>에서는 <code>PUSH DE</code>로 기존 DE를 보관한 상태이므로, SP가 가리키는 <code>D0 18</code>은 저장된 DE입니다. 바로 다음 <code>4F 04</code>를 little-endian으로 읽으면 반환 주소 <code>044Fh</code>가 됩니다.</p>
  <div class="state"><b>실측 값</b><span>SP=<code>00FAh</code>, 다음 반환 주소 <code>044Fh</code></span><b>호출 관계</b><span><code>0443 CALL 0B8F</code> → <code>044C CALL 04AE</code> → <code>044F JP 02E4</code></span><b>다음 질문</b><span><code>02E4h</code>로 돌아온 뒤, 다음 대사 Byte를 어디서 읽는가?</span></div>
  <div class="callout"><h3>왜 저장된 DE가 <code>18D0h</code>인가?</h3><p>뒤의 출력 루틴에서 행 하나를 읽을 때마다 <code>INC DE</code>가 실행되는 것을 확인합니다. 두 번째 문자 「が」의 시작값 <code>18C0h</code>에 16행을 더하면 <code>18D0h</code>입니다. 값의 차이를 Script 불일치로 단정하지 않습니다.</p></div>
@@ -121,27 +222,77 @@ QUASI88&gt; disasm 0x0443 #32
 <section class="section" id="script">
  <div class="num">04 · SCRIPT READER</div>
  <h2>반환 경로에서 실제 Script consumer를 발견한다</h2>
- <div class="terminal">QUASI88&gt; disasm 0x02E4 #48
-02E4 LD A,(02CCH)
-02E7 BIT 7,A
-02E9 RET Z
-02EA XOR A
-02EB OUT (35H),A
-02ED LD E,(HL)
-02EE INC HL
-02EF LD A,E
-02F0 LD (0C84H),A
-02F3 AND 0FH
-02F5 JP Z,03B8H
-...
-031B CP 08H
-031D JP Z,03B8H
-
-QUASI88&gt; dump 0x969F #16
-969F : B8 62 C8 18 48 38 38 39 78 28 B8 38 60 12 60 12
-
-QUASI88&gt; dump 0x0C84 #1
-0C84 : C8 18 03 02 00 D4 EB D0 EB 00 00 00 00 00 00 00</div>
+ <div class="terminal" aria-label="QUASI88 원문 04">QUASI88&gt; disasm 0x02E4 #48
+02E4 3ACC02    LD    A,(02CCH)
+02E7 CB7F      BIT   7,A
+02E9 C8        RET   Z
+02EA AF        XOR   A
+02EB D335      OUT   (35H),A
+02ED 5E        LD    E,(HL)
+02EE 23        INC   HL
+02EF 7B        LD    A,E
+02F0 32840C    LD    (0C84H),A
+02F3 E60F      AND   0FH
+02F5 CAB803    JP    Z,03B8H
+02F8 FE01      CP    01H
+02FA CA5204    JP    Z,0452H
+02FD FE02      CP    02H
+02FF CA4203    JP    Z,0342H
+0302 FE03      CP    03H
+0304 CAF304    JP    Z,04F3H
+0307 FE04      CP    04H
+0309 CA7705    JP    Z,0577H
+030C FE05      CP    05H
+030E CA1006    JP    Z,0610H
+0311 FE06      CP    06H
+0313 CA0906    JP    Z,0609H
+0316 FE07      CP    07H
+0318 CA0206    JP    Z,0602H
+031B FE08      CP    08H
+031D CAB803    JP    Z,03B8H
+0320 FE09      CP    09H
+0322 CA4605    JP    Z,0546H
+0325 FE0A      CP    0AH
+0327 CA9605    JP    Z,0596H
+032A FE0B      CP    0BH
+032C CA5B06    JP    Z,065BH
+032F FE0C      CP    0CH
+0331 CAF104    JP    Z,04F1H
+0334 FE0D      CP    0DH
+0336 CAF204    JP    Z,04F2H
+0339 FE0E      CP    0EH
+033B 3A840C    LD    A,(0C84H)
+033E FE0F      CP    0FH
+0340 C8        RET   Z
+0341 C9        RET
+0342 7B        LD    A,E
+0343 E6F0      AND   F0H
+0345 5F        LD    E,A
+0346 56        LD    D,(HL)
+0347 23        INC   HL
+0348 7E        LD    A,(HL)
+QUASI88&gt; disasm 0x04AE #20
+04AE D5        PUSH  DE
+04AF 57        LD    D,A
+04B0 3ACD02    LD    A,(02CDH)
+04B3 CB7F      BIT   7,A
+04B5 2812      JR    Z,04C9H
+04B7 CB77      BIT   6,A
+04B9 2002      JR    NZ,04BDH
+04BB 1600      LD    D,00H
+04BD 3A9202    LD    A,(0292H)
+04C0 BA        CP    D
+04C1 38FA      JR    C,04BDH
+04C3 AF        XOR   A
+04C4 329202    LD    (0292H),A
+04C7 D1        POP   DE
+04C8 C9        RET
+04C9 3ACD02    LD    A,(02CDH)
+04CC CB7F      BIT   7,A
+04CE 28F9      JR    Z,04C9H
+04D0 3ACD02    LD    A,(02CDH)
+04D3 CB7F      BIT   7,A
+QUASI88&gt;</div>
  <p>현재 <code>HL=96A3h</code>이고 <code>0C84h=C8h</code>입니다. 이번 장면에서 이미 처리한 두 Token의 시작 위치를 확인할 수 있습니다. <code>02EDh</code>는 Script의 첫 바이트를 <code>E</code>로 읽고, <code>0C84h</code>에 저장한 뒤 하위 4비트로 분기합니다.</p>
  <div class="table-wrap"><table><thead><tr><th>주소</th><th>실제 Byte</th><th>장면의 문자</th><th>다음 HL</th></tr></thead><tbody>
  <tr><td><code>969Fh</code></td><td><code>B8 62</code></td><td>雨</td><td><code>96A1h</code></td></tr>
@@ -154,24 +305,163 @@ QUASI88&gt; dump 0x0C84 #1
 <section class="section" id="token">
  <div class="num">05 · TRACE TOKEN BRANCH</div>
  <h2>상위 비트와 두 번째 바이트에서 Glyph 주소를 구성한다</h2>
- <div class="terminal">QUASI88&gt; disasm 0x03B8 #80
-03B8 LD A,E
-03B9 AND F0H
-03BB LD E,A
-03BC LD D,(HL)
-03BD INC HL
-03BE LD A,(0C84H)
-03C1 AND 08H
-03C3 JP NZ,043FH
-...
-043F LD A,48H
-0441 OUT (32H),A
-0443 CALL 0B8FH
-0446 LD A,08H
-0448 OUT (32H),A
-044A LD A,0AH
-044C CALL 04AEH
-044F JP 02E4H</div>
+ <div class="terminal" aria-label="QUASI88 원문 05">QUASI88&gt; disasm 0x03B8 #80
+03B8 7B        LD    A,E
+03B9 E6F0      AND   F0H
+03BB 5F        LD    E,A
+03BC 56        LD    D,(HL)
+03BD 23        INC   HL
+03BE 3A840C    LD    A,(0C84H)
+03C1 E608      AND   08H
+03C3 C23F04    JP    NZ,043FH
+03C6 7A        LD    A,D
+03C7 FE17      CP    17H
+03C9 383B      JR    C,0406H
+03CB 3E02      LD    A,02H
+03CD CD7506    CALL  0675H
+03D0 3A0428    LD    A,(2804H)
+03D3 CDAE04    CALL  04AEH
+03D6 3E03      LD    A,03H
+03D8 CD7506    CALL  0675H
+03DB 3E48      LD    A,48H
+03DD D332      OUT   (32H),A
+03DF CD8F0B    CALL  0B8FH
+03E2 3E08      LD    A,08H
+03E4 D332      OUT   (32H),A
+03E6 E5        PUSH  HL
+03E7 215906    LD    HL,0659H
+03EA CD1606    CALL  0616H
+03ED E1        POP   HL
+03EE 3E02      LD    A,02H
+03F0 CD7506    CALL  0675H
+03F3 3A0428    LD    A,(2804H)
+03F6 CDAE04    CALL  04AEH
+03F9 3E01      LD    A,01H
+03FB CD7506    CALL  0675H
+03FE 3E05      LD    A,05H
+0400 CDAE04    CALL  04AEH
+0403 C3E402    JP    02E4H
+0406 FE12      CP    12H
+0408 7B        LD    A,E
+0409 321B04    LD    (041BH),A
+040C 3E48      LD    A,48H
+040E D332      OUT   (32H),A
+0410 DA1A04    JP    C,041AH
+0413 CD8F0B    CALL  0B8FH
+0416 3E08      LD    A,08H
+0418 D332      OUT   (32H),A
+041A 3E00      LD    A,00H
+041C 1632      LD    D,32H
+041E FE30      CP    30H
+0420 2816      JR    Z,0438H
+0422 161E      LD    D,1EH
+0424 FE20      CP    20H
+0426 2810      JR    Z,0438H
+0428 FE60      CP    60H
+042A 280C      JR    Z,0438H
+042C 1620      LD    D,20H
+042E FE90      CP    90H
+0430 2806      JR    Z,0438H
+0432 FEA0      CP    A0H
+0434 2802      JR    Z,0438H
+0436 1610      LD    D,10H
+0438 7A        LD    A,D
+0439 CDAE04    CALL  04AEH
+043C C3E402    JP    02E4H
+043F 3E48      LD    A,48H
+0441 D332      OUT   (32H),A
+0443 CD8F0B    CALL  0B8FH
+0446 3E08      LD    A,08H
+0448 D332      OUT   (32H),A
+044A 3E0A      LD    A,0AH
+044C CDAE04    CALL  04AEH
+044F C3E402    JP    02E4H
+0452 7B        LD    A,E
+0453 E6F0      AND   F0H
+0455 5F        LD    E,A
+0456 56        LD    D,(HL)
+0457 7A        LD    A,D
+0458 23        INC   HL
+0459 FE12      CP    12H
+045B DA7804    JP    C,0478H
+045E F5        PUSH  AF
+045F 3E48      LD    A,48H
+QUASI88&gt;</div><h3>원본 Script dump와 출력 루틴의 전체 출력</h3><div class="terminal" aria-label="QUASI88 원문 06">QUASI88&gt; dump 0x969F #16
+addr : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F
+---- : -----------------------------------------------
+969F : B8 62 C8 18 48 38 38 39 78 28 B8 38 60 12 60 12 |.b..H889x(.8`.`.|
+
+QUASI88&gt; dump 0x0C84 #1
+addr : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F
+---- : -----------------------------------------------
+0C84 : C8 18 03 02 00 D4 EB D0 EB 00 00 00 00 00 00 00 |................|
+
+QUASI88&gt; disasm 0x0B8F #64
+0B8F E5        PUSH  HL
+0B90 7A        LD    A,D
+0B91 B7        OR    A
+0B92 284B      JR    Z,0BDFH
+0B94 2A890C    LD    HL,(0C89H)
+0B97 ED73DD0B  LD    (0BDDH),SP
+0B9B 315000    LD    SP,0050H
+0B9E CDE10B    CALL  0BE1H
+0BA1 39        ADD   HL,SP
+0BA2 CDE10B    CALL  0BE1H
+0BA5 39        ADD   HL,SP
+0BA6 CDE10B    CALL  0BE1H
+0BA9 CDE10B    CALL  0BE1H
+0BAC 39        ADD   HL,SP
+0BAD CDE10B    CALL  0BE1H
+0BB0 39        ADD   HL,SP
+0BB1 CDE10B    CALL  0BE1H
+0BB4 CDE10B    CALL  0BE1H
+0BB7 39        ADD   HL,SP
+0BB8 CDE10B    CALL  0BE1H
+0BBB 39        ADD   HL,SP
+0BBC CDE10B    CALL  0BE1H
+0BBF 39        ADD   HL,SP
+0BC0 CDE10B    CALL  0BE1H
+0BC3 CDE10B    CALL  0BE1H
+0BC6 39        ADD   HL,SP
+0BC7 CDE10B    CALL  0BE1H
+0BCA 39        ADD   HL,SP
+0BCB CDE10B    CALL  0BE1H
+0BCE CDE10B    CALL  0BE1H
+0BD1 39        ADD   HL,SP
+0BD2 CDE10B    CALL  0BE1H
+0BD5 39        ADD   HL,SP
+0BD6 CDE10B    CALL  0BE1H
+0BD9 CD060C    CALL  0C06H
+0BDC 31FA00    LD    SP,00FAH
+0BDF E1        POP   HL
+0BE0 C9        RET
+0BE1 D3EB      OUT   (EBH),A
+0BE3 7B        LD    A,E
+0BE4 D3E8      OUT   (E8H),A
+0BE6 7A        LD    A,D
+0BE7 D3E9      OUT   (E9H),A
+0BE9 D3EA      OUT   (EAH),A
+0BEB 00        NOP
+0BEC 00        NOP
+0BED DBE8      IN    A,(E8H)
+0BEF 4F        LD    C,A
+0BF0 DBE9      IN    A,(E9H)
+0BF2 47        LD    B,A
+0BF3 D3EB      OUT   (EBH),A
+0BF5 13        INC   DE
+0BF6 3E07      LD    A,07H
+0BF8 D334      OUT   (34H),A
+0BFA 3E80      LD    A,80H
+0BFC D335      OUT   (35H),A
+0BFE 70        LD    (HL),B
+0BFF 23        INC   HL
+0C00 71        LD    (HL),C
+0C01 2B        DEC   HL
+0C02 AF        XOR   A
+0C03 D335      OUT   (35H),A
+0C05 C9        RET
+0C06 E5        PUSH  HL
+QUASI88&gt;</div>
  <div class="table-wrap"><table><thead><tr><th>입력 Token</th><th>분기와 변환</th><th>출력 시작 시 DE</th></tr></thead><tbody>
  <tr><td><code>B8 62</code> (雨)</td><td><code>B8 &amp; 0F = 08</code>, <code>E=B0</code>, <code>D=62</code></td><td><code>62B0h</code></td></tr>
  <tr><td><code>C8 18</code> (が)</td><td><code>C8 &amp; 0F = 08</code>, <code>E=C0</code>, <code>D=18</code></td><td><code>18C0h</code></td></tr>
@@ -197,34 +487,42 @@ QUASI88&gt; dump 0x0C84 #1
  <div class="num">06 · KANJI ROM I/O</div>
  <h2>실제로 다음 글자 「や」를 읽기 직전의 레지스터를 잡는다</h2>
  <p>앞선 호출 관계에서 찾은 <code>0B8Fh</code>는 출력의 시작 주소를 준비하고 <code>0BE1h</code>를 16번 호출합니다. 이미 「雨が」가 출력된 현재 상태에서 다음 글자를 확인하기 위해 실측된 breakpoint를 사용합니다.</p>
- <div class="terminal">QUASI88&gt; break 0x0BE1 #1
+ <div class="terminal" aria-label="QUASI88 원문 07">QUASI88&gt; break 0x0BE1 #1
 set break point MAIN - #1 [ PC : 0BE1H ]
 QUASI88&gt; go
 *** Break at 0BE1H *** ( MAIN[#1] : PC )
 [MAIN]
- AF:3800[........] BC:0000 DE:3840 HL:EBD4 PC:0BE1 SP:004E
-            0B9E CDE10B    CALL 0BE1H
-    ------&gt; 0BE1 D3EB      OUT (EBH),A
-
+ AF:3800[........] BC:0000  DE:3840  HL:EBD4  IX:0000  PC:0BE1  I:00 IM:2 IFF:1
+ A':C47D[.Z.H.P.C] B':0000  D':0500  H':3E97  IY:E55C  SP:004E  (ck=214530234)
+            0B9E CDE10B    CALL  0BE1H
+    ------&gt; 0BE1 D3EB      OUT   (EBH),A
+            0BE3 7B        LD    A,E
 QUASI88&gt; disasm #24
-0BE1 OUT (EBH),A
-0BE3 LD A,E
-0BE4 OUT (E8H),A
-0BE6 LD A,D
-0BE7 OUT (E9H),A
-0BE9 OUT (EAH),A
-0BEB NOP
-0BEC NOP
-0BED IN A,(E8H)
-0BEF LD C,A
-0BF0 IN A,(E9H)
-0BF2 LD B,A
-0BF3 OUT (EBH),A
-0BF5 INC DE
-...
-0BFE LD (HL),B
-0BFF INC HL
-0C00 LD (HL),C</div>
+0BE1 D3EB      OUT   (EBH),A
+0BE3 7B        LD    A,E
+0BE4 D3E8      OUT   (E8H),A
+0BE6 7A        LD    A,D
+0BE7 D3E9      OUT   (E9H),A
+0BE9 D3EA      OUT   (EAH),A
+0BEB 00        NOP
+0BEC 00        NOP
+0BED DBE8      IN    A,(E8H)
+0BEF 4F        LD    C,A
+0BF0 DBE9      IN    A,(E9H)
+0BF2 47        LD    B,A
+0BF3 D3EB      OUT   (EBH),A
+0BF5 13        INC   DE
+0BF6 3E07      LD    A,07H
+0BF8 D334      OUT   (34H),A
+0BFA 3E80      LD    A,80H
+0BFC D335      OUT   (35H),A
+0BFE 70        LD    (HL),B
+0BFF 23        INC   HL
+0C00 71        LD    (HL),C
+0C01 2B        DEC   HL
+0C02 AF        XOR   A
+0C03 D335      OUT   (35H),A
+QUASI88&gt;</div>
  <p><code>DE=3840h</code>은 현재 「や」 Token <code>48 38</code>에서 구성한 값과 일치합니다. <code>E8h/E9h</code>에 위치를 설정한 뒤 같은 포트에서 두 바이트를 읽고, 읽을 때마다 <code>DE</code>를 증가시키는 구조를 확인합니다.</p>
  <div class="question">여기서 출력 Code만 보는 것으로 충분할까요? 실제 <strong>IN 결과와 쓰기 직전의 BC</strong>를 확인해야 합니다.</div>
 </section>
@@ -232,30 +530,71 @@ QUASI88&gt; disasm #24
 <section class="section" id="write">
  <div class="num">07 · VERIFY GLYPH DATA</div>
  <h2>첫 두 행의 실제 Glyph 바이트와 출력 위치를 비교한다</h2>
- <div class="terminal">QUASI88&gt; break 0x0BFE #2
+ <div class="terminal" aria-label="QUASI88 원문 08">QUASI88&gt; break 0x0BFE #2
+set break point MAIN - #2 [ PC : 0BFEH ]
 QUASI88&gt; g
 *** Break at 0BFEH *** ( MAIN[#2] : PC )
-[MAIN] BC:0000 DE:3841 HL:EBD4 PC:0BFE
-
+[MAIN]
+ AF:8000[........] BC:0000  DE:3841  HL:EBD4  IX:0000  PC:0BFE  I:00 IM:2 IFF:1
+ A':C47D[.Z.H.P.C] B':0000  D':0500  H':3E97  IY:E55C  SP:004E  (ck=214530377)
+            0BFC D335      OUT   (35H),A
+    ------&gt; 0BFE 70        LD    (HL),B
+            0BFF 23        INC   HL
 QUASI88&gt; dump 0xEBD4 #4
-EBD4 : FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+addr : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F
+---- : -----------------------------------------------
+EBD4 : FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF |................|
 
+QUASI88&gt;</div><h3>세 번의 step, reg, dump — 전체 원문</h3><div class="terminal" aria-label="QUASI88 원문 09">QUASI88&gt; step
+[MAIN]
+ AF:8000[........] BC:0000  DE:3841  HL:EBD4  IX:0000  PC:0BFF  I:00 IM:2 IFF:1
+ A':C47D[.Z.H.P.C] B':0000  D':0500  H':3E97  IY:E55C  SP:004E  (ck=214530384)
+            0BFE 70        LD    (HL),B
+    ------&gt; 0BFF 23        INC   HL
+            0C00 71        LD    (HL),C
 QUASI88&gt; step
-[MAIN] PC:0BFF HL:EBD4
+[MAIN]
+ AF:8000[........] BC:0000  DE:3841  HL:EBD5  IX:0000  PC:0C00  I:00 IM:2 IFF:1
+ A':C47D[.Z.H.P.C] B':0000  D':0500  H':3E97  IY:E55C  SP:004E  (ck=214530390)
+            0BFF 23        INC   HL
+    ------&gt; 0C00 71        LD    (HL),C
+            0C01 2B        DEC   HL
 QUASI88&gt; step
-[MAIN] PC:0C00 HL:EBD5
-QUASI88&gt; step
-[MAIN] PC:0C01 HL:EBD5
-
+[MAIN]
+ AF:8000[........] BC:0000  DE:3841  HL:EBD5  IX:0000  PC:0C01  I:00 IM:2 IFF:1
+ A':C47D[.Z.H.P.C] B':0000  D':0500  H':3E97  IY:E55C  SP:004E  (ck=214530397)
+            0C00 71        LD    (HL),C
+    ------&gt; 0C01 2B        DEC   HL
+            0C02 AF        XOR   A
+QUASI88&gt; reg
+[MAIN]
+ AF:8000[........] BC:0000  DE:3841  HL:EBD5  IX:0000  PC:0C01  I:00 IM:2 IFF:1
+ A':C47D[.Z.H.P.C] B':0000  D':0500  H':3E97  IY:E55C  SP:004E  (ck=214530397)
+            0C00 71        LD    (HL),C
+    ------&gt; 0C01 2B        DEC   HL
+            0C02 AF        XOR   A
 QUASI88&gt; dump 0xEBD4 #4
-EBD4 : FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+addr : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F
+---- : -----------------------------------------------
+EBD4 : FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF |................|
 
-QUASI88&gt; g
+QUASI88&gt;</div><h3>다음 Glyph 행에서 다시 중단한 전체 원문</h3><div class="terminal" aria-label="QUASI88 원문 10">QUASI88&gt; g
 *** Break at 0BE1H *** ( MAIN[#1] : PC )
-[MAIN] BC:0000 DE:3841 HL:EC24 PC:0BE1
+[MAIN]
+ AF:0044[.Z...P..] BC:0000  DE:3841  HL:EC24  IX:0000  PC:0BE1  I:00 IM:2 IFF:1
+ A':C47D[.Z.H.P.C] B':0000  D':0500  H':3E97  IY:E55C  SP:004E  (ck=214530456)
+            0BA2 CDE10B    CALL  0BE1H
+    ------&gt; 0BE1 D3EB      OUT   (EBH),A
+            0BE3 7B        LD    A,E
 QUASI88&gt; g
 *** Break at 0BFEH *** ( MAIN[#2] : PC )
-[MAIN] BC:0180 DE:3842 HL:EC24 PC:0BFE</div>
+[MAIN]
+ AF:8044[.Z...P..] BC:0180  DE:3842  HL:EC24  IX:0000  PC:0BFE  I:00 IM:2 IFF:1
+ A':C47D[.Z.H.P.C] B':0000  D':0500  H':3E97  IY:E55C  SP:004E  (ck=214530599)
+            0BFC D335      OUT   (35H),A
+    ------&gt; 0BFE 70        LD    (HL),B
+            0BFF 23        INC   HL
+QUASI88&gt;</div>
  <div class="table-wrap"><table><thead><tr><th>행</th><th>읽기 시작 DE</th><th>읽기 후 BC</th><th>기록 직전 HL</th></tr></thead><tbody>
  <tr><td>1행</td><td><code>3840h</code></td><td><code>0000h</code></td><td><code>EBD4h</code></td></tr>
  <tr><td>2행</td><td><code>3841h</code></td><td><code>0180h</code></td><td><code>EC24h</code></td></tr>
@@ -267,33 +606,47 @@ QUASI88&gt; g
 <section class="section" id="ram-test">
  <div class="num">08 · VERIFY SCRIPT · 실제 RAM 변경 성공</div>
  <h2>「雨」의 두 바이트를 기존 「が」 Token으로 바꾼다</h2>
- <p>앞에서 확인한 첫 문장 원본은 <code>969Fh : B8 62 C8 18 ...</code>입니다. 둘째 글자 「が」의 <code>C8 18</code>을 첫 글자 주소에도 기록했습니다. 첫 바이트가 모두 <code>08h</code> 비트를 포함하므로 앞서 확인한 비발화 출력 경로를 유지한 채 Glyph만 달라지는지 시험할 수 있습니다.</p>
+ <p>앞에서 확인한 첫 문장 원본은 <code>969Fh : B8 62 C8 18 ...</code>입니다. 둘째 글자 「が」의 <code>C8 18</code>을 첫 글자 주소에도 기록했습니다. 첫 바이트가 모두 <code>08h</code> 비트를 포함하므로 앞서 확인한 동일한 문자 출력 분기에서 Glyph가 바뀌는지 확인했습니다.</p>
  <p>이번 재실행에서는 <strong>처음 중단된 위치가 <code>HL=9680h</code>이었다</strong>는 점이 중요합니다. <code>02EDh</code>는 Script의 여러 위치에서 반복 실행됩니다. 화면에 바꿀 문자가 나타나기 전이고 <code>969Fh</code>에 원본 바이트가 이미 적재돼 있는 것을 확인했으므로, 이 시점에 수정한 뒤 재개했습니다. <code>HL=969Fh</code>에서 중단됐다고 기록하지 않습니다.</p>
- <div class="terminal">QUASI88&gt; break clearall #0
+ <div class="terminal" aria-label="QUASI88 원문 11">QUASI88&gt; QUASI88&gt; break clearall #0
 clear break point MAIN - all
 QUASI88&gt; break pc 0x02ED #1
 set break point MAIN - #1 [ PC : 02EDH ]
 QUASI88&gt; reset
 QUASI88&gt; g
 *** Break at 02EDH *** ( MAIN[#1] : PC )
-[MAIN] AF:0044 BC:005C DE:FE81 HL:9680 PC:02ED SP:00FE
-
+[MAIN]
+ AF:0044[.Z...P..] BC:005C  DE:FE81  HL:9680  IX:1290  PC:02ED  I:00 IM:2 IFF:1
+ A':C47D[.Z.H.P.C] B':0000  D':0500  H':EC71  IY:E55C  SP:00FE  (ck=507152666)
+            02EB D335      OUT   (35H),A
+    ------&gt; 02ED 5E        LD    E,(HL)
+            02EE 23        INC   HL
+QUASI88&gt; reg
+[MAIN]
+ AF:0044[.Z...P..] BC:005C  DE:FE81  HL:9680  IX:1290  PC:02ED  I:00 IM:2 IFF:1
+ A':C47D[.Z.H.P.C] B':0000  D':0500  H':EC71  IY:E55C  SP:00FE  (ck=507152666)
+            02EB D335      OUT   (35H),A
+    ------&gt; 02ED 5E        LD    E,(HL)
+            02EE 23        INC   HL
 QUASI88&gt; dump 0x969F #16
-969F : B8 62 C8 18 48 38 38 39 78 28 B8 38 60 12 60 12
+addr : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F
+---- : -----------------------------------------------
+969F : B8 62 C8 18 48 38 38 39 78 28 B8 38 60 12 60 12 |.b..H889x(.8`.`.|
 
 QUASI88&gt; write MAIN 0x969F 0xC8
-WRITE memory MAIN[ 969FH ] &lt;- C8
+WRITE memory MAIN[ 969FH ] &lt;- C8  (= 200 | -56 | 11001000B )
 QUASI88&gt; write MAIN 0x96A0 0x18
-WRITE memory MAIN[ 96A0H ] &lt;- 18
-
+WRITE memory MAIN[ 96A0H ] &lt;- 18  (= 24 | +24 | 00011000B )
 QUASI88&gt; dump 0x969F #16
-969F : C8 18 C8 18 48 38 38 39 78 28 B8 38 60 12 60 12
+addr : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F
+---- : -----------------------------------------------
+969F : C8 18 C8 18 48 38 38 39 78 28 B8 38 60 12 60 12 |....H889x(.8`.`.|
 
 QUASI88&gt; break clearall #0
 clear break point MAIN - all
 QUASI88&gt; g</div>
  <div class="grid2"><article><h4>검증한 RAM 변화</h4><p><code>969F~96A0: B8 62 → C8 18</code>입니다. 이어지는 두 번째 Token <code>C8 18</code>과 다음 Token들은 유지됐습니다.</p></article><article><h4>실제 실행 화면</h4><p>제공받은 <code>04.PNG</code>에서 문장의 시작이 <strong>「ががやん」</strong>으로 표시됐습니다. 따라서 원본 첫 글자 「雨」가 「が」로 바뀐 출력까지 확인했습니다. 캡처 시점에서 전체 문장은 아직 완성되지 않았습니다.</p></article></div>
- <figure class="shot"><div class="shot-pending"><div><strong>04.PNG · 실제 출력 성공</strong><br>「ががやん」 표시 확인<br><small>이번 대화에서 화면 확보 · GitHub 이미지 파일 등록 대기</small></div></div><figcaption>RAM 수정 후의 실제 화면. 완성된 전체 문장이나 추가 발화 상태는 이 캡처만으로 단정하지 않는다.</figcaption></figure>
+ <figure class="shot"><div class="shot-pending"><div><strong>04.PNG · 실제 출력 성공</strong><br>「ががやん」 표시 확인<br><small>이번 대화에서 화면 확보 · GitHub 이미지 파일 등록 대기</small></div></div><figcaption>RAM 수정 후의 실제 화면. 완성된 전체 문장은 이 캡처만으로 확인할 수 없습니다.</figcaption></figure>
  <div class="callout ok"><h3>이 실험에서 확정한 것</h3><p>동일한 게임·동일한 장면에서 <strong>Script의 첫 두 바이트만 수정했을 때 첫 글자가 바뀌었다</strong>는 실행 근거를 얻었습니다. ROM Glyph는 수정하지 않았으므로 Script Token과 글리프 선택의 연결을 검증한 것입니다.</p></div>
  <div class="callout warn"><h3>Font 실험 전 원상복구</h3><p>다음 HxD 실험에서는 원본 Script <code>B8 62</code>가 필요합니다. 현재 RAM 실험을 끝낸 뒤 원본 디스크로 완전히 재시작하거나, 실행 상태에 맞춰 첫 두 바이트를 원래 값으로 돌리고 <code>dump</code>로 확인합니다. RAM에 <code>C8 18</code>이 남아 있다면 「雨」 글리프를 바꿔도 그 자리를 선택하지 않으므로 실험 조건이 달라집니다.</p></div>
 </section>
