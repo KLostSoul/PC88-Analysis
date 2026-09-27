@@ -127,6 +127,7 @@ PC-88 에뮬레이터마다 debugger 기능과 조작법은 다를 수 있으므
 실제 QUASI88 로그와 첫 이벤트 Script `969F: B8 62 C8 18 ...`을 확보했으며, 「や」의 Glyph 두 행 `0000h / 0180h`까지 실측했습니다. RAM에서 첫 글자를 기존 「が」 Token `C8 18`로 바꿔 실제 화면에 「ががやん」이 출력되는 것까지 검증했습니다. HxD에서 「雨」 Glyph 32바이트를 「가」로 교체하는 실험은 아직 남아 있습니다.
 
 - [6부 강좌 뼈대](course/06.html)
+- [6부 QUASI88 실제 로그 원문 전체](course/06-logs.md)
 - [6부 실측 근거와 미확보 목록](course/06-evidence.md)
 - [6부 이미지 수집·배치 목록](images/course06/README.md)
 
@@ -168,6 +169,7 @@ PC88-Analysis/
 │  ├─ 04.html
 │  ├─ 05.html
 │  ├─ 06.html
+│  ├─ 06-logs.md
 │  └─ 06-evidence.md
 └─ images/
    ├─ course04/
