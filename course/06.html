@@ -554,7 +554,9 @@ QUASI88&gt;</div>
 
 <section class="section" id="write">
  <div class="num">07 · VERIFY GLYPH DATA</div>
- <h2>첫 두 행의 실제 Glyph 바이트와 출력 위치를 비교한다</h2>
+ <h2>읽어 온 2바이트가 어디에 기록되는지 한 명령씩 확인한다</h2>
+ <p>이번에는 <code>0BE1h</code>의 시작이 아니라, ROM에서 두 바이트를 모두 읽은 <strong>다음</strong>에 멈춥니다. 앞선 <code>disasm</code>에서 데이터를 B와 C에 저장한 뒤 <code>0BFE LD (HL),B</code>를 실행한다는 것을 확인했습니다. 따라서 <code>0BFEh</code>에 Breakpoint를 설정하면, 기록 직전의 <code>BC</code>와 기록할 위치인 <code>HL</code>을 한 번에 볼 수 있습니다.</p>
+ <p>첫 번째 정지에서 <code>BC=0000h</code>였습니다. 이는 방금 읽은 행의 두 바이트가 모두 <code>00h</code>라는 뜻입니다. 기록 직전의 <code>HL=EBD4h</code>도 함께 기록해 둡니다. 그다음 세 번의 <code>step</code>으로 <code>LD (HL),B</code> → <code>INC HL</code> → <code>LD (HL),C</code>가 순서대로 실행됐는지 확인합니다.</p>
  <div class="terminal" aria-label="QUASI88 원문 08">QUASI88&gt; break 0x0BFE #2
 set break point MAIN - #2 [ PC : 0BFEH ]
 QUASI88&gt; g
@@ -570,7 +572,8 @@ addr : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F
 ---- : -----------------------------------------------
 EBD4 : FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF |................|
 
-QUASI88&gt;</div><h3>세 번의 step, reg, dump — 전체 원문</h3><div class="terminal" aria-label="QUASI88 원문 09">QUASI88&gt; step
+QUASI88&gt;</div><h3>Single-step 세 번을 실행하고 실제 Register와 dump를 비교한다</h3>
+ <p>첫 번째 <code>step</code> 뒤에는 <code>PC=0BFFh</code>가 되어 첫 번째 기록 명령이 끝났음을 알 수 있습니다. 두 번째 <code>step</code>에서는 <code>INC HL</code>이 실행돼 <code>HL=EBD4h → EBD5h</code>로 바뀝니다. 세 번째 <code>step</code> 뒤에는 두 번째 기록 명령을 지난 <code>PC=0C01h</code>가 됩니다. 각 단계에서 실제 출력된 Register와 실행 전후 명령은 아래 원문 로그에서 하나도 생략하지 않았습니다.</p><div class="terminal" aria-label="QUASI88 원문 09">QUASI88&gt; step
 [MAIN]
  AF:8000[........] BC:0000  DE:3841  HL:EBD4  IX:0000  PC:0BFF  I:00 IM:2 IFF:1
  A':C47D[.Z.H.P.C] B':0000  D':0500  H':3E97  IY:E55C  SP:004E  (ck=214530384)
@@ -603,7 +606,8 @@ addr : +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F
 ---- : -----------------------------------------------
 EBD4 : FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF |................|
 
-QUASI88&gt;</div><h3>다음 Glyph 행에서 다시 중단한 전체 원문</h3><div class="terminal" aria-label="QUASI88 원문 10">QUASI88&gt; g
+QUASI88&gt;</div><h3>다음 행에서도 같은 Code가 실행되는지 확인한다</h3>
+ <p>첫 번째 행은 모든 비트가 0이어서 실제 글자의 모양을 이해하기 어렵습니다. 따라서 다음 행을 읽을 때까지 실행을 재개합니다. 두 번째 행을 읽기 직전에는 <code>DE=3841h</code>, 기록 직전에는 <code>BC=0180h</code>과 <code>HL=EC24h</code>이 실제로 관찰됐습니다. 처음 행과 비교하면 ROM 접근값은 한 칸 증가했고 출력 주소는 <code>50h</code>만큼 이동했습니다.</p><div class="terminal" aria-label="QUASI88 원문 10">QUASI88&gt; g
 *** Break at 0BE1H *** ( MAIN[#1] : PC )
 [MAIN]
  AF:0044[.Z...P..] BC:0000  DE:3841  HL:EC24  IX:0000  PC:0BE1  I:00 IM:2 IFF:1
@@ -624,15 +628,16 @@ QUASI88&gt;</div>
  <tr><td>1행</td><td><code>3840h</code></td><td><code>0000h</code></td><td><code>EBD4h</code></td></tr>
  <tr><td>2행</td><td><code>3841h</code></td><td><code>0180h</code></td><td><code>EC24h</code></td></tr>
  </tbody></table></div>
- <p>1행에서는 <code>B=00h</code>, <code>C=00h</code>입니다. 2행에서는 <code>B=01h</code>, <code>C=80h</code>이므로 <code>0BFE / 0C00</code>의 기록값도 두 행이 다릅니다. 두 행의 시작 주소 차이 <code>EC24h−EBD4h=50h</code>는 다음 화면 행으로 이동했다는 근거가 됩니다.</p>
- <div class="callout warn"><h3>Monitor dump의 <code>FF</code>를 그대로 둔다</h3><p>첫 행에서 <code>LD (HL),B</code>와 <code>LD (HL),C</code>를 실제로 step한 뒤에도 일반 <code>dump</code>는 <code>FF</code>를 표시했습니다. 이 출력 Code는 <code>OUT (34H),07H</code>, <code>OUT (35H),80H</code>를 이용한 그래픽 접근을 사용합니다. <strong>일반 RAM dump와 GVRAM 기록이 동일하게 보인다고 단정하지 않습니다.</strong> 별도의 화면·GVRAM 검증은 후속 조사 항목입니다.</p></div>
+ <p>1행에서 읽은 값은 <code>B=00h, C=00h</code>였고, 2행에서는 <code>B=01h, C=80h</code>로 달라졌습니다. 각각의 행을 읽는 데 같은 <code>0BE1h</code> 루틴이 사용됐고, 다음 행의 기록 위치가 <code>EBD4h</code>에서 <code>EC24h</code>로 바뀌었습니다. 두 주소의 차이 <code>50h</code>는 이 출력 처리에서 다음 화면 행으로 이동하는 간격으로 볼 수 있습니다.</p>
+ <div class="callout warn"><h3>왜 명령은 실행됐는데 dump에는 여전히 FF가 표시될까?</h3><p>세 번의 <code>step</code>으로 <code>LD (HL),B</code>와 <code>LD (HL),C</code>가 실행됐음을 확인했습니다. 그런데 곧이어 같은 주소를 일반 <code>dump</code>로 읽자 결과는 여전히 <code>FF</code>였습니다. 처음 보는 사람에게는 기록이 실패한 것처럼 보일 수 있지만, 그 결론을 내려서는 안 됩니다.</p><p>PC-88은 일반 RAM과 화면용 그래픽 메모리(GVRAM)를 구분하고, 포트 설정에 따라 같은 CPU 주소라도 접근하는 대상과 방식이 달라집니다. 실제 출력 루틴에는 <code>OUT (34H),07H</code>와 <code>OUT (35H),80H</code>가 기록 명령 바로 앞에 있습니다. 따라서 <strong>지금 확인한 사실은 기록 명령이 실행됐다는 것</strong>이며, <strong>일반 dump의 FF만으로 화면 쪽 메모리의 결과까지 판정할 수는 없다</strong>는 것입니다. 화면 출력 결과나 GVRAM 자체를 별도로 확인하는 작업은 다음 조사로 남겨 둡니다.</p></div>
 </section>
 
 <section class="section" id="ram-test">
  <div class="num">08 · VERIFY SCRIPT · 실제 RAM 변경 성공</div>
- <h2>「雨」의 두 바이트를 기존 「が」 Token으로 바꾼다</h2>
- <p>앞에서 확인한 첫 문장 원본은 <code>969Fh : B8 62 C8 18 ...</code>입니다. 둘째 글자 「が」의 <code>C8 18</code>을 첫 글자 주소에도 기록했습니다. 첫 바이트가 모두 <code>08h</code> 비트를 포함하므로 앞서 확인한 동일한 문자 출력 분기에서 Glyph가 바뀌는지 확인했습니다.</p>
- <p>이번 재실행에서는 <strong>처음 중단된 위치가 <code>HL=9680h</code>이었다</strong>는 점이 중요합니다. <code>02EDh</code>는 Script의 여러 위치에서 반복 실행됩니다. 화면에 바꿀 문자가 나타나기 전이고 <code>969Fh</code>에 원본 바이트가 이미 적재돼 있는 것을 확인했으므로, 이 시점에 수정한 뒤 재개했습니다. <code>HL=969Fh</code>에서 중단됐다고 기록하지 않습니다.</p>
+ <h2>첫 글자에 해당하는 Script 바이트만 바꾸어 가설을 검증한다</h2>
+ <p>지금까지 Script에서 읽은 바이트가 Kanji ROM의 글리프를 선택하는 Code로 이어진다는 사실을 확인했습니다. 그렇다면 <strong>Script의 첫 글자 바이트만 다른 글자의 값으로 바꾸면 실제 화면의 첫 글자도 바뀔까요?</strong> 이 질문에 답하기 위해 ROM이나 출력 루틴은 수정하지 않고, RAM에 적재된 Script 두 바이트만 변경합니다.</p>
+ <p>원본 첫 문장에서는 <code>969Fh : B8 62</code>가 「雨」이고 바로 다음 <code>96A1h : C8 18</code>이 「が」입니다. 이미 실제로 사용되는 Token을 알고 있으므로 새로운 문자 코드를 추측하는 대신, 첫 두 바이트를 두 번째 글자의 <code>C8 18</code>로 바꿔 봅니다. 성공하면 원래 「雨がやん…」이었던 문장 시작은 「ががやん…」으로 표시될 것입니다.</p>
+ <p>실험 로그에서 처음 <code>02EDh</code>에 멈췄을 때는 <code>HL=9680h</code>였습니다. 이것은 우리가 수정하려는 <code>969Fh</code>가 아니라, <strong>아직 그 글자에 도달하기 전의 Script 읽기 위치</strong>입니다. 다행히 원본 바이트는 이미 RAM에 적재돼 있었고, <code>dump 0x969F #16</code>에서 직접 확인됐습니다. 따라서 그 자리에서 <code>write</code>로 <code>969Fh</code>와 <code>96A0h</code>만 바꾸고 다시 덤프한 뒤 실행했습니다. 강좌의 실습 로그에는 실제 정지 주소를 그대로 적어 놓아야 수강생이 같은 순서로 재현할 수 있습니다.</p>
  <div class="terminal" aria-label="QUASI88 원문 11">QUASI88&gt; QUASI88&gt; break clearall #0
 clear break point MAIN - all
 QUASI88&gt; break pc 0x02ED #1
@@ -671,22 +676,25 @@ QUASI88&gt; break clearall #0
 clear break point MAIN - all
 QUASI88&gt; g</div>
  <div class="grid2"><article><h4>검증한 RAM 변화</h4><p><code>969F~96A0: B8 62 → C8 18</code>입니다. 이어지는 두 번째 Token <code>C8 18</code>과 다음 Token들은 유지됐습니다.</p></article><article><h4>실제 실행 화면</h4><p>제공받은 <code>04.PNG</code>에서 문장의 시작이 <strong>「ががやん」</strong>으로 표시됐습니다. 따라서 원본 첫 글자 「雨」가 「が」로 바뀐 출력까지 확인했습니다. 캡처 시점에서 전체 문장은 아직 완성되지 않았습니다.</p></article></div>
- <figure class="shot"><img src="../images/course06/04.PNG" alt="첫 문자 Token을 C8 18로 수정한 뒤 ががやん이 표시된 화면" loading="lazy" decoding="async"><figcaption><code>04.PNG</code> — RAM 수정 후의 실제 화면. 완성된 전체 문장은 이 캡처만으로 확인할 수 없습니다.</figcaption></figure>
+ <figure class="shot"><img src="../images/course06/04.PNG" alt="첫 문자 Token을 C8 18로 수정한 뒤 ががやん이 표시된 화면" loading="lazy" decoding="async"><figcaption><strong>04.PNG — 변경 결과.</strong> 첫 두 바이트를 <code>C8 18</code>로 덮어쓴 뒤 원래 「雨」였던 자리에 「が」가 표시됐습니다. 화면에 보이는 문장 시작은 「ががやん」이며, 이 장면은 전체 문장이 끝나기 전에 촬영됐습니다.</figcaption></figure>
  <div class="callout ok"><h3>이 실험에서 확정한 것</h3><p>동일한 게임·동일한 장면에서 <strong>Script의 첫 두 바이트만 수정했을 때 첫 글자가 바뀌었다</strong>는 실행 근거를 얻었습니다. ROM Glyph는 수정하지 않았으므로 Script Token과 글리프 선택의 연결을 검증한 것입니다.</p></div>
  <div class="callout warn"><h3>Font 실험 전 원상복구</h3><p>다음 HxD 실험에서는 원본 Script <code>B8 62</code>가 필요합니다. 현재 RAM 실험을 끝낸 뒤 원본 디스크로 완전히 재시작하거나, 실행 상태에 맞춰 첫 두 바이트를 원래 값으로 돌리고 <code>dump</code>로 확인합니다. RAM에 <code>C8 18</code>이 남아 있다면 「雨」 글리프를 바꿔도 그 자리를 선택하지 않으므로 실험 조건이 달라집니다.</p></div>
 </section>
 
 <section class="section" id="rom-test">
  <div class="num">09 · VERIFY FONT · 실험 대기</div>
- <h2>Script는 그대로 두고 HxD로 「雨」의 Glyph 32바이트만 바꾼다</h2>
- <p>이벤트 첫 글자에서 <code>B8 62 → DE=62B0h</code>으로 Kanji ROM에 접근합니다. 재현 빌드의 <code>KANJI1.ROM</code> 레이아웃을 기준으로 한 32바이트 Glyph 슬롯 시작 후보는 <code>62B0h × 2 = C560h</code>입니다. 이 주소는 기존 별도 ROM 치환 실험에서도 사용됐지만, <strong>이번 강좌의 HxD 수동 교체는 아직 미실시</strong>입니다.</p>
+ <h2>이번에는 글자 코드가 아니라 ROM의 글자 모양을 바꾸어 본다</h2>
+ <p>앞 실험에서는 글꼴은 그대로 두고 Script의 두 바이트를 수정했습니다. 다음에는 반대로 <strong>Script는 원본인 <code>B8 62</code>로 유지하면서 ROM 속 「雨」의 글리프만 「가」 모양으로 바꿔 볼 계획</strong>입니다. 두 실험을 분리해야 글자값을 바꾼 결과인지, 글자 모양을 바꾼 결과인지 명확하게 구분할 수 있습니다.</p>
+ <p>이번 장면에서 확인한 「雨」의 Token <code>B8 62</code>는 출력할 때 <code>DE=62B0h</code>으로 변환됩니다. 재현 빌드에서 사용하는 선형 <code>KANJI1.ROM</code> 배열에서는 글리프 한 행에 2바이트가 대응하므로, 파일 안의 시작 위치는 <code>62B0h × 2 = C560h</code>입니다. 16행을 연속해서 읽는다면 모두 <code>20h=32바이트</code>이므로 대상 범위는 <code>C560h~C57Fh</code>가 됩니다. 이 위치는 과거 별도 ROM 치환 실험에서 사용됐지만, <strong>이번 강좌의 HxD 수동 실험 사진과 최종 결과는 아직 확보하지 않았습니다.</strong></p>
+ <h3>다음 실습에서 실제로 수행할 순서</h3>
+ <ol class="steps"><li>원본 <code>KANJI1.ROM</code>을 안전한 곳에 백업하고 실습용 복사본을 만듭니다. 앞서 RAM을 수정했던 게임은 종료하고 원본 Script가 복원되도록 준비합니다.</li><li>HxD로 ROM 복사본을 열고 <code>Ctrl+G</code>를 이용해 16진수 파일 오프셋 <code>C560</code>으로 이동합니다. 원본 <code>C560~C57F</code>의 32바이트를 캡처해 둡니다.</li><li>아래 「가」 글리프 32바이트를 <strong>삽입이 아닌 덮어쓰기(Overwrite)</strong>로 교체합니다. 삽입하면 뒤에 있는 글리프들의 위치까지 밀려 버립니다.</li><li>ROM 파일의 전체 크기와 해당 범위 밖의 데이터가 바뀌지 않았는지 비교합니다. 수정 ROM을 에뮬레이터가 읽는 위치에 넣고 완전히 재시작한 뒤, 원본 Script가 실제로 「가」를 표시하는지 확인합니다.</li></ol>
  <div class="table-wrap"><table><thead><tr><th>항목</th><th>값</th></tr></thead><tbody>
  <tr><td>원본 첫 문자 Token</td><td><code>B8 62</code> — 수정하지 않음</td></tr>
  <tr><td>첫 문자 Kanji 접근</td><td><code>62B0h</code></td></tr>
  <tr><td>교체할 파일 범위</td><td><code>0xC560~0xC57F</code> (32 bytes)</td></tr>
  <tr><td>「가」 bitmap 원천</td><td><a href="https://github.com/KLostSoul/PC88-Valis1-Localization-Build/blob/main/source/accepted/kanji/glyphs/glyph_0001_U%2BAC00_slot0378_tokA017_off02F40.txt">재현 빌드의 16×16 가 글리프</a></td></tr>
  </tbody></table></div>
- <p>다음은 재현 빌드의 확정 글리프 TXT를 각 행의 상위·하위 바이트로 직렬화한 <strong>HxD 교체용 32바이트 후보</strong>입니다. 실제 바리스 첫 이벤트에서의 HxD 치환 결과는 별도로 검증합니다.</p>
+ <p>아래 바이트열은 재현 빌드의 확정 16×16 「가」 글리프를 위에서 아래로 한 행씩 읽고, 각 행을 2바이트로 표현한 값입니다. <strong>한 행당 2바이트 × 16행 = 32바이트</strong>입니다. 이 자료는 HxD에서 입력할 값으로 제공하되, 수동 수정 후의 실제 화면 결과가 확보되기 전까지는 성공했다고 기록하지 않습니다.</p>
  <div class="terminal">00 08 1F C8 00 48 00 48
 00 48 00 48 00 48 00 4E
 00 88 01 08 01 08 02 08
@@ -700,7 +708,9 @@ QUASI88&gt; g</div>
 
 <section class="section" id="finish">
  <div class="num">10 · FINISH AND RECORD</div>
- <h2>실측으로 확정된 사실과 예정 실험을 구분한다</h2>
+ <h2>한 글자의 출력 경로를 어느 단계까지 확인했는가?</h2>
+ <p>이번 강좌에서는 완성된 화면을 보고 처음부터 Script 주소나 문자 출력 루틴을 맞힌 것이 아닙니다. 원본 ROM을 사용한 화면과 제거 후 화면을 비교해 질문을 만들고, 강제로 Monitor에 들어갔을 때 발견한 대기 루프의 Stack에서 호출자를 찾았습니다. 이어 <code>02EDh</code>의 Script 읽기, 문자 Token의 <code>DE</code> 변환, <code>0B8Fh</code>의 출력 호출, <code>0BE1h</code>의 Kanji ROM 읽기, 글리프 바이트 기록까지 실제 로그를 통해 연결했습니다.</p>
+ <p>이후 Script의 첫 두 바이트만 <code>B8 62 → C8 18</code>로 바꿨고, 실제 화면에서 「雨」가 「が」로 달라지는 것까지 확인했습니다. <strong>현재 확정된 결과와 아직 실행하지 않은 HxD 실험을 구분</strong>하기 위해 자료 수집 상태를 아래에 기록합니다.</p>
  <div class="table-wrap"><table class="status-table"><thead><tr><th>증거</th><th>상태</th><th>강좌에서의 역할</th></tr></thead><tbody>
  <tr><td>01~03 정상·ROM 제거·문자 출력 화면</td><td class="pill-ok">화면 등록 완료</td><td>조사 대상과 실험 조건 비교</td></tr>
  <tr><td>04 강제 Monitor / Stack</td><td class="pill-ok">로그 확보</td><td>대기 루프에서 호출자 발견</td></tr>
