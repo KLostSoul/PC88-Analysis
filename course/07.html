@@ -80,7 +80,7 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
 <div class="routes" aria-label="PC-88 역분석의 기본 절차">
 <article><b>① 관찰과 질문</b><p>화면의 대상 하나를 고르고 확인할 결과를 정합니다.</p></article>
 <article><b>② 조사와 해석</b><p>현재 PC와 Code, Data를 실제 실행으로 확인합니다.</p></article>
-<article><b>③ 검증과 기록</b><p>한 가지 조건만 바꿔 검증하고 확인한 범위를 기록합니다.</p></article>
+<article><b>③ 검증과 기록</b><p>관찰 결과를 다시 확인하고, 수정 검증이 필요하면 한 요소만 바꾼 뒤 확인한 범위를 기록합니다.</p></article>
 </div>
 <div class="callout warn"><b>분석의 기본 원칙</b><p>첫 breakpoint가 걸린 주소를 바로 정답으로 확정하지 않습니다. 현재 화면과 Code의 실제 관계를 확인하고, 예상이 틀리면 앞서 관찰한 사실로 돌아갑니다.</p></div>
 <nav class="toc" aria-label="7부 목차"><h3>목차</h3><ol>
@@ -206,7 +206,23 @@ g</pre><p>위 명령은 5부에서 이미 확인한 주소로 재현하는 예�
 <tr><td>4. 실제 분기 확인</td><td><code>CP</code>, flag, <code>JP/JR</code>에서 이번 실행은 어느 경로로 갔는가?</td><td>disassembly만 보고 양쪽을 모두 실행됐다고 생각하지 않고 실제 PC 이동을 봅니다.</td></tr>
 <tr><td>5. CALL 처리 결정</td><td>호출 안으로 들어가야 질문에 답할 수 있는가, 아니면 호출 전후와 실제 호출자부터 봐야 하는가?</td><td>공통 루틴이면 먼저 이번 실행의 호출자와 register를 기록한 뒤 필요한 호출만 추적합니다.</td></tr>
 </tbody></table></div>
-<div class="goal"><b>명령어 이름보다 역할을 봅니다.</b> 값 → 주소 → pointer → 분기 → 호출 관계를 읽으면, 처음 보는 Code에서도 다음에 확인할 Memory와 breakpoint를 정할 수 있습니다.</div>
+<h3>조건분기는 분기 주소보다 조건을 만든 값을 같이 봅니다</h3>
+<p>5부의 반복 Code 끝에는 안쪽 반복과 바깥 반복을 결정하는 두 조건분기가 있었습니다. 분기 목적지만 보면 둘 다 되돌아가는 Loop처럼 보이지만, 어떤 register를 감소시킨 뒤 분기하는지를 보면 반복의 층을 구분할 수 있습니다.</p>
+<pre class="lab-log" aria-label="5부에서 확인한 안쪽 반복과 바깥 반복">052B  DEC B
+052C  JP NZ,04B4H    ; B가 0이 아니면 안쪽 반복
+
+0536  DEC IXH
+0538  JP NZ,04ACH    ; IXH가 0이 아니면 바깥 반복</pre>
+<div class="obs"><b>읽는 순서</b><code>JP NZ</code>만 보지 않고 바로 앞에서 어떤 값이 변했는지 확인합니다. 첫 분기는 <code>B</code>, 두 번째 분기는 <code>IXH</code>의 결과에 따라 반복 여부가 정해집니다.</div>
+<div class="judgment"><b>다음 조사</b><code>B</code>와 <code>IXH</code>가 어디에서 초기화되고 실행 중 어떻게 감소하는지 확인하면 안쪽 처리 횟수와 바깥 반복 횟수를 구분할 수 있습니다.</div>
+<div class="goal"><b>명령어 이름보다 역할을 봅니다.</b> 값 → 주소 → pointer → 분기 조건 → 호출 관계를 읽으면, 처음 보는 Code에서도 다음에 확인할 Memory와 breakpoint를 정할 수 있습니다.</div>
+<h3>CALL을 만났다면 내부를 볼지 먼저 결정합니다</h3>
+<div class="table-wrap"><table><thead><tr><th>현재 상황</th><th>선택</th><th>QUASI88에서</th></tr></thead><tbody>
+<tr><td>호출된 routine 자체가 현재 현상의 원인 후보입니다.</td><td>Step Into</td><td><code>trace</code>로 CALL 내부에 들어갑니다.</td></tr>
+<tr><td>호출된 routine의 역할을 이미 알고 있고, 호출 뒤의 결과만 보면 됩니다.</td><td>Step Over</td><td><code>step</code>으로 CALL이 끝난 뒤 caller의 다음 Code에서 계속 봅니다.</td></tr>
+<tr><td>내부에 들어왔지만 현재 질문과 관계없는 routine임을 확인했습니다.</td><td>Step Out</td><td><code>return</code>으로 caller 쪽으로 빠져나올 수 있습니다. 4부에서 설명했듯 QUASI88 0.7.4의 <code>return</code>은 experimental 기능입니다.</td></tr>
+<tr><td>같은 routine이 여러 곳에서 호출됩니다.</td><td>호출자부터 구분</td><td>현재 register와 실제 호출 위치를 기록한 뒤 필요한 호출에서만 내부를 추적합니다.</td></tr>
+</tbody></table></div>
 <div class="note"><b>CPU와 Monitor 기능을 구분합니다.</b> 4부의 실행·READ·WRITE breakpoint는 분석 목적을 구분하기 위한 설명입니다. 실제 QUASI88 0.7.4에서 사용하는 CPU와 breakpoint 종류의 지원 여부를 확인해야 합니다. 기존 SUB CPU 실습에서는 PC breakpoint를 사용합니다.</div>
 <div class="exercise"><h3>점검 ④ — 첫 단서가 예상과 다릅니다</h3><p>게임의 대사 출력을 조사하는 중인데 현재 PC가 같은 몇 개의 명령을 반복하고 있습니다. 그 순간의 PC를 대사 출력 루틴이라고 확정해도 될까요?</p><details class="check"><summary>다음 행동 확인</summary><div class="check-answer">안 됩니다. 주변 명령으로 대기 루프인지 먼저 확인합니다. 필요한 경우 Stack에 남은 반환 주소와 그 앞의 CALL 관계를 조사합니다. 6부의 <a href="06.html#stop">PC=04BDh</a>가 실제 사례입니다.</div></details></div>
 <p class="source">이어 보기: <a href="04.html">4부 Debugger와 breakpoint</a> · <a href="05.html#first-stop">5부 첫 정지</a> · <a href="06.html#stop">6부 첫 정지</a></p>
@@ -259,6 +275,18 @@ disasm 0x0443 #32
 <h3>같은 루틴이라도 실제로 호출한 위치를 확인합니다</h3>
 <p>5부에서 <code>03E6h CALL 05ADh</code>를 발견한 뒤 <code>05ADh</code>에 PC breakpoint를 걸었습니다. 그러나 실제 정지 직전에 실행된 호출은 <code>026Eh CALL 05ADh</code>였습니다. <strong>disasm에서 찾은 호출 후보</strong>와 <strong>이번 실행의 실제 호출자</strong>는 구분해서 기록해야 합니다.</p>
 <div class="obs"><b>5부에서 확인한 입력·출력 후보</b><code>05ADh</code>는 5Ch·5Dh·5Eh 세 GVRAM plane을 다루는 과정에서 <code>061Fh</code>를 호출했습니다. 같은 실행에서 <code>HL'=4405h</code>는 입력 Data 후보, <code>HL=C50Eh</code>는 출력 후보로 관찰됐습니다. 최종 화면 대응이 확정된 범위로 확대 해석하지 않습니다.</div>
+<h3>PC-88에서는 Memory 접근과 I/O 상태를 함께 봅니다</h3>
+<p>5부의 <code>05ADh</code> 주변에서는 같은 <code>061Fh</code>를 호출하기 전에 GVRAM plane 선택 포트가 차례로 바뀝니다.</p>
+<pre class="lab-log" aria-label="5부의 GVRAM plane 선택과 공통 처리">05AD  OUT (5CH),A
+05B0  CALL 061FH
+
+05B4  OUT (5DH),A
+05B7  CALL 061FH
+
+05BB  OUT (5EH),A
+05BE  CALL 061FH</pre>
+<p><code>5Ch</code>, <code>5Dh</code>, <code>5Eh</code>는 각각 GVRAM plane을 선택합니다. 따라서 같은 Memory 주소를 읽거나 쓰는 Code라도 <strong>그 직전에 어떤 plane이 선택되어 있었는지</strong>에 따라 실제 화면에서 다루는 대상이 달라질 수 있습니다.</p>
+<div class="judgment"><b>PC-88에서 화면 Memory를 추적할 때</b>주소와 WRITE 명령만 보지 말고, 직전의 <code>OUT</code>과 현재 GVRAM 선택 상태를 함께 확인합니다. I/O는 Memory 처리와 따로 떨어진 정보가 아니라, 현재 Memory 접근의 의미를 결정하는 단서가 될 수 있습니다.</div>
 <h3>관련 있어 보이지만 이번 질문의 정답이 아닌 코드</h3>
 <p>5부에서 <code>D400h</code> WRITE breakpoint로 조사했을 때는 <code>6344h LDIR</code>가 넓은 영역에 <code>00h</code>을 반복 기록하는 처리가 발견됐습니다. 세 GVRAM plane에 비슷한 기록이 반복됐기 때문에 작은 로고의 원천 데이터를 처리하는 Code가 아니라 화면 초기화의 후보로 분류하고 현재 조사 범위에서 제외했습니다.</p>
 <div class="judgment"><b>WRITE가 발생했다는 사실과 원하는 데이터를 찾았다는 결론은 다릅니다.</b>기록하는 값은 무엇인가? 어느 범위를 반복하는가? 목표 화면 변화와 실행 시점이 일치하는가? 주변 Code에서 어떤 준비가 이루어졌는가? 각각 확인해야 합니다.</div>

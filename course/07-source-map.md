@@ -17,7 +17,10 @@
 | 09. 분석 기록 | [5부 확인 범위](05.html#finish) · [6부 확인 범위](06.html#finish) | 관찰·판단·미확인 사항 구분 |
 | 보완: 실험 상태 관리 | [5부](05.html) · [6부 원문 로그](06-logs.md) | 이전 breakpoint 정리, reset, 수정 상태 분리 |
 | 보완: RAM ↔ D88 대응 | [3부](03.html) · [6부](06.html) | D88 후보 검색과 원본 위치 확정을 구분하고, 로드·Track/Sector·전송 근거와 일치할 때 대응을 확정 |
-| 보완: Z80 Code 읽기 순서 | [2부](02.html) · [4부](04.html) | 읽기·쓰기 → 값·주소 → pointer → 실제 분기 → CALL 관계 순으로 판단 |
+| 보완: Z80 Code 읽기 순서 | [2부](02.html) · [4부](04.html) · [5부](05.html) | 읽기·쓰기 → 값·주소 → pointer → 실제 분기 → CALL 관계 순으로 판단 |
+| 보완: 조건분기와 반복 | [5부](05.html) | <code>DEC B / JP NZ</code>와 <code>DEC IXH / JP NZ</code>에서 분기 주소뿐 아니라 조건을 만든 register를 함께 확인 |
+| 보완: GVRAM I/O 상태 | [1부](01.html) · [5부](05.html) | <code>OUT (5C/5D/5E),A</code>의 plane 선택과 뒤의 Memory 처리를 함께 해석 |
+| 보완: CALL 추적 선택 | [4부](04.html) | Step Into / Over / Out을 현재 질문에 따라 선택 |
 | 보완: 새 게임 시작표 | [0~7부](../README.md) | 아무 주소도 모르는 상태에서 실행 환경·첫 PC·다음 명령·확인 사실을 기록하는 빈 작업지 |
 
 ## 5부에서 재사용한 실제 관찰
