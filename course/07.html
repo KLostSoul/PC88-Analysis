@@ -74,7 +74,7 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
 <main><section class="intro" id="intro">
 <h2>이제는 분석 순서를 스스로 결정합니다</h2>
 <p>0~4부에서는 컴퓨터와 PC-88의 구조, Z80 코드, 디스크, 디버거를 익혔습니다. 5부에서는 타이틀 그래픽을, 6부에서는 이벤트 문자를 실제 QUASI88 로그로 분석했습니다. 7부에서는 <strong>이 지식을 어떤 순서로 사용해야 하는지</strong> 하나의 조사 과정으로 연결합니다.</p>
-<p>처음 보는 게임을 실행하면 어느 주소에 원하는 데이터가 있는지 알 수 없습니다. 먼저 화면에서 조사할 대상을 선택하고, 관찰한 사실을 바탕으로 다음 조사 방법을 결정합니다. 이 강좌의 주소와 로그는 모두 기존 5·6부의 실측 자료에서 가져옵니다. 새로운 게임의 확인되지 않은 실행 결과를 만들어 내지 않습니다.</p>
+<p>처음 보는 게임을 실행하면 어느 주소에 원하는 데이터가 있는지 알 수 없습니다. 먼저 화면에서 조사할 대상을 선택하고, 관찰한 사실을 바탕으로 다음 조사 방법을 결정합니다.</p>
 <div class="badges"><span class="badge">0~6부 통합</span><span class="badge">PC-88 / QUASI88 0.7.4</span><span class="badge">실제 실행 근거</span><span class="badge">상황별 판단 연습</span><span class="badge">독립 과제</span></div>
 <div class="goal"><b>최종 학습 목표</b><br>처음 보는 PC-88 게임에서도 조사할 대상과 질문을 정하고, 필요한 Monitor 조작을 선택하며, 실제 실행 결과로 다음 조사 방향을 설명할 수 있게 되는 것입니다.</div>
 <div class="routes" aria-label="PC-88 역분석의 기본 절차">
@@ -107,7 +107,6 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
 <tr><td>QUASI88 Monitor 준비</td><td>현재 PC와 레지스터를 읽고, 필요할 때 breakpoint와 step으로 실측합니다.</td><td><a href="04.html">4부</a></td></tr>
 <tr><td>장면과 입력 순서 기록</td><td>리셋 후 같은 화면에서 수정 전후를 비교하기 위한 조건입니다.</td><td><a href="05.html">5부</a> · <a href="06.html">6부</a></td></tr>
 </tbody></table></div>
-<div class="note"><b>이번 강좌의 기준:</b> 기존 4~6부와 같은 QUASI88 0.7.4 Monitor를 예시로 사용합니다. 아래 주소들은 《몽환전사 바리스》의 실제 실습에서 확인한 주소이므로 다른 게임에 그대로 적용해서는 안 됩니다.</div>
 <h3>새 실험을 시작하기 전에 상태를 정리합니다</h3>
 <p>한 실험에서 사용한 breakpoint나 RAM 수정이 다음 실험에 남아 있으면 결과를 잘못 해석할 수 있습니다. 새로운 질문으로 넘어갈 때는 <strong>이전 실험의 상태를 정리하고 같은 조건에서 다시 시작</strong>합니다.</p>
 <pre class="lab-log" aria-label="6부 실제 로그에서 사용한 breakpoint 정리와 reset 예">break clearall #0
@@ -136,7 +135,7 @@ reset</pre>
 <div class="obs"><b>관찰한 사실</b>실제 5부에서는 작은 글자가 다른 요소보다 먼저 나타났고, 6부에서는 「雨が」가 표시된 순간을 관찰할 수 있었습니다.</div>
 <div class="judgment"><b>분석자가 세워야 하는 가설</b>어떤 화면 요소를 조사할지, 지금 무엇을 알아내려 하는지, 어느 정도까지 확인하면 이번 조사를 마칠지 정합니다.</div>
 <div class="exercise"><h3>점검 ②</h3><p>새 게임의 타이틀에서 배경·로고·크레딧이 차례대로 나타납니다. 첫 조사 범위는 어떻게 정하겠습니까?</p><details class="check"><summary>판단 기준</summary><div class="check-answer">서로 분리해 관찰할 수 있는 요소 하나와 표시 시점을 선택합니다. 처음부터 타이틀 전체의 출력 과정을 확정하려고 하지 않습니다.</div></details></div>
-<p class="source">원본 실습: <a href="05.html#screen">5부 화면 관찰</a>, <a href="06.html#classify">6부 문자 출처 구분</a>.</p>
+<p class="source">이어 보기: <a href="05.html#screen">5부 화면 관찰</a> · <a href="06.html#classify">6부 문자 출처 구분</a></p>
 </section>
 
 <section class="section" id="where"><div class="num">03 · CLASSIFY</div>
@@ -161,7 +160,7 @@ reset</pre>
 <tr><td>이번 6부 사례의 문자 Token / Kanji access / ROM 오프셋</td><td>Script 안의 문자 데이터 / 글리프를 읽는 장치 값 / ROM 파일의 데이터 위치</td><td>Script에는 문자 이외의 제어 Token도 있을 수 있으므로 모든 Token을 문자 선택값으로 일반화하지 않습니다.</td></tr>
 </tbody></table></div>
 <div class="obs"><b>6부에서 실제로 확인한 세 값</b><code>969Fh: B8 62</code>는 RAM의 Script 데이터이고, 그 Token 처리에서 사용한 <code>DE=62B0h</code>는 글리프 접근값입니다. HxD에서 수정한 <code>C560h</code>는 원본 Kanji ROM 덤프 안에 있는 「雨」 글리프의 파일 오프셋입니다.</div>
-<div class="judgment"><b>확인하지 않은 연결은 확정하지 않습니다</b>6부에서는 RAM의 Script와 Kanji ROM의 글리프를 실제 조사했지만, Script가 원본 D88의 어느 Sector에서 로드됐는지까지 추적한 실습은 아닙니다. 그 정보는 다른 조사 과제로 남깁니다.</div>
+<div class="judgment"><b>서로 다른 주소 체계를 바로 연결하지 않습니다</b>RAM의 Script 주소와 D88의 Sector 위치는 별개입니다. 둘을 연결하려면 실제 로드 과정과 전송되는 데이터를 확인해야 합니다.</div>
 <h3>RAM과 D88은 언제 함께 조사할까요?</h3>
 <p>화면의 실행 원인을 찾을 때는 보통 현재 RAM과 Code부터 시작합니다. 그러나 <strong>디스크 로드 직후의 현상처럼 읽기 작업 자체가 현재 질문과 직접 연결된 경우</strong>에는 3부의 SUB CPU·Sector·D88 조사도 처음부터 함께 볼 수 있습니다. 중요한 것은 D88을 언제 여느냐가 아니라, <strong>RAM의 데이터와 D88의 위치를 언제 같은 원본이라고 확정할 수 있느냐</strong>입니다.</p>
 <div class="table-wrap"><table><thead><tr><th>현재 목적</th><th>D88을 어떻게 활용할 수 있는가?</th><th>대응을 확정하는 기준</th></tr></thead><tbody>
@@ -210,7 +209,7 @@ g</pre><p>위 명령은 5부에서 이미 확인한 주소로 재현하는 예�
 <div class="goal"><b>명령어 이름보다 역할을 봅니다.</b> 값 → 주소 → pointer → 분기 → 호출 관계를 읽으면, 처음 보는 Code에서도 다음에 확인할 Memory와 breakpoint를 정할 수 있습니다.</div>
 <div class="note"><b>CPU와 Monitor 기능을 구분합니다.</b> 4부의 실행·READ·WRITE breakpoint는 분석 목적을 구분하기 위한 설명입니다. 실제 QUASI88 0.7.4에서 사용하는 CPU와 breakpoint 종류의 지원 여부를 확인해야 합니다. 기존 SUB CPU 실습에서는 PC breakpoint를 사용합니다.</div>
 <div class="exercise"><h3>점검 ④ — 첫 단서가 예상과 다릅니다</h3><p>게임의 대사 출력을 조사하는 중인데 현재 PC가 같은 몇 개의 명령을 반복하고 있습니다. 그 순간의 PC를 대사 출력 루틴이라고 확정해도 될까요?</p><details class="check"><summary>다음 행동 확인</summary><div class="check-answer">안 됩니다. 주변 명령으로 대기 루프인지 먼저 확인합니다. 필요한 경우 Stack에 남은 반환 주소와 그 앞의 CALL 관계를 조사합니다. 6부의 <a href="06.html#stop">PC=04BDh</a>가 실제 사례입니다.</div></details></div>
-<p class="source">관련 설명: <a href="04.html">4부 — Debugger와 breakpoint</a> · <a href="05.html#first-stop">5부 첫 정지</a> · <a href="06.html#stop">6부 첫 정지</a>.</p>
+<p class="source">이어 보기: <a href="04.html">4부 Debugger와 breakpoint</a> · <a href="05.html#first-stop">5부 첫 정지</a> · <a href="06.html#stop">6부 첫 정지</a></p>
 </section>
 
 <section class="section" id="follow"><div class="num">05 · FOLLOW</div>
@@ -226,7 +225,7 @@ g</pre><p>위 명령은 5부에서 이미 확인한 주소로 재현하는 예�
 <div class="obs"><b>직접 관찰한 사실</b><code>INC HL</code>에서 주소가 증가하고 다음 <code>RR (HL)</code> 뒤에는 대상 메모리 값이 변했습니다.</div>
 <div class="judgment"><b>현재 판단의 범위</b>이 반복이 실제 Memory를 변경한다는 것은 확인했습니다. 하지만 이 사실만으로 해당 데이터 영역 전체가 어떤 그래픽에 대응하는지 확정할 수는 없습니다.</div>
 <div class="nextstep"><b>다음 조사</b>반복 앞뒤의 준비·종료 Code를 읽고, Stack과 호출자 정보를 이용해 그 처리가 화면 표시와 어떻게 연결되는지 추적합니다.</div>
-<p class="source">실측값과 실제 명령 순서: <a href="05.html#first-stop">5부 첫 정지</a> → <a href="05.html#widen">범위 확장</a> → <a href="05.html#verify">step·dump 검증</a>.</p>
+<p class="source">이어 보기: <a href="05.html#first-stop">5부 첫 정지</a> → <a href="05.html#widen">범위 확장</a> → <a href="05.html#verify">step·dump 검증</a></p>
 <h3>6부 — 현재 PC가 대기 루프라면 이전 호출을 찾습니다</h3>
 <p>6부에서는 「雨が」가 나타난 상태에서 강제로 Monitor에 들어갔습니다. 정지 시 <code>PC=04BDh</code>, <code>HL=96A3h</code>, <code>SP=00FAh</code>였지만, 주변 Code를 조사하니 현재 위치는 대기 루프였습니다. 이때는 PC만 따라가지 않고 Stack으로 조사 범위를 바꿨습니다.</p>
 <pre class="lab-log" aria-label="6부 실제 Stack과 반환 주소 조사">reg
@@ -242,7 +241,7 @@ disasm 0x0443 #32
 <div class="obs"><b>직접 관찰한 사실</b>Stack에 저장된 <code>DE=18D0h</code> 다음에 반환 주소 <code>044Fh</code>가 있습니다. <code>044Fh</code> 주변에는 출력 호출 <code>0443h CALL 0B8Fh</code>와 Script 처리기로 되돌아가는 <code>044Fh JP 02E4h</code>가 있습니다.</div>
 <div class="judgment"><b>현재 판단의 범위</b>Stack에 있는 임의의 두 바이트가 모두 반환 주소는 아닙니다. 저장된 레지스터와 호출 상태를 함께 읽고, 실제 <code>CALL</code> 및 <code>RET</code> 흐름과 맞는지 대조합니다.</div>
 <div class="nextstep"><b>다음 조사</b>출력 루틴 <code>0B8Fh</code>과 Script를 한 바이트씩 읽는 <code>02EDh</code>를 조사합니다.</div>
-<p class="source">실제 원문: <a href="06.html#stop">6부 첫 정지</a>, <a href="06.html#stack">Stack 조사</a>, <a href="06-logs.md">6부 원문 로그 01~04</a>.</p>
+<p class="source">이어 보기: <a href="06.html#stop">6부 첫 정지</a> · <a href="06.html#stack">Stack 조사</a> · <a href="06-logs.md">QUASI88 로그 01~04</a></p>
 <div class="exercise"><h3>판단 연습 — 예상하지 못한 PC</h3><p>로고를 조사하는 중 새로운 PC breakpoint에 걸렸습니다. 그 Code가 로고와 관계있다고 곧바로 결론 내려도 될까요?</p><details class="check"><summary>판단 기준 확인</summary><div class="check-answer">이번 실행의 실제 호출자와 register, 접근 중인 데이터, 화면 변화의 시점을 함께 확인합니다. 관련성을 아직 입증할 수 없다면 별도 후보로 기록하고 처음 질문에 맞는 다음 조사 위치를 찾습니다.</div></details></div>
 </section>
 
@@ -279,7 +278,7 @@ disasm 0x0443 #32
 0BFEh : 다음 행 기록 직전    DE=3842h</pre>
 <p><code>0BFEh</code>와 이어지는 기록 명령을 step한 뒤에도 같은 주소의 일반 RAM <code>dump</code>에는 이전 값 <code>FFh</code>가 보였습니다. 이 결과는 「や」의 행 단위 I/O 추적에서 얻은 관찰이며, 기록 실패라고 단정하지 않고 당시 CPU가 접근하던 GVRAM과 일반 RAM을 구분해야 한다는 근거로 사용합니다.</p>
 <div class="exercise"><h3>판단 연습 — 관련 Code인지 구분하기</h3><p>화면에 글자가 나타나는 순간 조사했는데, 어느 Code가 GVRAM에 연속으로 <code>00h</code>을 쓰고 있습니다. 그 Code가 글자 데이터를 전개한다고 확정할 수 있을까요?</p><details class="check"><summary>판단 기준 확인</summary><div class="check-answer">아직 확정할 수 없습니다. 광범위한 초기화일 가능성을 분리해야 합니다. 반복 범위, 쓰기 값, 실행 시점과 주변 호출을 확인한 뒤 목표 출력과 직접 관련되는지 판단합니다. 5부의 <code>D400h</code> 사례가 반례입니다.</div></details></div>
-<p class="source">실측 근거: <a href="05.html#candidate">5부 실제 호출자</a>, <a href="05.html#source-output">입력·출력 후보</a>, <a href="05.html#false-lead">화면 초기화로 제외한 후보</a>, <a href="06.html#script">6부 Script</a>, <a href="06.html#kanji">Kanji ROM</a>, <a href="06.html#write">화면 기록</a>.</p>
+<p class="source">이어 보기: <a href="05.html#candidate">5부 호출자 추적</a> · <a href="05.html#source-output">입력·출력 후보</a> · <a href="05.html#false-lead">초기화 Code</a> · <a href="06.html#script">6부 Script</a> · <a href="06.html#kanji">Kanji ROM</a> · <a href="06.html#write">화면 기록</a></p>
 </section>
 
 <section class="section" id="test"><div class="num">07 · TEST</div>
@@ -307,22 +306,22 @@ disasm 0x0443 #32
 <tr><td>글자 선택은 Token에 따라 달라진다</td><td>RAM <code>969Fh: B8 62 → C8 18</code></td><td>첫 글자 출력이 「雨」에서 「が」로 바뀜</td><td>ROM 덤프 파일에 있는 원본 「雨」 글리프의 정확한 위치</td></tr>
 <tr><td>글자 모양은 ROM의 Glyph Data에 따라 달라진다</td><td>ROM <code>C560h~C57Fh</code>의 32바이트</td><td>원본 Script에서 첫 글자의 모양이 「가」로 출력</td><td>게임 전체의 문자 배정 및 해당 Script의 원천 D88 Sector</td></tr>
 </tbody></table></div>
-<div class="note"><b>원본 보존과 실험 조건:</b> RAM 수정 실험 이후 원상복구하고, ROM 실험에서는 실제로 수정된 ROM이 로드됐는지 확인합니다. 기존 6부에는 ROM 전체 파일 크기 전후를 보여 주는 별도 실측 기록이 없으므로, 덮어쓰기 후 파일 크기 보존 여부는 수강생이 직접 확인합니다.</div>
+<div class="note"><b>원본 보존과 실험 조건:</b> RAM 수정 실험이 끝나면 값을 원상복구합니다. ROM 실험에서는 수정한 ROM이 실제로 로드됐는지 확인하고, 글리프를 덮어쓴 뒤 파일 크기가 변하지 않았는지도 확인합니다.</div>
 <div class="exercise"><h3>판단 연습 — 화면 변화가 같으면 원인도 같을까요?</h3><p>두 실험에서 모두 첫 글자의 표시가 바뀌었습니다. 그렇다면 Script 수정과 ROM 수정은 같은 것을 검증한 실험일까요?</p><details class="check"><summary>확인할 답</summary><div class="check-answer">아닙니다. Script Token 수정은 <strong>어떤 글자를 선택했는가</strong>를 확인합니다. ROM 글리프 수정은 <strong>그 글자의 모양을 어디서 가져오는가</strong>를 확인합니다. 화면의 변화뿐 아니라 변경한 데이터의 종류도 기록해야 합니다.</div></details></div>
-<p class="source">실제 실험과 원문 근거: <a href="06.html#ram-test">6부 Script 실험</a>, <a href="06.html#rom-test">6부 글리프 실험</a>, <a href="06-evidence.md">6부 근거 정리</a>.</p>
+<p class="source">이어 보기: <a href="06.html#ram-test">6부 Script 실험</a> · <a href="06.html#rom-test">6부 글리프 실험</a></p>
 </section>
 
 <section class="section" id="trouble"><div class="num">08 · RECHECK</div>
 <h2>예상과 다를 때는 어디로 돌아갈지 결정합니다</h2>
-<p>역분석 중 예상과 다른 결과가 나오는 것은 이상한 일이 아닙니다. 이때 새 주소를 무작정 찾기 전에 <strong>직접 확인한 사실과 아직 검증하지 않은 가정</strong>을 분리합니다. 다음 표는 기존 실제 사례와 일반적인 재조사 방법을 구분한 것입니다.</p>
-<div class="table-wrap"><table><thead><tr><th>현재 상황</th><th>먼저 확인할 것</th><th>다음 조사</th><th>실습 근거</th></tr></thead><tbody>
+<p>예상과 다른 결과가 나오면 새 주소를 무작정 찾기 전에 <strong>직접 확인한 사실과 아직 검증하지 않은 가정</strong>을 분리합니다. 어느 단계에서 예상과 달라졌는지 찾은 뒤 그 지점부터 다시 조사합니다.</p>
+<div class="table-wrap"><table><thead><tr><th>현재 상황</th><th>먼저 확인할 것</th><th>다음 조사</th><th>관련 항목</th></tr></thead><tbody>
 <tr><td>현재 PC가 출력 Code로 보이지 않습니다.</td><td>대기 루프인지, Stack과 반환 주소가 무엇인지</td><td>주변 Code와 이전 호출을 확인합니다.</td><td><a href="06.html#stack">6부 04BDh</a></td></tr>
 <tr><td>반복 Code를 찾았지만 역할을 모릅니다.</td><td>반복 전후의 PC·HL·Memory 값</td><td><code>dump → step → dump</code>로 실제 변화를 비교합니다.</td><td><a href="05.html#verify">5부 D8E0h</a></td></tr>
 <tr><td>하나의 루틴이 여러 곳에서 호출됩니다.</td><td>이번 실행의 실제 호출자와 register</td><td>발견한 호출 후보와 실제 호출을 구분합니다.</td><td><a href="05.html#candidate">5부 05ADh</a></td></tr>
 <tr><td>WRITE는 발생했지만 원하는 그림과 관계가 불분명합니다.</td><td>기록값·반복 범위·화면 변화 시점</td><td>초기화 Code인지 원하는 데이터 처리인지 분류합니다.</td><td><a href="05.html#false-lead">5부 D400h</a></td></tr>
 <tr><td>쓰기 명령을 실행했는데 일반 RAM dump는 그대로입니다.</td><td>현재 bank·plane과 접근한 메모리 종류</td><td>GVRAM과 일반 RAM을 구분해 관찰합니다.</td><td><a href="06.html#write">6부 글리프 기록</a></td></tr>
-<tr><td>RAM을 수정해도 출력이 달라지지 않습니다.</td><td>이번 실행에서 실제로 소비한 데이터인지, 수정 시점이 맞는지</td><td>관련 Code의 실제 읽기 시점을 확인합니다.</td><td>일반 재조사 지침. 기존 실습의 별도 실패 실측은 아닙니다.</td></tr>
-<tr><td>ROM을 바꿨지만 출력이 동일합니다.</td><td>원본과 수정본, 실제 로드된 ROM, Script 복구 여부</td><td>실행 조건부터 재확인한 뒤 같은 장면을 다시 관찰합니다.</td><td>일반 재조사 지침. 기존 실습의 별도 실패 실측은 아닙니다.</td></tr>
+<tr><td>RAM을 수정해도 출력이 달라지지 않습니다.</td><td>이번 실행에서 실제로 소비한 데이터인지, 수정 시점이 맞는지</td><td>관련 Code의 실제 읽기 시점을 확인합니다.</td><td><a href="04.html">4부 breakpoint·step</a></td></tr>
+<tr><td>ROM을 바꿨지만 출력이 동일합니다.</td><td>원본과 수정본, 실제 로드된 ROM, Script 복구 여부</td><td>실행 조건부터 재확인한 뒤 같은 장면을 다시 관찰합니다.</td><td><a href="06.html#rom-test">6부 ROM 수정</a></td></tr>
 </tbody></table></div>
 <div class="routes" aria-label="예상과 다른 결과를 얻었을 때">
 <article><b>실측값 재확인</b><p>현재 PC·register·dump·화면을 다시 확인합니다.</p></article>
@@ -359,12 +358,12 @@ disasm 0x0443 #32
 <label><input type="checkbox"><span><b>다음 질문:</b> 후속 조사에 필요한 명령이나 데이터를 남겼는가?</span></label>
 </div>
 <div class="callout ok"><h3>실제 로그와 기록을 구분합니다</h3><p>5부에서 확인한 <code>HL'=4405h</code> 입력 후보와 <code>HL=C50Eh</code> 출력 후보를, 그 데이터 범위 전체의 화면 대응이 확정됐다는 뜻으로 기록하지 않습니다. 6부에서 찾은 <code>969Fh</code>의 RAM Script 위치를 D88의 원본 Sector로 잘못 옮기지도 않습니다.</p></div>
-<p class="source">기존 분석 기록: <a href="05.html#finish">5부의 확인 범위와 기록 양식</a> · <a href="06.html#finish">6부의 확인 범위</a>.</p>
+<p class="source">이어 보기: <a href="05.html#finish">5부 분석 기록</a> · <a href="06.html#finish">6부 정리</a></p>
 </section>
 
 <section class="section" id="practice"><div class="num">FINAL · PRACTICE</div>
 <h2>독립 과제 — 원문을 보기 전에 다음 조사 방법을 정해 봅시다</h2>
-<p>5부와 6부의 <strong>첫 관찰 상태만</strong> 먼저 보여 줍니다. 답을 펼치기 전에 자신이 분석자라면 어떤 명령과 근거로 다음 위치를 조사할지 작성하세요. 이미 완성된 실습 자료를 이용하므로 새로운 게임의 확인되지 않은 실행값을 가정할 필요가 없습니다.</p>
+<p>5부와 6부의 <strong>첫 관찰 상태만</strong> 보고 다음 조사 순서를 직접 정합니다. 답을 펼치기 전에 사용할 명령, 확인할 값, 예상과 다를 때의 다음 행동을 먼저 작성하세요.</p>
 <div class="case-pair">
 <article><h3>선택 A — 타이틀 그래픽</h3><figure class="shot"><img src="../images/course05/06.PNG" alt="실습 A: 작은 夢幻戦士가 먼저 나타나는 타이틀 화면" loading="lazy"><figcaption>먼저 나타나는 작은 「夢幻戦士」</figcaption></figure><p><strong>첫 단서:</strong> <code>PC=04DAh</code>에서 <code>RR (HL)</code> 반복을 관찰했습니다. 이 반복이 무엇을 처리하는지 확인하기 위해 어떤 명령과 관찰값이 필요할까요?</p></article>
 <article><h3>선택 B — 이벤트 문자</h3><figure class="shot"><img src="../images/course06/03.PNG" alt="실습 B: 雨が가 출력된 이벤트 화면" loading="lazy"><figcaption>첫 두 글자 「雨が」</figcaption></figure><p><strong>첫 단서:</strong> <code>PC=04BDh</code>, <code>HL=96A3h</code>, <code>SP=00FAh</code>입니다. 현재 PC가 대기 루프라면 어디부터 확인해야 할까요?</p></article>
@@ -407,7 +406,7 @@ disasm 0x0443 #32
 <h3>다른 PC-88 게임에 적용해 봅시다</h3>
 <p>수강생이 선택한 게임이나 아직 조사하지 않은 장면을 열어 위 시작표에서 <strong>현재 확인 가능한 항목부터</strong> 작성합니다. 당장 정답 주소를 찾아야 하는 것은 아닙니다. <strong>현재 확인할 수 있는 사실을 하나 얻고, 그 사실에서 다음 질문과 조사 방법을 선택할 수 있는가</strong>가 이번 강좌의 성취 기준입니다.</p>
 <div class="next"><h2>기초 강좌 0~7부를 마치며</h2><p>PC-88의 메모리와 디스크 구조를 이해하고, Z80 Code를 읽으며, QUASI88에서 관찰한 실제 실행 사실로 다음 조사 위치를 결정합니다. 모르는 주소를 추측으로 채우는 대신 <strong>확인된 사실 → 질문 → 조사 → 검증 → 기록</strong>을 반복하는 것부터 시작하세요.</p></div>
-<div class="links"><a href="00.html">0부부터 다시 보기</a><a href="04.html">Debugger 기초</a><a href="05.html">5부 실습</a><a href="06.html">6부 실습</a><a href="07-source-map.md">7부 자료 대응표</a></div>
+<div class="links"><a href="00.html">0부부터 다시 보기</a><a href="04.html">Debugger 기초</a><a href="05.html">5부 실습</a><a href="06.html">6부 실습</a></div>
 </section>
 
 <nav class="course-nav course-nav-bottom" aria-label="강좌 이동"><a class="course-prev" href="06.html">← 6부</a><a class="course-index" href="../index.html">강좌 목록</a><span class="nav-empty" aria-hidden="true"></span></nav>
