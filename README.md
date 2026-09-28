@@ -146,13 +146,19 @@ PC-88 에뮬레이터마다 debugger 기능과 조작법은 다를 수 있으므
 
 ## 강좌 보는 방법
 
-각 강좌는 독립적인 HTML 파일입니다.
+강좌는 `course/00.html`~`course/06.html`과 공통 반응형 스타일시트 [`assets/course-responsive.css`](assets/course-responsive.css)로 구성됩니다.
 
-1. GitHub Pages의 메인 화면에서 원하는 강좌를 엽니다.
-2. 또는 저장소를 내려받아 `course` 폴더의 HTML 파일을 웹 브라우저로 엽니다.
-3. 가능하면 `00.html`부터 순서대로 보는 것을 권장합니다.
+1. [GitHub Pages 강좌 목록](https://klostsoul.github.io/PC88-Analysis/)에서 원하는 강좌를 엽니다.
+2. 로컬에서 보려면 **HTML 파일만 따로 받지 말고 저장소 전체를 내려받아** `index.html` 또는 `course` 폴더의 HTML 파일을 웹 브라우저로 엽니다. 공통 CSS와 이미지 폴더의 상대경로가 유지되어야 합니다.
+3. 처음 배우는 경우 `00.html`부터 순서대로 보는 것을 권장합니다.
 
-별도의 웹 서버는 필요하지 않습니다. 4부와 5부의 실제 실행 화면은 각각 `images/course04/`와 `images/course05/`의 이미지 파일을 해당 HTML에서 불러옵니다. 6부의 실행·HxD 캡처 `01.PNG`~`07.PNG`은 `images/course06/`에서 볼 수 있습니다. 저장소 전체를 내려받으면 로컬에서도 그대로 볼 수 있습니다.
+4~6부의 실제 실행·실습 화면은 각각 `images/course04/`, `images/course05/`, `images/course06/`에서 불러옵니다. 기본 본문과 이미지는 별도 웹 서버 없이 로컬에서 열 수 있지만, **5~6부의 Mermaid 흐름도는 외부 CDN을 사용하므로 인터넷 연결이 필요합니다.**
+
+## 반응형 화면 지원
+
+강좌 목록과 **0~6부 전체**에 공통 스타일시트를 적용했습니다. 화면 너비에 맞춰 본문·카드·이미지를 조정하고, 좁은 화면에서는 나란히 놓인 캡처를 한 장씩 세로로 표시합니다. 이미지 설명은 자동 줄바꿈되며, 긴 표와 Monitor 로그는 페이지 전체가 밀려나지 않도록 해당 영역 안에서 가로로 스크롤할 수 있습니다. 3부의 도식과 6부의 16×16 글리프 그림도 좁은 화면에 맞춰 표시하도록 구성했습니다.
+
+페이지별 스타일은 각 HTML 안에 두고, 공통 반응형 규칙은 [`assets/course-responsive.css`](assets/course-responsive.css)에서 관리합니다. HTML에서 공통 CSS 링크를 삭제하거나 해당 파일을 제외하고 배포하면 모바일 레이아웃이 달라질 수 있습니다.
 
 ## 저장소 구조
 
@@ -160,6 +166,8 @@ PC-88 에뮬레이터마다 debugger 기능과 조작법은 다를 수 있으므
 PC88-Analysis/
 ├─ index.html
 ├─ README.md
+├─ assets/
+│  └─ course-responsive.css
 ├─ course/
 │  ├─ 00.html
 │  ├─ 01.html
