@@ -108,6 +108,17 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
 <tr><td>장면과 입력 순서 기록</td><td>리셋 후 같은 화면에서 수정 전후를 비교하기 위한 조건입니다.</td><td><a href="05.html">5부</a> · <a href="06.html">6부</a></td></tr>
 </tbody></table></div>
 <div class="note"><b>이번 강좌의 기준:</b> 기존 4~6부와 같은 QUASI88 0.7.4 Monitor를 예시로 사용합니다. 아래 주소들은 《몽환전사 바리스》의 실제 실습에서 확인한 주소이므로 다른 게임에 그대로 적용해서는 안 됩니다.</div>
+<h3>새 실험을 시작하기 전에 상태를 정리합니다</h3>
+<p>한 실험에서 사용한 breakpoint나 RAM 수정이 다음 실험에 남아 있으면 결과를 잘못 해석할 수 있습니다. 새로운 질문으로 넘어갈 때는 <strong>이전 실험의 상태를 정리하고 같은 조건에서 다시 시작</strong>합니다.</p>
+<pre class="lab-log" aria-label="6부 실제 로그에서 사용한 breakpoint 정리와 reset 예">break clearall #0
+reset</pre>
+<div class="table-wrap"><table><thead><tr><th>새 실험 전 확인</th><th>이유</th></tr></thead><tbody>
+<tr><td>기존 breakpoint 정리</td><td>이전 질문에서 설정한 정지 조건이 다음 실험의 흐름을 방해하지 않게 합니다.</td></tr>
+<tr><td><code>reset</code> 뒤 같은 장면까지 재현</td><td>수정 전·후를 같은 실행 조건에서 비교합니다.</td></tr>
+<tr><td>RAM 수정 원상복구</td><td>앞선 실험의 변경값이 다음 관찰에 섞이지 않게 합니다.</td></tr>
+<tr><td>ROM 변경 여부 확인</td><td>원본 ROM 실험과 수정 ROM 실험을 서로 구분합니다.</td></tr>
+</tbody></table></div>
+<div class="goal"><b>실험 하나 = 질문 하나 = 변경 하나</b> — 한 질문의 결과를 확인한 뒤 상태를 정리하고 다음 질문으로 넘어갑니다.</div>
 <div class="exercise"><h3>점검 ①</h3><p>실험 도중 ROM을 바꾼 뒤 화면이 달라지지 않았다면, 새로운 주소를 찾기 전에 무엇을 확인하겠습니까?</p><details class="check"><summary>확인할 답</summary><div class="check-answer">이번 실행에 어떤 ROM이 실제로 로드됐는지, 원본 Script가 복구됐는지, 수정 전과 실행 조건이 같은지 먼저 확인합니다. 그다음 Code나 Data를 다시 조사합니다.</div></details></div>
 </section>
 
@@ -151,6 +162,19 @@ main{padding:26px 20px 78px}.intro,.section,.callout{background:var(--paper);bor
 </tbody></table></div>
 <div class="obs"><b>6부에서 실제로 확인한 세 값</b><code>969Fh: B8 62</code>는 RAM의 Script 데이터이고, 그 Token 처리에서 사용한 <code>DE=62B0h</code>는 글리프 접근값입니다. HxD에서 수정한 <code>C560h</code>는 원본 Kanji ROM 덤프 안에 있는 「雨」 글리프의 파일 오프셋입니다.</div>
 <div class="judgment"><b>확인하지 않은 연결은 확정하지 않습니다</b>6부에서는 RAM의 Script와 Kanji ROM의 글리프를 실제 조사했지만, Script가 원본 D88의 어느 Sector에서 로드됐는지까지 추적한 실습은 아닙니다. 그 정보는 다른 조사 과제로 남깁니다.</div>
+<h3>언제 RAM 조사에서 D88 조사로 넘어갈까요?</h3>
+<p>실행 중인 동작의 원인을 찾는 동안에는 먼저 RAM과 Code의 관계를 따라갑니다. <strong>원본 데이터가 디스크의 어디에 저장되어 있는지</strong> 또는 <strong>영구적으로 수정할 위치가 어디인지</strong> 알아야 할 때 비로소 로드 과정을 확인하고 3부의 D88 구조로 넘어갑니다.</p>
+<div class="table-wrap"><table><thead><tr><th>현재 목적</th><th>우선 조사</th><th>D88로 넘어가는 조건</th></tr></thead><tbody>
+<tr><td>화면 변화의 실행 원인을 알고 싶다</td><td>현재 RAM, register, 실행 Code를 계속 추적</td><td>아직 필요하지 않습니다.</td></tr>
+<tr><td>RAM에서 찾은 데이터의 원본 저장 위치를 알고 싶다</td><td>해당 데이터가 언제 RAM으로 들어오는지 로드 시점을 조사</td><td>읽힌 Track/Sector 또는 원본 데이터와 연결할 실행 근거를 확보한 뒤 D88을 확인합니다.</td></tr>
+<tr><td>패치할 원본 디스크 위치를 찾고 싶다</td><td>RAM 데이터와 로드 경로를 먼저 확인</td><td>D88의 Track Table·Sector Header·RAW data와 실제 로드된 데이터를 대응시킬 근거가 있을 때 이동합니다.</td></tr>
+<tr><td>로드 근거를 아직 찾지 못했다</td><td>RAM/Code 조사를 계속하거나 로더를 별도 조사</td><td>RAM 주소와 같은 숫자를 D88 오프셋으로 추정하지 않습니다.</td></tr>
+</tbody></table></div>
+<div class="routes" aria-label="RAM에서 D88로 넘어가는 판단">
+<article><b>실행 중 RAM에서 단서 확인</b><p>현재 Code가 실제로 읽고 쓰는 데이터를 찾습니다.</p></article>
+<article><b>로드 경로 확인</b><p>그 데이터가 언제 어디에서 RAM으로 들어오는지 조사합니다.</p></article>
+<article><b>D88 위치 대응</b><p>실행 근거가 생긴 뒤 Track·Sector·파일 오프셋을 연결합니다.</p></article>
+</div>
 <div class="exercise"><h3>점검 ③</h3><p>Monitor에서 RAM의 대사 Token을 찾았습니다. 해당 RAM 주소와 같은 숫자를 D88 파일 오프셋으로 사용하면 될까요?</p><details class="check"><summary>확인할 답</summary><div class="check-answer">안 됩니다. RAM 주소와 D88의 파일 오프셋은 다른 주소 체계입니다. 원본 Sector까지 추적하려면 데이터가 언제 어디에서 읽혀 RAM으로 들어왔는지 별도 근거가 필요합니다. 이 관계를 조사해야 할 때 <a href="03.html">3부</a>를 다시 참조합니다.</div></details></div>
 </section>
 
@@ -174,6 +198,16 @@ g</pre><p>위 명령은 5부에서 이미 확인한 주소로 재현하는 예�
 <tr><td>명령 하나가 무엇을 바꾸는가?</td><td><code>dump → step → dump</code></td><td>같은 실행 상태에서 PC·register·memory의 실제 변화</td></tr>
 <tr><td>현재 루틴을 누가 호출했는가?</td><td>Stack과 반환 주소 확인</td><td>저장된 register와 반환 주소를 구분하고 호출 주변 Code 확인</td></tr>
 </tbody></table></div>
+<h3>Code를 발견했다면 이 순서로 읽습니다</h3>
+<p>2부에서 배운 Z80 명령을 다시 외우는 것이 아니라, 실제 disassembly에서 <strong>현재 명령이 Data를 어떻게 사용하고 다음 실행 위치를 어떻게 결정하는지</strong> 순서대로 확인합니다.</p>
+<div class="table-wrap"><table><thead><tr><th>순서</th><th>확인할 질문</th><th>예시</th></tr></thead><tbody>
+<tr><td>1. 읽기·쓰기</td><td>현재 명령은 값을 읽는가, 쓰는가, register끼리 옮기는가?</td><td><code>LD E,(HL)</code>이면 <code>HL</code>이 가리키는 Memory에서 값을 읽습니다.</td></tr>
+<tr><td>2. 값·주소 구분</td><td>operand가 즉시값인가, Memory 주소인가?</td><td><code>LD A,2Ah</code>의 <code>2Ah</code>와 <code>LD A,(2Ah)</code>는 의미가 다릅니다.</td></tr>
+<tr><td>3. pointer 확인</td><td><code>HL</code>, <code>DE</code>, <code>IX</code> 등이 Memory를 가리키는 pointer로 사용되는가?</td><td><code>INC HL</code> 뒤 <code>RR (HL)</code>이면 다음 Memory byte로 이동한 뒤 그 값을 처리합니다.</td></tr>
+<tr><td>4. 실제 분기 확인</td><td><code>CP</code>, flag, <code>JP/JR</code>에서 이번 실행은 어느 경로로 갔는가?</td><td>disassembly만 보고 양쪽을 모두 실행됐다고 생각하지 않고 실제 PC 이동을 봅니다.</td></tr>
+<tr><td>5. CALL 처리 결정</td><td>호출 안으로 들어가야 질문에 답할 수 있는가, 아니면 호출 전후와 실제 호출자부터 봐야 하는가?</td><td>공통 루틴이면 먼저 이번 실행의 호출자와 register를 기록한 뒤 필요한 호출만 추적합니다.</td></tr>
+</tbody></table></div>
+<div class="goal"><b>명령어 이름보다 역할을 봅니다.</b> 값 → 주소 → pointer → 분기 → 호출 관계를 읽으면, 처음 보는 Code에서도 다음에 확인할 Memory와 breakpoint를 정할 수 있습니다.</div>
 <div class="note"><b>CPU와 Monitor 기능을 구분합니다.</b> 4부의 실행·READ·WRITE breakpoint는 분석 목적을 구분하기 위한 설명입니다. 실제 QUASI88 0.7.4에서 사용하는 CPU와 breakpoint 종류의 지원 여부를 확인해야 합니다. 기존 SUB CPU 실습에서는 PC breakpoint를 사용합니다.</div>
 <div class="exercise"><h3>점검 ④ — 첫 단서가 예상과 다릅니다</h3><p>게임의 대사 출력을 조사하는 중인데 현재 PC가 같은 몇 개의 명령을 반복하고 있습니다. 그 순간의 PC를 대사 출력 루틴이라고 확정해도 될까요?</p><details class="check"><summary>다음 행동 확인</summary><div class="check-answer">안 됩니다. 주변 명령으로 대기 루프인지 먼저 확인합니다. 필요한 경우 Stack에 남은 반환 주소와 그 앞의 CALL 관계를 조사합니다. 6부의 <a href="06.html#stop">PC=04BDh</a>가 실제 사례입니다.</div></details></div>
 <p class="source">관련 설명: <a href="04.html">4부 — Debugger와 breakpoint</a> · <a href="05.html#first-stop">5부 첫 정지</a> · <a href="06.html#stop">6부 첫 정지</a>.</p>
@@ -208,7 +242,7 @@ disasm 0x0443 #32
 <div class="obs"><b>직접 관찰한 사실</b>Stack에 저장된 <code>DE=18D0h</code> 다음에 반환 주소 <code>044Fh</code>가 있습니다. <code>044Fh</code> 주변에는 출력 호출 <code>0443h CALL 0B8Fh</code>와 Script 처리기로 되돌아가는 <code>044Fh JP 02E4h</code>가 있습니다.</div>
 <div class="judgment"><b>현재 판단의 범위</b>Stack에 있는 임의의 두 바이트가 모두 반환 주소는 아닙니다. 저장된 레지스터와 호출 상태를 함께 읽고, 실제 <code>CALL</code> 및 <code>RET</code> 흐름과 맞는지 대조합니다.</div>
 <div class="nextstep"><b>다음 조사</b>출력 루틴 <code>0B8Fh</code>과 Script를 한 바이트씩 읽는 <code>02EDh</code>를 조사합니다.</div>
-<p class="source">실제 원문: <a href="06.html#stop">6부 첫 정지</a>, <a href="06.html#stack">Stack 조사</a>, <a href="https://github.com/KLostSoul/PC88-Analysis/blob/main/course/06-logs.md">6부 원문 로그 01~04</a>.</p>
+<p class="source">실제 원문: <a href="06.html#stop">6부 첫 정지</a>, <a href="06.html#stack">Stack 조사</a>, <a href="06-logs.md">6부 원문 로그 01~04</a>.</p>
 <div class="exercise"><h3>판단 연습 — 예상하지 못한 PC</h3><p>로고를 조사하는 중 새로운 PC breakpoint에 걸렸습니다. 그 Code가 로고와 관계있다고 곧바로 결론 내려도 될까요?</p><details class="check"><summary>판단 기준 확인</summary><div class="check-answer">이번 실행의 실제 호출자와 register, 접근 중인 데이터, 화면 변화의 시점을 함께 확인합니다. 관련성을 아직 입증할 수 없다면 별도 후보로 기록하고 처음 질문에 맞는 다음 조사 위치를 찾습니다.</div></details></div>
 </section>
 
@@ -270,7 +304,7 @@ disasm 0x0443 #32
 </tbody></table></div>
 <div class="note"><b>원본 보존과 실험 조건:</b> RAM 수정 실험 이후 원상복구하고, ROM 실험에서는 실제로 수정된 ROM이 로드됐는지 확인합니다. 기존 6부에는 ROM 전체 파일 크기 전후를 보여 주는 별도 실측 기록이 없으므로, 덮어쓰기 후 파일 크기 보존 여부는 수강생이 직접 확인합니다.</div>
 <div class="exercise"><h3>판단 연습 — 화면 변화가 같으면 원인도 같을까요?</h3><p>두 실험에서 모두 첫 글자의 표시가 바뀌었습니다. 그렇다면 Script 수정과 ROM 수정은 같은 것을 검증한 실험일까요?</p><details class="check"><summary>확인할 답</summary><div class="check-answer">아닙니다. Script Token 수정은 <strong>어떤 글자를 선택했는가</strong>를 확인합니다. ROM 글리프 수정은 <strong>그 글자의 모양을 어디서 가져오는가</strong>를 확인합니다. 화면의 변화뿐 아니라 변경한 데이터의 종류도 기록해야 합니다.</div></details></div>
-<p class="source">실제 실험과 원문 근거: <a href="06.html#ram-test">6부 Script 실험</a>, <a href="06.html#rom-test">6부 글리프 실험</a>, <a href="https://github.com/KLostSoul/PC88-Analysis/blob/main/course/06-evidence.md">6부 근거 정리</a>.</p>
+<p class="source">실제 실험과 원문 근거: <a href="06.html#ram-test">6부 Script 실험</a>, <a href="06.html#rom-test">6부 글리프 실험</a>, <a href="06-evidence.md">6부 근거 정리</a>.</p>
 </section>
 
 <section class="section" id="trouble"><div class="num">08 · RECHECK</div>
@@ -347,12 +381,28 @@ disasm 0x0443 #32
 </div>
 <div class="checks">
 <details class="check"><summary>선택 A — 실제 다음 조사 결과 확인</summary><div class="check-answer"><p>5부에서는 주변 Code를 넓혀 읽어 <code>04CBh INC HL</code>과 <code>04CCh RR (HL)</code>을 확인했습니다. 이후 <code>04CBh</code>에 PC breakpoint를 설정하고 리셋한 뒤 <code>dump → step → dump → step → dump</code>로 실측했습니다. 실제 결과는 <code>D8E0h: 10h → 08h</code>였습니다. 다음으로 반복을 준비한 Code와 호출자를 조사했습니다.</p><a href="05.html#verify">5부의 실제 실행 근거 확인</a></div></details>
-<details class="check"><summary>선택 B — 실제 다음 조사 결과 확인</summary><div class="check-answer"><p>6부에서는 <code>dump 0x00FA #16</code>으로 Stack에서 <code>00FAh: D0 18 4F 04</code>를 확인했습니다. 이 중 <code>4F 04</code>는 little-endian 반환 주소 <code>044Fh</code>였습니다. 이어 <code>disasm 0x0443 #32</code>로 호출 주변 Code를 조사하고 Script 처리기 <code>02EDh</code>와 출력 루틴 <code>0B8Fh</code>를 따라갔습니다.</p><a href="06.html#stack">6부 Stack 실습 확인</a> · <a href="https://github.com/KLostSoul/PC88-Analysis/blob/main/course/06-logs.md">원문 로그 확인</a></div></details>
+<details class="check"><summary>선택 B — 실제 다음 조사 결과 확인</summary><div class="check-answer"><p>6부에서는 <code>dump 0x00FA #16</code>으로 Stack에서 <code>00FAh: D0 18 4F 04</code>를 확인했습니다. 이 중 <code>4F 04</code>는 little-endian 반환 주소 <code>044Fh</code>였습니다. 이어 <code>disasm 0x0443 #32</code>로 호출 주변 Code를 조사하고 Script 처리기 <code>02EDh</code>와 출력 루틴 <code>0B8Fh</code>를 따라갔습니다.</p><a href="06.html#stack">6부 Stack 실습 확인</a> · <a href="06-logs.md">원문 로그 확인</a></div></details>
+</div>
+<h3>처음 보는 PC-88 게임 분석 시작표</h3>
+<p>아래 표는 5·6부의 정답을 다시 쓰는 용도가 아니라, <strong>아무 주소도 모르는 새 게임에서 첫 조사를 시작하기 위한 빈 작업지</strong>입니다. 처음에는 모든 칸을 채울 필요가 없습니다. 실제로 확인한 항목만 작성하고 나머지는 비워 둡니다.</p>
+<div class="worksheet" aria-label="처음 보는 PC-88 게임 분석 시작표">
+<div class="field"><b>사용 중인 D88·ROM</b><div class="blank"></div></div>
+<div class="field"><b>현재 게임 장면</b><div class="blank"></div></div>
+<div class="field"><b>화면에서 고른 대상</b><div class="blank"></div></div>
+<div class="field"><b>알고 싶은 질문</b><div class="blank"></div></div>
+<div class="field"><b>첫 Monitor 진입 시 PC</b><div class="blank"></div></div>
+<div class="field"><b>처음 확인할 register</b><div class="blank"></div></div>
+<div class="field"><b>처음 볼 disasm 범위</b><div class="blank"></div></div>
+<div class="field"><b>다음 Monitor 명령</b><div class="blank"></div></div>
+<div class="field"><b>그 명령을 고른 이유</b><div class="blank"></div></div>
+<div class="field"><b>직접 확인한 사실</b><div class="blank"></div></div>
+<div class="field"><b>아직 가설·후보인 내용</b><div class="blank"></div></div>
+<div class="field"><b>다음 질문</b><div class="blank"></div></div>
 </div>
 <h3>다른 PC-88 게임에 적용해 봅시다</h3>
-<p>수강생이 선택한 게임이나 아직 조사하지 않은 장면을 열어 위 양식의 첫 네 항목을 작성합니다. 당장 정답 주소를 찾아야 하는 것은 아닙니다. <strong>현재 확인할 수 있는 사실을 하나 얻고, 그 사실에서 다음 질문과 조사 방법을 선택할 수 있는가</strong>가 이번 강좌의 성취 기준입니다.</p>
+<p>수강생이 선택한 게임이나 아직 조사하지 않은 장면을 열어 위 시작표에서 <strong>현재 확인 가능한 항목부터</strong> 작성합니다. 당장 정답 주소를 찾아야 하는 것은 아닙니다. <strong>현재 확인할 수 있는 사실을 하나 얻고, 그 사실에서 다음 질문과 조사 방법을 선택할 수 있는가</strong>가 이번 강좌의 성취 기준입니다.</p>
 <div class="next"><h2>기초 강좌 0~7부를 마치며</h2><p>PC-88의 메모리와 디스크 구조를 이해하고, Z80 Code를 읽으며, QUASI88에서 관찰한 실제 실행 사실로 다음 조사 위치를 결정합니다. 모르는 주소를 추측으로 채우는 대신 <strong>확인된 사실 → 질문 → 조사 → 검증 → 기록</strong>을 반복하는 것부터 시작하세요.</p></div>
-<div class="links"><a href="00.html">0부부터 다시 보기</a><a href="04.html">Debugger 기초</a><a href="05.html">5부 실습</a><a href="06.html">6부 실습</a><a href="https://github.com/KLostSoul/PC88-Analysis/blob/main/course/07-source-map.md">7부 자료 대응표</a></div>
+<div class="links"><a href="00.html">0부부터 다시 보기</a><a href="04.html">Debugger 기초</a><a href="05.html">5부 실습</a><a href="06.html">6부 실습</a><a href="07-source-map.md">7부 자료 대응표</a></div>
 </section>
 
 <nav class="course-nav course-nav-bottom" aria-label="강좌 이동"><a class="course-prev" href="06.html">← 6부</a><a class="course-index" href="../index.html">강좌 목록</a><span class="nav-empty" aria-hidden="true"></span></nav>
