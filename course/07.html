@@ -118,7 +118,7 @@ reset</pre>
 <tr><td>RAM 수정 원상복구</td><td>앞선 실험의 변경값이 다음 관찰에 섞이지 않게 합니다.</td></tr>
 <tr><td>ROM 변경 여부 확인</td><td>원본 ROM 실험과 수정 ROM 실험을 서로 구분합니다.</td></tr>
 </tbody></table></div>
-<div class="goal"><b>실험 하나 = 질문 하나 = 변경 하나</b> — 한 질문의 결과를 확인한 뒤 상태를 정리하고 다음 질문으로 넘어갑니다.</div>
+<div class="goal"><b>질문 하나씩 관찰하고, 수정 검증은 한 번에 한 요소만 바꿉니다.</b> — <code>reg</code>·<code>dump</code>·<code>disasm</code>·<code>step</code>처럼 값을 바꾸지 않는 조사도 있습니다. 수정으로 가설을 검증할 때만 다른 조건을 유지한 채 한 요소씩 변경합니다.</div>
 <div class="exercise"><h3>점검 ①</h3><p>실험 도중 ROM을 바꾼 뒤 화면이 달라지지 않았다면, 새로운 주소를 찾기 전에 무엇을 확인하겠습니까?</p><details class="check"><summary>확인할 답</summary><div class="check-answer">이번 실행에 어떤 ROM이 실제로 로드됐는지, 원본 Script가 복구됐는지, 수정 전과 실행 조건이 같은지 먼저 확인합니다. 그다음 Code나 Data를 다시 조사합니다.</div></details></div>
 </section>
 
@@ -158,24 +158,24 @@ reset</pre>
 <tr><td>GVRAM·Text VRAM</td><td>화면에 출력할 데이터의 저장 영역</td><td>일반 RAM dump와 GVRAM 접근 결과를 구분해야 합니다.</td></tr>
 <tr><td>디스크의 C/H/R/N</td><td>플로피에서 Sector를 식별하는 값</td><td>CPU가 실행 중 사용하는 주소가 아닙니다.</td></tr>
 <tr><td>D88 파일 오프셋</td><td>이미지 파일 내부에서 특정 데이터가 기록된 위치</td><td>디스크에서 RAM으로 데이터를 읽었다고 두 주소가 같아지는 것은 아닙니다.</td></tr>
-<tr><td>Script Token / Kanji access / ROM 오프셋</td><td>문자 선택값 / 글리프를 읽는 장치 값 / ROM 파일의 데이터 위치</td><td>글자 하나를 다루더라도 단계마다 다른 표현을 사용합니다.</td></tr>
+<tr><td>이번 6부 사례의 문자 Token / Kanji access / ROM 오프셋</td><td>Script 안의 문자 데이터 / 글리프를 읽는 장치 값 / ROM 파일의 데이터 위치</td><td>Script에는 문자 이외의 제어 Token도 있을 수 있으므로 모든 Token을 문자 선택값으로 일반화하지 않습니다.</td></tr>
 </tbody></table></div>
 <div class="obs"><b>6부에서 실제로 확인한 세 값</b><code>969Fh: B8 62</code>는 RAM의 Script 데이터이고, 그 Token 처리에서 사용한 <code>DE=62B0h</code>는 글리프 접근값입니다. HxD에서 수정한 <code>C560h</code>는 원본 Kanji ROM 덤프 안에 있는 「雨」 글리프의 파일 오프셋입니다.</div>
 <div class="judgment"><b>확인하지 않은 연결은 확정하지 않습니다</b>6부에서는 RAM의 Script와 Kanji ROM의 글리프를 실제 조사했지만, Script가 원본 D88의 어느 Sector에서 로드됐는지까지 추적한 실습은 아닙니다. 그 정보는 다른 조사 과제로 남깁니다.</div>
-<h3>언제 RAM 조사에서 D88 조사로 넘어갈까요?</h3>
-<p>실행 중인 동작의 원인을 찾는 동안에는 먼저 RAM과 Code의 관계를 따라갑니다. <strong>원본 데이터가 디스크의 어디에 저장되어 있는지</strong> 또는 <strong>영구적으로 수정할 위치가 어디인지</strong> 알아야 할 때 비로소 로드 과정을 확인하고 3부의 D88 구조로 넘어갑니다.</p>
-<div class="table-wrap"><table><thead><tr><th>현재 목적</th><th>우선 조사</th><th>D88로 넘어가는 조건</th></tr></thead><tbody>
-<tr><td>화면 변화의 실행 원인을 알고 싶다</td><td>현재 RAM, register, 실행 Code를 계속 추적</td><td>아직 필요하지 않습니다.</td></tr>
-<tr><td>RAM에서 찾은 데이터의 원본 저장 위치를 알고 싶다</td><td>해당 데이터가 언제 RAM으로 들어오는지 로드 시점을 조사</td><td>읽힌 Track/Sector 또는 원본 데이터와 연결할 실행 근거를 확보한 뒤 D88을 확인합니다.</td></tr>
-<tr><td>패치할 원본 디스크 위치를 찾고 싶다</td><td>RAM 데이터와 로드 경로를 먼저 확인</td><td>D88의 Track Table·Sector Header·RAW data와 실제 로드된 데이터를 대응시킬 근거가 있을 때 이동합니다.</td></tr>
-<tr><td>로드 근거를 아직 찾지 못했다</td><td>RAM/Code 조사를 계속하거나 로더를 별도 조사</td><td>RAM 주소와 같은 숫자를 D88 오프셋으로 추정하지 않습니다.</td></tr>
+<h3>RAM과 D88은 언제 함께 조사할까요?</h3>
+<p>화면의 실행 원인을 찾을 때는 보통 현재 RAM과 Code부터 시작합니다. 그러나 <strong>디스크 로드 직후의 현상처럼 읽기 작업 자체가 현재 질문과 직접 연결된 경우</strong>에는 3부의 SUB CPU·Sector·D88 조사도 처음부터 함께 볼 수 있습니다. 중요한 것은 D88을 언제 여느냐가 아니라, <strong>RAM의 데이터와 D88의 위치를 언제 같은 원본이라고 확정할 수 있느냐</strong>입니다.</p>
+<div class="table-wrap"><table><thead><tr><th>현재 목적</th><th>D88을 어떻게 활용할 수 있는가?</th><th>대응을 확정하는 기준</th></tr></thead><tbody>
+<tr><td>일반적인 화면 변화의 실행 원인을 알고 싶다</td><td>우선 RAM·register·실행 Code를 추적하고, 필요하면 D88의 동일 byte열이나 데이터 후보를 참고할 수 있습니다.</td><td>D88에서 비슷한 데이터를 찾았다는 사실만으로는 원본 위치라고 확정하지 않습니다.</td></tr>
+<tr><td>디스크 로드와 직접 연결된 현상을 조사한다</td><td>MAIN/SUB CPU의 요청·전송과 함께 Track/Sector를 병행해서 관찰할 수 있습니다.</td><td>실제 읽기 요청, Sector, 전송 결과가 현재 RAM의 데이터와 이어지는지 확인합니다.</td></tr>
+<tr><td>RAM 데이터의 원본 저장 위치나 패치 위치를 찾고 싶다</td><td>D88에서 동일 byte열이나 Sector 후보를 먼저 검색해도 됩니다.</td><td>로드 과정, Track/Sector, 전송된 데이터 등 실행 근거와 일치할 때 RAM↔D88 대응을 확정합니다.</td></tr>
+<tr><td>로드 근거를 아직 찾지 못했다</td><td>D88 후보를 기록해 둘 수는 있지만 확정 위치로 쓰지 않습니다.</td><td>RAM 주소와 같은 숫자를 D88 파일 오프셋으로 옮기거나, 단순 byte 일치만으로 원본이라고 결론 내리지 않습니다.</td></tr>
 </tbody></table></div>
-<div class="routes" aria-label="RAM에서 D88로 넘어가는 판단">
-<article><b>실행 중 RAM에서 단서 확인</b><p>현재 Code가 실제로 읽고 쓰는 데이터를 찾습니다.</p></article>
-<article><b>로드 경로 확인</b><p>그 데이터가 언제 어디에서 RAM으로 들어오는지 조사합니다.</p></article>
-<article><b>D88 위치 대응</b><p>실행 근거가 생긴 뒤 Track·Sector·파일 오프셋을 연결합니다.</p></article>
+<div class="routes" aria-label="RAM과 D88의 대응을 확인하는 판단">
+<article><b>RAM 또는 D88에서 후보 찾기</b><p>실행 중 데이터나 동일 byte열·Sector 후보를 찾습니다.</p></article>
+<article><b>로드 경로와 실행 근거 대조</b><p>SUB CPU·Track/Sector·전송 결과와 RAM 사용을 필요에 따라 확인합니다.</p></article>
+<article><b>RAM↔D88 대응 확정</b><p>두 쪽의 근거가 맞을 때만 원본 저장 위치나 패치 위치로 기록합니다.</p></article>
 </div>
-<div class="exercise"><h3>점검 ③</h3><p>Monitor에서 RAM의 대사 Token을 찾았습니다. 해당 RAM 주소와 같은 숫자를 D88 파일 오프셋으로 사용하면 될까요?</p><details class="check"><summary>확인할 답</summary><div class="check-answer">안 됩니다. RAM 주소와 D88의 파일 오프셋은 다른 주소 체계입니다. 원본 Sector까지 추적하려면 데이터가 언제 어디에서 읽혀 RAM으로 들어왔는지 별도 근거가 필요합니다. 이 관계를 조사해야 할 때 <a href="03.html">3부</a>를 다시 참조합니다.</div></details></div>
+<div class="exercise"><h3>점검 ③</h3><p>Monitor에서 RAM의 대사 Token을 찾았습니다. 해당 RAM 주소와 같은 숫자를 D88 파일 오프셋으로 사용하면 될까요?</p><details class="check"><summary>확인할 답</summary><div class="check-answer">안 됩니다. RAM 주소와 D88 파일 오프셋은 다른 주소 체계입니다. D88에서 같은 byte열이나 Sector 후보를 검색하는 것은 가능하지만, 실제 로드 과정과 Track/Sector·전송 결과가 RAM의 데이터와 이어진다는 근거가 있어야 원본 위치라고 확정할 수 있습니다. 필요한 개념은 <a href="03.html">3부</a>에서 다시 확인합니다.</div></details></div>
 </section>
 
 <section class="section" id="first"><div class="num">04 · FIRST CLUE</div>
@@ -196,7 +196,7 @@ g</pre><p>위 명령은 5부에서 이미 확인한 주소로 재현하는 예�
 <tr><td>알고 있는 메모리를 누가 읽는가?</td><td>지원되는 경우 READ breakpoint</td><td>값을 읽은 Code와 접근 당시의 메모리 매핑</td></tr>
 <tr><td>이 메모리 값은 왜 바뀌는가?</td><td>지원되는 경우 WRITE breakpoint</td><td>어떤 Code가 어떤 값을 얼마나 넓게 기록했는지</td></tr>
 <tr><td>명령 하나가 무엇을 바꾸는가?</td><td><code>dump → step → dump</code></td><td>같은 실행 상태에서 PC·register·memory의 실제 변화</td></tr>
-<tr><td>현재 루틴을 누가 호출했는가?</td><td>Stack과 반환 주소 확인</td><td>저장된 register와 반환 주소를 구분하고 호출 주변 Code 확인</td></tr>
+<tr><td>CALL로 진입한 것으로 보이는 현재 루틴을 누가 호출했는가?</td><td>Stack의 반환 주소와 호출 주변 Code 확인</td><td>저장된 register를 구분하고, 반환 주소 바로 앞의 실제 <code>CALL</code>과 대조합니다. <code>JP</code>로 이어진 경로나 Stack을 임시로 바꾼 Code에는 같은 방법을 기계적으로 적용하지 않습니다.</td></tr>
 </tbody></table></div>
 <h3>Code를 발견했다면 이 순서로 읽습니다</h3>
 <p>2부에서 배운 Z80 명령을 다시 외우는 것이 아니라, 실제 disassembly에서 <strong>현재 명령이 Data를 어떻게 사용하고 다음 실행 위치를 어떻게 결정하는지</strong> 순서대로 확인합니다.</p>
@@ -263,16 +263,21 @@ disasm 0x0443 #32
 <h3>관련 있어 보이지만 이번 질문의 정답이 아닌 코드</h3>
 <p>5부에서 <code>D400h</code> WRITE breakpoint로 조사했을 때는 <code>6344h LDIR</code>가 넓은 영역에 <code>00h</code>을 반복 기록하는 처리가 발견됐습니다. 세 GVRAM plane에 비슷한 기록이 반복됐기 때문에 작은 로고의 원천 데이터를 처리하는 Code가 아니라 화면 초기화의 후보로 분류하고 현재 조사 범위에서 제외했습니다.</p>
 <div class="judgment"><b>WRITE가 발생했다는 사실과 원하는 데이터를 찾았다는 결론은 다릅니다.</b>기록하는 값은 무엇인가? 어느 범위를 반복하는가? 목표 화면 변화와 실행 시점이 일치하는가? 주변 Code에서 어떤 준비가 이루어졌는가? 각각 확인해야 합니다.</div>
-<h3>6부에서는 Script·글리프·화면을 단계별로 연결했습니다</h3>
-<p>6부에서는 <code>02EDh LD E,(HL)</code>에서 Script를 읽고 첫 Token <code>B8 62</code>를 <code>DE=62B0h</code>의 글리프 접근값으로 처리하는 경로를 확인했습니다. 이후 문자 출력 루틴 <code>0B8Fh</code>, Kanji ROM I/O의 <code>0BE1h</code>, 글리프 기록 직전의 <code>0BFEh</code>를 실제 breakpoint 결과로 대조했습니다.</p>
-<pre class="lab-log" aria-label="6부에서 확인된 Script에서 화면까지의 경로">969Fh: B8 62  C8 18  48 38
+<h3>6부에서는 서로 다른 관찰을 연결해 문자 출력 구조를 확인했습니다</h3>
+<p>먼저 Script 처리에서는 <code>02EDh LD E,(HL)</code>가 바이트를 읽고, 첫 글자 「雨」의 문자 Token <code>B8 62</code>가 변환된 뒤 <code>DE=62B0h</code>의 Kanji 접근값이 되는 것을 확인했습니다. 이것은 <strong>「雨」의 문자 데이터가 글리프 접근값으로 바뀌는 과정</strong>에 대한 실측입니다.</p>
+<p>반면 <code>0BE1h</code>과 <code>0BFEh</code>에서 행 단위 Kanji ROM I/O를 실제 breakpoint로 추적한 대상은 그 뒤의 출력 대상인 <strong>「や」</strong>였습니다. 「や」의 Token <code>48 38</code>에서 시작한 접근값은 첫 행 읽기 직전 <code>DE=3840h</code>, 첫 행 기록 직전 <code>DE=3841h</code>였고, 다음 행에서는 <code>3841h → 3842h</code>로 진행했습니다. 따라서 아래 두 관찰은 같은 글자 한 번의 연속 로그가 아니라, <strong>같은 문자 출력 구조의 서로 다른 지점을 각각 검증한 기록</strong>입니다.</p>
+<pre class="lab-log" aria-label="6부에서 분리해 확인한 문자 Token 변환과 글리프 I/O">[Script와 문자 선택]
+969Fh: B8 62  C8 18  48 38
        雨       が       や
+雨: B8 62 → DE=62B0h
 
-02EDh : LD E,(HL)   ; 다음 Script 바이트 읽기
-0B8Fh : 문자 출력 루틴
-0BE1h : Kanji ROM 읽기 시작
-0BFEh : 읽은 글리프를 기록하기 직전</pre>
-<p>단, <code>0BFEh</code>의 기록 명령을 step한 뒤 일반 RAM <code>dump</code>에는 기대한 값 대신 이전 값 <code>FFh</code>가 보였습니다. 이 사실만으로 기록 실패라고 판단하지 않고, 그때 CPU가 접근하던 GVRAM과 일반 RAM을 구분해 확인해야 합니다.</p>
+[행 단위 Kanji ROM I/O를 실제 추적한 글자: や]
+や: 48 38 → DE=3840h
+0BE1h : 첫 행 읽기 직전      DE=3840h
+0BFEh : 첫 행 기록 직전      DE=3841h
+0BE1h : 다음 행 읽기 직전    DE=3841h
+0BFEh : 다음 행 기록 직전    DE=3842h</pre>
+<p><code>0BFEh</code>와 이어지는 기록 명령을 step한 뒤에도 같은 주소의 일반 RAM <code>dump</code>에는 이전 값 <code>FFh</code>가 보였습니다. 이 결과는 「や」의 행 단위 I/O 추적에서 얻은 관찰이며, 기록 실패라고 단정하지 않고 당시 CPU가 접근하던 GVRAM과 일반 RAM을 구분해야 한다는 근거로 사용합니다.</p>
 <div class="exercise"><h3>판단 연습 — 관련 Code인지 구분하기</h3><p>화면에 글자가 나타나는 순간 조사했는데, 어느 Code가 GVRAM에 연속으로 <code>00h</code>을 쓰고 있습니다. 그 Code가 글자 데이터를 전개한다고 확정할 수 있을까요?</p><details class="check"><summary>판단 기준 확인</summary><div class="check-answer">아직 확정할 수 없습니다. 광범위한 초기화일 가능성을 분리해야 합니다. 반복 범위, 쓰기 값, 실행 시점과 주변 호출을 확인한 뒤 목표 출력과 직접 관련되는지 판단합니다. 5부의 <code>D400h</code> 사례가 반례입니다.</div></details></div>
 <p class="source">실측 근거: <a href="05.html#candidate">5부 실제 호출자</a>, <a href="05.html#source-output">입력·출력 후보</a>, <a href="05.html#false-lead">화면 초기화로 제외한 후보</a>, <a href="06.html#script">6부 Script</a>, <a href="06.html#kanji">Kanji ROM</a>, <a href="06.html#write">화면 기록</a>.</p>
 </section>
